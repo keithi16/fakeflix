@@ -21,8 +21,12 @@
     "test:watch": "jest --watch"
   },
   "_moduleAliases": {
-    "@root"      : ".",
-    "@src"      : "src/"
+    "@root": ".",
+    "@src": "src/"
+  },
+  "engines": {
+    "npm": ">9",
+    "yarn": "please-use-yarn"
   },
   "dependencies": {
     "@nestjs/common": "^10.0.0",
