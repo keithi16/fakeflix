@@ -13,7 +13,7 @@
     "forceConsistentCasingInFileNames": true,
     "incremental": true,
     "lib": ["es2020"],
-    "module": "es2020",
+    "module": "CommonJS",
     "moduleResolution": "node",
     "noFallthroughCasesInSwitch": true,
     "noImplicitAny": true,
