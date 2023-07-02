@@ -1,4 +1,4 @@
-import { Directive, Field, ID, ObjectType } from '@nestjs/graphql';
+import { Directive, ObjectType } from '@nestjs/graphql';
 
 @ObjectType({ description: 'video ' })
 export class Video {
