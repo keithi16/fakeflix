@@ -1,0 +1,7 @@
+import { Directive, ObjectType } from '@nestjs/graphql';
+
+@ObjectType({ description: 'video ' })
+export class Video {
+  @Directive('@upper')
+  title: string;
+}
