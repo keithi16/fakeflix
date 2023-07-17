@@ -1,6 +1,6 @@
 import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
-import { Video } from './type/video.type';
 import { NewVideoInput } from './dto/create-video.dto';
+import { Video } from './type/video.type';
 
 @Resolver(() => Video)
 export class VideoResolver {
