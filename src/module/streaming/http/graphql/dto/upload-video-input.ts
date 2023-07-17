@@ -2,8 +2,8 @@ import { Field, InputType } from '@nestjs/graphql';
 import { MaxLength } from 'class-validator';
 
 @InputType()
-export class NewVideoInput {
+export class UploadVideoInput {
   @Field()
   @MaxLength(30)
-  title: string;
+  name: string;
 }

@@ -1,19 +1,22 @@
 import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
-import { NewVideoInput } from './dto/create-video.dto';
+import { VideoUploadService } from '@src/module/streaming/domain/service/video-upload.service';
+import { UploadVideoInput } from './dto/upload-video-input';
+
 import { Video } from './type/video.type';
 
 @Resolver(() => Video)
 export class VideoResolver {
+  constructor(private readonly videoUploadService: VideoUploadService) {}
+
   @Query(() => [Video])
   async listVideos(): Promise<Video[]> {
-    return [];
+    return [{ name: 'video1' }, { name: 'video2' }];
   }
 
   @Mutation(() => Video)
-  async addVideo(
-    @Args('newVideoData') newVideoData: NewVideoInput
+  async saveVideo(
+    @Args('newVideoData') uploadVideoInput: UploadVideoInput
   ): Promise<Video | undefined> {
-    console.log(newVideoData);
-    return undefined;
+    return await this.videoUploadService.uploadVideo(uploadVideoInput);
   }
 }

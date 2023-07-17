@@ -1,8 +1,8 @@
+import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
 import { Module } from '@nestjs/common';
 import { GraphQLModule } from '@nestjs/graphql';
-import { StreamingModule } from './module/streaming/streaming.module';
-import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
 import { AppResolver } from './app.resolver';
+import { StreamingModule } from './module/streaming/streaming.module';
 
 @Module({
   imports: [
@@ -12,7 +12,6 @@ import { AppResolver } from './app.resolver';
       driver: ApolloDriver,
     }),
   ],
-  controllers: [],
   providers: [AppResolver],
 })
 export class AppModule {}

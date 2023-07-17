@@ -3,14 +3,14 @@ module.exports = {
   parserOptions: {
     project: 'tsconfig.json',
     tsconfigRootDir: __dirname,
-    sourceType: 'module'
+    sourceType: 'module',
   },
   plugins: ['@typescript-eslint/eslint-plugin', 'no-relative-import-paths'],
   extends: ['plugin:@typescript-eslint/recommended', 'plugin:prettier/recommended'],
   root: true,
   env: {
     node: true,
-    jest: true
+    jest: true,
   },
   ignorePatterns: ['.eslintrc.js'],
   rules: {
@@ -18,13 +18,14 @@ module.exports = {
     '@typescript-eslint/explicit-function-return-type': 'off',
     '@typescript-eslint/explicit-module-boundary-types': 'off',
     '@typescript-eslint/no-explicit-any': 'off',
+    '@typescript-eslint/no-unused-vars': 'error',
     'no-relative-import-paths/no-relative-import-paths': [
       'warn',
       {
         allowSameFolder: true,
-        prefix: '@app',
-        rootDir: 'src'
-      }
+        prefix: '@src',
+        rootDir: 'src',
+      },
     ],
-  }
-}
+  },
+};

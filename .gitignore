@@ -1,4 +1,4 @@
-# compiled output
+# Compiled output
 /dist
 /node_modules
 
@@ -13,12 +13,18 @@ yarn-debug.log*
 yarn-error.log*
 lerna-debug.log*
 
+# Env
+.env
+
 # OS
 .DS_Store
 
 # Tests
 /coverage
 /.nyc_output
+
+# Development
+.data/
 
 # IDEs and editors
 /.idea
@@ -35,3 +41,4 @@ lerna-debug.log*
 !.vscode/tasks.json
 !.vscode/launch.json
 !.vscode/extensions.json
+

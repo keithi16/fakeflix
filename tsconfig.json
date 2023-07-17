@@ -19,11 +19,10 @@
     "noFallthroughCasesInSwitch": true,
     "noImplicitAny": true,
     "noImplicitThis": true,
-    "noUnusedLocals": true,
     "noUnusedParameters": true,
     "outDir": "./dist",
     "paths": {
-      "@app/*": ["./src/*"],
+      "@src/*": ["./src/*"],
       "@resource/*": ["./resource/*"]
     },
     "removeComments": true,
