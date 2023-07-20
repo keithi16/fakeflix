@@ -1,5 +1,5 @@
 import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
-import { VideoUploadService } from '@src/module/streaming/domain/service/video-upload.service';
+import { VideoUploadService } from '@src/module/streaming/core/service/video-upload.service';
 import { UploadVideoInput } from './dto/upload-video-input';
 
 import { Video } from './type/video.type';

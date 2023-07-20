@@ -1,5 +1,5 @@
 import { PrismaClient } from '@prisma/client';
-import { VideoRepository } from './video.repository';
+import { VideoRepository } from '@src/module/streaming/storage/repository/video.repository';
 
 describe('VideoRepository', () => {
   let prisma: PrismaClient;
