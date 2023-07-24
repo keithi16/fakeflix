@@ -27,5 +27,17 @@ module.exports = {
         rootDir: 'src',
       },
     ],
+    'no-restricted-imports': [
+      'error',
+      {
+        paths: [
+          {
+            name: '@nestjs/config',
+            importNames: ['ConfigModule', 'ConfigService'],
+            message: 'Please use classes from @src/shared/module/config instead',
+          },
+        ],
+      },
+    ],
   },
 };
