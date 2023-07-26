@@ -1,43 +1,43 @@
-import { PrismaClient } from '@prisma/client';
+import { Test, TestingModule } from '@nestjs/testing';
 import { VideoRepository } from '@src/module/streaming/storage/repository/video.repository';
+import { ConfigModule } from '@src/shared/module/config/config.module';
+import { DatabaseModule } from '@src/shared/module/database/database.module';
+import { PrismaService } from '@src/shared/module/database/prisma.service';
 
 describe('VideoRepository', () => {
-  let prisma: PrismaClient;
-  let videoRepository: VideoRepository;
+  let prisma: PrismaService;
+  let repository: VideoRepository;
 
-  beforeAll(() => {
-    prisma = new PrismaClient();
-    videoRepository = new VideoRepository(prisma);
+  beforeEach(async () => {
+    const module: TestingModule = await Test.createTestingModule({
+      imports: [ConfigModule.forRoot(), DatabaseModule],
+      providers: [VideoRepository],
+    }).compile();
+
+    prisma = module.get<PrismaService>(PrismaService);
+    repository = module.get<VideoRepository>(VideoRepository);
   });
 
   afterAll(async () => {
+    await prisma.$transaction([prisma.video.deleteMany()]);
     await prisma.$disconnect();
   });
 
-  it('should return a video when given a valid ID', async () => {
-    // Arrange
-    const video = await prisma.video.create({
-      data: {
-        name: 'Test Video',
-        url: 'https://example.com/test.mp4',
-      },
+  it('returns a video when given a valid ID', async () => {
+    const video = await repository.create({
+      name: 'Test Video',
     });
 
-    // Act
-    const result = await videoRepository.findOne(video.id);
+    const result = await repository.findOne(video.id);
 
-    // Assert
     expect(result).toEqual(video);
   });
 
-  it('should return null when given an invalid ID', async () => {
-    // Arrange
+  it('returns null when given an invalid ID', async () => {
     const invalidId = 'invalid-id';
 
-    // Act
-    const result = await videoRepository.findOne(invalidId);
+    const result = await repository.findOne(invalidId);
 
-    // Assert
-    expect(result).toBeNull();
+    expect(result).toEqual(null);
   });
 });

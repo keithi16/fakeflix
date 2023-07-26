@@ -3,15 +3,16 @@ import {
   Injectable,
   Logger,
   OnApplicationShutdown,
+  OnModuleDestroy,
   OnModuleInit,
 } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import { PrismaClient } from '@prisma/client';
+import { ConfigService } from '@src/shared/module/config/service/config.service';
 
 @Injectable()
 export class PrismaService
   extends PrismaClient
-  implements OnModuleInit, OnApplicationShutdown
+  implements OnModuleInit, OnModuleDestroy, OnApplicationShutdown
 {
   private logger = new Logger(PrismaService.name);
 
@@ -31,6 +32,14 @@ export class PrismaService
     });
 
     await this.$connect();
+  }
+
+  async onModuleDestroy() {
+    this.logger.log({
+      message: 'Disconnecting from Prisma on module destroy',
+    });
+
+    await this.$disconnect();
   }
 
   // In Prisma v5, the `beforeExit` is no longer available. Instead, we use
