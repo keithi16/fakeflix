@@ -1,21 +1,21 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { VideoPrismaRepository } from '@src/module/streaming/storage/repository/video.prisma-repository';
+import { VideoRepository } from '@src/module/streaming/storage/repository/video.repository';
 import { ConfigModule } from '@src/shared/module/config/config.module';
 import { DatabaseModule } from '@src/shared/module/database/database.module';
 import { PrismaService } from '@src/shared/module/database/prisma.service';
 
 describe('VideoRepository', () => {
   let prisma: PrismaService;
-  let repository: VideoPrismaRepository;
+  let repository: VideoRepository;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       imports: [ConfigModule.forRoot(), DatabaseModule],
-      providers: [VideoPrismaRepository],
+      providers: [VideoRepository],
     }).compile();
 
     prisma = module.get<PrismaService>(PrismaService);
-    repository = module.get<VideoPrismaRepository>(VideoPrismaRepository);
+    repository = module.get<VideoRepository>(VideoRepository);
   });
 
   afterAll(async () => {
