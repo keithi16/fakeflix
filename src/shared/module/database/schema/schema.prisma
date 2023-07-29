@@ -8,6 +8,13 @@ datasource db {
 }
 
 model Video {
-  id   String @id @default(uuid())
-  name String
+  id   String @id
+  title String
+  description String
+  videoUrl String
+  thumbnailUrl String?
+  size Int
+  duration Int
+  createdAt DateTime
+  updatedAt DateTime
 }
