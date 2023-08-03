@@ -1,4 +1,5 @@
-import * as uuid from 'uuid';
+import { randomUUID } from 'crypto';
+
 export type NewVideoEntity = Omit<VideoEntity, 'id' | 'createdAt' | 'updatedAt'>;
 
 export class VideoEntity {
@@ -16,8 +17,7 @@ export class VideoEntity {
     Object.assign(this, data);
   }
 
-  static create(data: NewVideoEntity): VideoEntity {
-    const id = uuid.v4();
+  static create(data: NewVideoEntity, id = randomUUID()): VideoEntity {
     return new VideoEntity({
       ...data,
       id,
