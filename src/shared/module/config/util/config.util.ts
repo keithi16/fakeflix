@@ -26,3 +26,11 @@ export const validate =
       throw error;
     }
   };
+
+export const getEnvFile = (env: Environment): string => {
+  if (env === environmentSchema.Enum.test) {
+    return '.env.test';
+  }
+
+  return '.env';
+};

@@ -6,14 +6,20 @@ import {
 } from '@nestjs/config';
 import { configSchema } from './schema/config.schema';
 import { ConfigService } from './service/config.service';
-import { getEnv, validate } from './util/config.util';
+import { getEnv, getEnvFile, validate } from './util/config.util';
+
+export type ConfigModuleOptions = Omit<
+  NestConfigModuleOptions,
+  'envFilePath' | 'validate'
+>;
 
 export class ConfigModule extends NestConfigModule {
-  static forRoot(options?: NestConfigModuleOptions): DynamicModule {
+  static forRoot(options?: ConfigModuleOptions): DynamicModule {
     const env = getEnv();
 
     const module = NestConfigModule.forRoot({
       ...options,
+      envFilePath: getEnvFile(env),
       validate: validate(env, configSchema),
     });
 

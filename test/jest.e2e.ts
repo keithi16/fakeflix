@@ -1,13 +1,11 @@
+import config from './jest.shared';
+
 export default {
-  moduleFileExtensions: ['js', 'json', 'ts'],
+  ...config,
   rootDir: '.',
-  testEnvironment: 'node',
   testMatch: ['<rootDir>/e2e/**/*.spec.ts'],
-  testPathIgnorePatterns: ['/node_modules/'],
+  setupFiles: ['<rootDir>/../test/setup.ts'],
   moduleNameMapper: {
     '^@src/(.*)$': '<rootDir>/../src/$1',
-  },
-  transform: {
-    '^.+\\.(t|j)s$': 'ts-jest',
   },
 };
