@@ -4,7 +4,10 @@ import { PrismaService } from '@src/shared/module/database/prisma.service';
 
 @Injectable()
 export class VideoRepository {
-  constructor(private readonly video: PrismaService['video']) {}
+  private readonly video: PrismaService['video'];
+  constructor(prismaService: PrismaService) {
+    this.video = prismaService.video;
+  }
 
   async findOne(id: string): Promise<VideoEntity | null> {
     const video = await this.video.findUnique({ where: { id } });

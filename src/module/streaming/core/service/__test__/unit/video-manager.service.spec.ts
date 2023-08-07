@@ -1,5 +1,40 @@
+import { Test, TestingModule } from '@nestjs/testing';
+import {
+  NewVideoEntity,
+  VideoEntity,
+} from '@src/module/streaming/core/entity/video.entity';
+import { VideoManagerService } from '@src/module/streaming/core/service/video-manager.service';
+import { VideoRepository } from '@src/module/streaming/storage/repository/video.repository';
+import { ConfigService } from '@src/shared/module/config/service/config.service';
+import { PrismaService } from '@src/shared/module/database/prisma.service';
+
 describe('VideoManagerService', () => {
-  it('should be defined', () => {
-    expect(true).toBe(true);
+  let service: VideoManagerService;
+  let repository: VideoRepository;
+
+  beforeAll(async () => {
+    const module: TestingModule = await Test.createTestingModule({
+      providers: [ConfigService, VideoManagerService, VideoRepository, PrismaService],
+    }).compile();
+
+    service = module.get<VideoManagerService>(VideoManagerService);
+    repository = module.get<VideoRepository>(VideoRepository);
+  });
+
+  describe('createVideo', () => {
+    it('should save the video entity and return it', async () => {
+      const data: NewVideoEntity = {
+        title: 'Test Video',
+        description: 'This is a test video',
+        videoUrl: 'uploads/test.mp4',
+        thumbnailUrl: 'uploads/test.jpg',
+        sizeInKb: 100,
+        duration: 100,
+      };
+      const newVideo = await VideoEntity.create(data);
+      jest.spyOn(repository, 'save').mockResolvedValue(newVideo);
+      const result = await service.createVideo(newVideo);
+      expect(result).toEqual(newVideo);
+    });
   });
 });
