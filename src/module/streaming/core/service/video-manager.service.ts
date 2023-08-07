@@ -6,7 +6,7 @@ import { VideoRepository } from '@src/module/streaming/storage/repository/video.
 export class VideoManagerService {
   constructor(private readonly videoRepository: VideoRepository) {}
 
-  async createVideo(video: VideoEntity): Promise<VideoEntity> {
+  async create(video: VideoEntity): Promise<VideoEntity> {
     return this.videoRepository.save(video);
   }
 }
