@@ -1,17 +1,15 @@
 import {
+  BadRequestException,
   Body,
   Controller,
-  FileTypeValidator,
   HttpCode,
   HttpStatus,
-  MaxFileSizeValidator,
-  ParseFilePipe,
   Post,
   Req,
-  UploadedFile,
+  UploadedFiles,
   UseInterceptors,
 } from '@nestjs/common';
-import { FileInterceptor } from '@nestjs/platform-express';
+import { FilesInterceptor } from '@nestjs/platform-express';
 import { VideoEntity } from '@src/module/streaming/core/entity/video.entity';
 import { VideoManagerService } from '@src/module/streaming/core/service/video-manager.service';
 import { CreateVideoInputDto } from '@src/module/streaming/http/rest/dto/video-upload.dto';
@@ -27,7 +25,7 @@ export class VideoUploadController {
   @Post()
   @HttpCode(HttpStatus.CREATED)
   @UseInterceptors(
-    FileInterceptor('file', {
+    FilesInterceptor('files', 2, {
       dest: './uploads',
       storage: diskStorage({
         destination: './uploads',
@@ -44,23 +42,25 @@ export class VideoUploadController {
   async uploadDocument(
     @Req() _req: Request,
     @Body() uploadedVideo: CreateVideoInputDto,
-    @UploadedFile(
-      new ParseFilePipe({
-        validators: [
-          new MaxFileSizeValidator({ maxSize: MAX_FILE_SIZE }),
-          new FileTypeValidator({ fileType: 'video/mp4' }),
-        ],
-      })
-    )
-    file: Express.Multer.File
+    @UploadedFiles() files: Express.Multer.File[]
   ) {
+    const videoFile = files.find((file) => file.mimetype === 'video/mp4');
+    const thumbnailFile = files.find((file) => file.mimetype === 'image/jpeg');
+
+    if (!videoFile || !thumbnailFile) {
+      throw new BadRequestException('Both video and thumbnail files are required.');
+    }
+
+    if (videoFile.size > MAX_FILE_SIZE || thumbnailFile.size > MAX_FILE_SIZE) {
+      throw new BadRequestException('File size exceeds the limit.');
+    }
     const newVideo = VideoEntity.create({
       title: uploadedVideo.title,
       description: uploadedVideo.description,
-      videoUrl: file.path,
-      thumbnailUrl: 'uploads/test.jpg', //temporary
-      duration: 100,
-      size: file.size,
+      videoUrl: videoFile.path,
+      thumbnailUrl: thumbnailFile.path,
+      duration: 100, // TBD add logic to extract video duration
+      sizeInKb: videoFile.size,
     });
 
     return await this.videoManagerService.createVideo(newVideo);

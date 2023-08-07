@@ -8,7 +8,7 @@ export class VideoEntity {
   description: string;
   videoUrl: string;
   thumbnailUrl: string | null;
-  size: number;
+  sizeInKb: number;
   duration: number;
   createdAt: Date;
   updatedAt: Date;

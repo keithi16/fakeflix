@@ -42,27 +42,52 @@ describe('VideoController (e2e)', () => {
         description: 'This is a test video',
         videoUrl: 'uploads/test.mp4',
         thumbnailUrl: 'uploads/test.jpg',
-        size: 100,
+        sizeInKb: 1430145,
         duration: 100,
       });
 
-      const response = await request(app.getHttpServer())
+      await request(app.getHttpServer())
         .post('/admin/video')
-        .attach('file', './test/e2e/fixtures/sample.mp4')
+        .attach('files', './test/e2e/fixtures/sample.mp4')
+        .attach('files', './test/e2e/fixtures/sample.jpg')
         .field('title', video.title)
         .field('description', video.description)
-        .expect(HttpStatus.CREATED);
+        .expect(HttpStatus.CREATED)
+        .expect((response) => {
+          expect(response.body).toMatchObject({
+            title: video.title,
+            description: video.description,
+            videoUrl: expect.stringContaining('mp4'),
+            thumbnailUrl: expect.stringContaining('jpg'),
+            sizeInKb: video.sizeInKb,
+            duration: video.duration,
+          });
+        });
+    });
 
-      const savedVideo = await videoManagerService.getVideoById(response.body.id);
-
-      expect(savedVideo).toMatchObject({
-        title: video.title,
-        description: video.description,
-        videoUrl: savedVideo?.videoUrl,
-        thumbnailUrl: savedVideo?.thumbnailUrl,
-        size: savedVideo?.size,
-        duration: savedVideo?.duration,
+    it('should require both video and thumbnail', async () => {
+      const video = VideoEntity.create({
+        title: 'Test Video',
+        description: 'This is a test video',
+        videoUrl: 'uploads/test.mp4',
+        thumbnailUrl: 'uploads/test.jpg',
+        sizeInKb: 1430145,
+        duration: 100,
       });
+
+      await request(app.getHttpServer())
+        .post('/admin/video')
+        .attach('files', './test/e2e/fixtures/sample.mp4')
+        .field('title', video.title)
+        .field('description', video.description)
+        .expect(HttpStatus.BAD_REQUEST)
+        .expect((response) => {
+          expect(response.body).toMatchObject({
+            message: 'Both video and thumbnail files are required.',
+            error: 'Bad Request',
+            statusCode: 400,
+          });
+        });
     });
 
     it('should not allow non mp4 files', async () => {
@@ -71,18 +96,19 @@ describe('VideoController (e2e)', () => {
         description: 'This is a test video',
         videoUrl: 'uploads/test.mp4',
         thumbnailUrl: 'uploads/test.jpg',
-        size: 100,
+        sizeInKb: 100,
         duration: 100,
       });
 
       await request(app.getHttpServer())
         .post('/admin/video')
-        .attach('file', './test/e2e/fixtures/sample.mp3')
+        .attach('files', './test/e2e/fixtures/sample.mp3')
+        .attach('files', './test/e2e/fixtures/sample.jpg')
         .field('title', video.title)
         .field('description', video.description)
         .expect(HttpStatus.BAD_REQUEST)
         .expect({
-          message: 'Validation failed (expected type is video/mp4)',
+          message: 'Both video and thumbnail files are required.',
           error: 'Bad Request',
           statusCode: 400,
         });

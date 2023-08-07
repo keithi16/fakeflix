@@ -11,7 +11,7 @@ describe('VideoEntity', () => {
         description: 'This is a test video',
         videoUrl: 'uploads/test.mp4',
         thumbnailUrl: 'uploads/test.jpg',
-        size: 100,
+        sizeInKb: 100,
         duration: 100,
       };
 
@@ -25,7 +25,7 @@ describe('VideoEntity', () => {
       expect(video.description).toBe(data.description);
       expect(video.videoUrl).toBe(data.videoUrl);
       expect(video.thumbnailUrl).toBe(data.thumbnailUrl);
-      expect(video.size).toBe(data.size);
+      expect(video.sizeInKb).toBe(data.sizeInKb);
       expect(video.duration).toBe(data.duration);
       expect(video.createdAt).toBeInstanceOf(Date);
       expect(video.updatedAt).toBeInstanceOf(Date);
@@ -37,7 +37,7 @@ describe('VideoEntity', () => {
         description: 'This is a test video',
         videoUrl: 'uploads/test.mp4',
         thumbnailUrl: 'uploads/test.jpg',
-        size: 100,
+        sizeInKb: 100,
         duration: 100,
       };
       const id = 'f47ac10b-58cc-4372-a567-0e02b2c3d479';
@@ -50,7 +50,7 @@ describe('VideoEntity', () => {
       expect(video.description).toBe(data.description);
       expect(video.videoUrl).toBe(data.videoUrl);
       expect(video.thumbnailUrl).toBe(data.thumbnailUrl);
-      expect(video.size).toBe(data.size);
+      expect(video.sizeInKb).toBe(data.sizeInKb);
       expect(video.duration).toBe(data.duration);
       expect(video.createdAt).toBeInstanceOf(Date);
       expect(video.updatedAt).toBeInstanceOf(Date);

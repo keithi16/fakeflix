@@ -13,7 +13,7 @@ model Video {
   description String
   videoUrl String
   thumbnailUrl String?
-  size Int
+  sizeInKb Int
   duration Int
   createdAt DateTime
   updatedAt DateTime
