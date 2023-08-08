@@ -31,7 +31,7 @@ describe('VideoManagerService', () => {
         sizeInKb: 100,
         duration: 100,
       };
-      const newVideo = await VideoEntity.create(data);
+      const newVideo = VideoEntity.create(data);
       jest.spyOn(repository, 'save').mockResolvedValue(newVideo);
       const result = await service.create(newVideo);
       expect(result).toEqual(newVideo);
