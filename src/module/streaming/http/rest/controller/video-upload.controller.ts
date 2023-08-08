@@ -13,6 +13,7 @@ import { FilesInterceptor } from '@nestjs/platform-express';
 import { VideoEntity } from '@src/module/streaming/core/entity/video.entity';
 import { VideoManagerService } from '@src/module/streaming/core/service/video-manager.service';
 import { CreateVideoInputDto } from '@src/module/streaming/http/rest/dto/video-upload.dto';
+import { randomUUID } from 'crypto';
 import { Request } from 'express';
 import { diskStorage } from 'multer';
 import { extname } from 'path';
@@ -31,7 +32,7 @@ export class VideoUploadController {
       storage: diskStorage({
         destination: './uploads',
         filename: (_req, file, cb) => {
-          return cb(null, `${getUnixTime(new Date())}-${uuid.v4()}-${extname(file.originalname)}`);
+          return cb(null, `${Date.now()}-${randomUUID()}${extname(file.originalname)}`);
         },
       }),
     })
