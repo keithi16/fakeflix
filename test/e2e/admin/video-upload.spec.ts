@@ -33,7 +33,7 @@ describe('VideoController (e2e)', () => {
   });
 
   describe('/admin/video (POST)', () => {
-    it('should upload a video', async () => {
+    it('uploads a video', async () => {
       const video = VideoEntity.create({
         title: 'Test Video',
         description: 'This is a test video',
