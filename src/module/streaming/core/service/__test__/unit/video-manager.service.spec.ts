@@ -33,7 +33,7 @@ describe('VideoManagerService', () => {
       };
       const newVideo = await VideoEntity.create(data);
       jest.spyOn(repository, 'save').mockResolvedValue(newVideo);
-      const result = await service.createVideo(newVideo);
+      const result = await service.create(newVideo);
       expect(result).toEqual(newVideo);
     });
   });

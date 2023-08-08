@@ -18,6 +18,7 @@ import { diskStorage } from 'multer';
 import { extname } from 'path';
 
 export const MAX_FILE_SIZE = 1024 * 1024 * 1024 * 1024; // 1 terabyte
+export const MAX_THUMBNAL_SIZE = 1024 * 1024 * 10; // 10 megabytes
 
 @Controller('admin/video')
 export class VideoUploadController {
@@ -51,8 +52,11 @@ export class VideoUploadController {
       throw new BadRequestException('Both video and thumbnail files are required.');
     }
 
-    if (videoFile.size > MAX_FILE_SIZE || thumbnailFile.size > MAX_FILE_SIZE) {
+    if (videoFile.size > MAX_FILE_SIZE) {
       throw new BadRequestException('File size exceeds the limit.');
+    }
+    if (thumbnailFile.size > MAX_THUMBNAL_SIZE) {
+      throw new BadRequestException('Thumbnail size exceeds the limit.');
     }
     const newVideo = VideoEntity.create({
       title: uploadedVideo.title,
@@ -63,6 +67,6 @@ export class VideoUploadController {
       sizeInKb: videoFile.size,
     });
 
-    return await this.videoManagerService.createVideo(newVideo);
+    return await this.videoManagerService.create(newVideo);
   }
 }
