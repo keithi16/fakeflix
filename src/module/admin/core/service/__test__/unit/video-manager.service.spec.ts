@@ -1,10 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import {
-  NewVideoEntity,
-  VideoEntity,
-} from '@src/module/streaming/core/entity/video.entity';
-import { VideoManagerService } from '@src/module/streaming/core/service/video-manager.service';
-import { VideoRepository } from '@src/module/streaming/storage/repository/video.repository';
+import { NewVideoEntity, VideoEntity } from '@src/module/admin/core/entity/video.entity';
+import { VideoManagerService } from '@src/module/admin/core/service/video-manager.service';
+import { VideoRepository } from '@src/module/admin/storage/repository/video.repository';
 import { ConfigService } from '@src/shared/module/config/service/config.service';
 import { PrismaService } from '@src/shared/module/database/prisma.service';
 
