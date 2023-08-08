@@ -2,13 +2,11 @@ import { HttpStatus, INestApplication } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { AppModule } from '@src/app.module';
 import { VideoEntity } from '@src/module/streaming/core/entity/video.entity';
-import { VideoManagerService } from '@src/module/streaming/core/service/video-manager.service';
 import { VideoRepository } from '@src/module/streaming/storage/repository/video.repository';
 import request from 'supertest';
 
 describe('VideoController (e2e)', () => {
   let app: INestApplication;
-  let videoManagerService: VideoManagerService;
   let videoRepository: VideoRepository;
 
   beforeAll(async () => {
@@ -19,7 +17,6 @@ describe('VideoController (e2e)', () => {
     app = moduleFixture.createNestApplication();
     await app.init();
 
-    videoManagerService = moduleFixture.get<VideoManagerService>(VideoManagerService);
     videoRepository = moduleFixture.get<VideoRepository>(VideoRepository);
   });
 
