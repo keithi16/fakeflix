@@ -5,7 +5,7 @@ import {
 
 describe('VideoEntity', () => {
   describe('create', () => {
-    it('should create a new video entity with a random UUID', () => {
+    it('creates a new video entity with a random UUID', () => {
       const data: NewVideoEntity = {
         title: 'Test Video',
         description: 'This is a test video',
@@ -31,7 +31,7 @@ describe('VideoEntity', () => {
       expect(video.updatedAt).toBeInstanceOf(Date);
     });
 
-    it('should create a new video entity with the specified ID', () => {
+    it('creates a new video entity with the specified ID', () => {
       const data: NewVideoEntity = {
         title: 'Test Video',
         description: 'This is a test video',

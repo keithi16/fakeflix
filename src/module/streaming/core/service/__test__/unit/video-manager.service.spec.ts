@@ -22,7 +22,7 @@ describe('VideoManagerService', () => {
   });
 
   describe('createVideo', () => {
-    it('should save the video entity and return it', async () => {
+    it('saves a new video entity to the database and returns the saved entity', async () => {
       const data: NewVideoEntity = {
         title: 'Test Video',
         description: 'This is a test video',

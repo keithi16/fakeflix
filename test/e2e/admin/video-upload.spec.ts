@@ -65,7 +65,7 @@ describe('VideoController (e2e)', () => {
         });
     });
 
-    it('should require both video and thumbnail', async () => {
+    it('throws an error when the thumbnail is not provided', async () => {
       const video = VideoEntity.create({
         title: 'Test Video',
         description: 'This is a test video',
@@ -90,7 +90,7 @@ describe('VideoController (e2e)', () => {
         });
     });
 
-    it('should not allow non mp4 files', async () => {
+    it('does not allow non mp4 files', async () => {
       const video = VideoEntity.create({
         title: 'Test Video',
         description: 'This is a test video',
