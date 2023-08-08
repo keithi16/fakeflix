@@ -31,11 +31,7 @@ export class VideoUploadController {
       storage: diskStorage({
         destination: './uploads',
         filename: (_req, file, cb) => {
-          const randomName = Array(32)
-            .fill(null)
-            .map(() => Math.round(Math.random() * 16).toString(16))
-            .join('');
-          return cb(null, `${randomName}${extname(file.originalname)}`);
+          return cb(null, `${getUnixTime(new Date())}-${uuid.v4()}-${extname(file.originalname)}`);
         },
       }),
     })
