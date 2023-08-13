@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { VideoEntity } from '@src/module/streaming/core/entity/video.entity';
+import { VideoEntity } from '@src/module/admin/core/entity/video.entity';
 import { PrismaService } from '@src/shared/module/database/prisma.service';
 
 @Injectable()

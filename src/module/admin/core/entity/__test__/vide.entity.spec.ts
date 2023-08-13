@@ -1,7 +1,4 @@
-import {
-  NewVideoEntity,
-  VideoEntity,
-} from '@src/module/streaming/core/entity/video.entity';
+import { NewVideoEntity, VideoEntity } from '@src/module/admin/core/entity/video.entity';
 
 describe('VideoEntity', () => {
   describe('create', () => {

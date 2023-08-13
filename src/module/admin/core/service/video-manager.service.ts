@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { VideoEntity } from '@src/module/streaming/core/entity/video.entity';
-import { VideoRepository } from '@src/module/streaming/storage/repository/video.repository';
+import { VideoEntity } from '@src/module/admin/core/entity/video.entity';
+import { VideoRepository } from '@src/module/admin/storage/repository/video.repository';
 
 @Injectable()
 export class VideoManagerService {

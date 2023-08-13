@@ -10,4 +10,4 @@ import { VideoRepository } from './storage/repository/video.repository';
   providers: [VideoResolver, VideoManagerService, VideoRepository],
   controllers: [VideoUploadController],
 })
-export class StreamingModule {}
+export class AdminModule {}
