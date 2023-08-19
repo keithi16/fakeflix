@@ -10,9 +10,9 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { FilesInterceptor } from '@nestjs/platform-express';
-import { VideoEntity } from '@src/module/admin/core/entity/video.entity';
-import { VideoManagerService } from '@src/module/admin/core/service/video-manager.service';
-import { CreateVideoInputDto } from '@src/module/admin/http/rest/dto/video-upload.dto';
+import { VideoManagerService } from '@src/module/streaming/admin-streaming/core/service/video-manager.service';
+import { CreateVideoInputDto } from '@src/module/streaming/admin-streaming/http/rest/dto/video-upload.dto';
+import { VideoEntity } from '@src/module/streaming/shared/core/entity/video.entity';
 import { randomUUID } from 'crypto';
 import { Request } from 'express';
 import { diskStorage } from 'multer';

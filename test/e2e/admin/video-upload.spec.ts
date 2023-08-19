@@ -1,8 +1,8 @@
 import { HttpStatus, INestApplication } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { AppModule } from '@src/app.module';
-import { VideoEntity } from '@src/module/admin/core/entity/video.entity';
-import { VideoRepository } from '@src/module/admin/storage/repository/video.repository';
+import { VideoEntity } from '@src/module/streaming/shared/core/entity/video.entity';
+import { VideoRepository } from '@src/module/streaming/shared/storage/repository/video.repository';
 import request from 'supertest';
 
 describe('VideoController (e2e)', () => {
