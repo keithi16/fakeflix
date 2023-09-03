@@ -2,7 +2,7 @@ import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
 import { Module } from '@nestjs/common';
 import { GraphQLModule } from '@nestjs/graphql';
 import { AppResolver } from './app.resolver';
-import { StreamingModule } from './module/streaming/streaming.module';
+import { StreamingModule } from './module/content/streaming.module';
 
 @Module({
   imports: [
