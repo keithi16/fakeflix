@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
+import { VideoEntity } from '@src/module/content/content-streaming/core/entity/video.entity';
 import { MediaPlayerService } from '@src/module/content/content-streaming/core/service/media-player.service';
-import { VideoEntity } from '@src/module/content/shared/core/entity/video.entity';
-import { VideoRepository } from '@src/module/content/shared/storage/repository/video.repository';
+import { VideoRepository } from '@src/module/content/content-streaming/persistence/repository/video.repository';
 import { randomUUID } from 'crypto';
 
 describe('MediaPlayerService', () => {
@@ -27,13 +27,16 @@ describe('MediaPlayerService', () => {
 
   describe('prepareStreaming', () => {
     it('returns the video URL if the video exists', async () => {
-      const video = VideoEntity.create({
+      const video = new VideoEntity({
+        id: randomUUID(),
         title: 'Test Video',
         description: 'This is a test video',
         videoUrl: 'uploads/test.mp4',
         thumbnailUrl: 'uploads/test.jpg',
         sizeInKb: 1430145,
         duration: 100,
+        createdAt: new Date(),
+        updatedAt: new Date(),
       });
 
       jest.spyOn(videoRepository, 'findOne').mockResolvedValueOnce(video);
@@ -41,7 +44,6 @@ describe('MediaPlayerService', () => {
       const result = await service.prepareStreaming('1');
 
       expect(result).toEqual('uploads/test.mp4');
-      expect(videoRepository.findOne).toHaveBeenCalledWith('1');
     });
 
     it('should throw an error if the video does not exist', async () => {
@@ -49,7 +51,6 @@ describe('MediaPlayerService', () => {
       jest.spyOn(videoRepository, 'findOne').mockResolvedValueOnce(null);
 
       await expect(service.prepareStreaming(id)).rejects.toThrowError('Video not found');
-      expect(videoRepository.findOne).toHaveBeenCalledWith(id);
     });
   });
 });

@@ -14,8 +14,8 @@ jobs:
         ports:
           - '5432:5432'
         env:
-          POSTGRES_USER: postgres 
-          POSTGRES_PASSWORD: postgres 
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
         # Set health checks to wait until Postgres has started.
         options: >-
           --health-cmd pg_isready
@@ -35,11 +35,16 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Code format 
+      - name: Code format
         shell: bash
-        run: | 
+        run: |
           npm run lint:check
           npm run format:check
+
+      - name: Setup database and Prisma types
+        shell: bash
+        run: |
+          npm run test:db:migrate
 
       - name: Test types
         shell: bash
@@ -49,14 +54,12 @@ jobs:
         shell: bash
         run: npm run test:unit
 
-      - name: Test integration 
+      - name: Test integration
         shell: bash
         run: |
-          npm run test:db:migrate
           npm run test:integration
-          
-      - name: Test E2E 
+
+      - name: Test E2E
         shell: bash
         run: |
-          npm run test:db:migrate
           npm run test:e2e

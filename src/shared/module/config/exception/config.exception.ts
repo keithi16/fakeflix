@@ -1,5 +1,5 @@
 import { HttpStatus } from '@nestjs/common';
-import { ApplicationException } from '@src/shared/exception/application.exception';
+import { ApplicationException } from '@src/shared/http/exception/application.exception';
 import { Environment } from '@src/shared/module/config/type/config.type';
 import { z } from 'zod';
 

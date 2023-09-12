@@ -2,11 +2,13 @@ import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
 import { Module } from '@nestjs/common';
 import { GraphQLModule } from '@nestjs/graphql';
 import { AppResolver } from './app.resolver';
-import { StreamingModule } from './module/content/streaming.module';
+import { ContentModule } from './module/content/content.module';
+import { IdentityModule } from './module/identity/identity.module';
 
 @Module({
   imports: [
-    StreamingModule,
+    ContentModule,
+    IdentityModule,
     GraphQLModule.forRoot<ApolloDriverConfig>({
       autoSchemaFile: true,
       driver: ApolloDriver,

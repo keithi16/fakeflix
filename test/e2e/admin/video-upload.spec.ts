@@ -1,35 +1,36 @@
 import { HttpStatus, INestApplication } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { AppModule } from '@src/app.module';
-import { VideoEntity } from '@src/module/content/shared/core/entity/video.entity';
-import { VideoRepository } from '@src/module/content/shared/storage/repository/video.repository';
+import { VideoEntity } from '@src/module/content/content-management/core/entity/video.entity';
+import { VideoRepository } from '@src/module/content/content-management/persistence/repository/video.repository';
 import request from 'supertest';
 
 describe('VideoController (e2e)', () => {
-  let app: INestApplication;
   let videoRepository: VideoRepository;
+  let module: TestingModule;
+  let app: INestApplication;
 
   beforeAll(async () => {
-    const moduleFixture: TestingModule = await Test.createTestingModule({
+    module = await Test.createTestingModule({
       imports: [AppModule],
     }).compile();
 
-    app = moduleFixture.createNestApplication();
+    app = module.createNestApplication();
     await app.init();
 
-    videoRepository = moduleFixture.get<VideoRepository>(VideoRepository);
+    videoRepository = module.get<VideoRepository>(VideoRepository);
   });
 
   beforeEach(async () => {
     jest.useFakeTimers({ advanceTimers: true }).setSystemTime(new Date('2023-01-01'));
   });
 
-  afterAll(async () => {
-    await app.close();
-  });
-
   afterEach(async () => {
     await videoRepository.clear();
+  });
+
+  afterAll(async () => {
+    module.close();
   });
 
   describe('/admin/video (POST)', () => {
@@ -45,8 +46,8 @@ describe('VideoController (e2e)', () => {
 
       await request(app.getHttpServer())
         .post('/admin/video')
-        .attach('files', './test/e2e/fixtures/sample.mp4')
-        .attach('files', './test/e2e/fixtures/sample.jpg')
+        .attach('video', './test/e2e/fixtures/sample.mp4')
+        .attach('thumbnail', './test/e2e/fixtures/sample.jpg')
         .field('title', video.title)
         .field('description', video.description)
         .expect(HttpStatus.CREATED)
@@ -74,7 +75,7 @@ describe('VideoController (e2e)', () => {
 
       await request(app.getHttpServer())
         .post('/admin/video')
-        .attach('files', './test/e2e/fixtures/sample.mp4')
+        .attach('video', './test/e2e/fixtures/sample.mp4')
         .field('title', video.title)
         .field('description', video.description)
         .expect(HttpStatus.BAD_REQUEST)
@@ -99,13 +100,13 @@ describe('VideoController (e2e)', () => {
 
       await request(app.getHttpServer())
         .post('/admin/video')
-        .attach('files', './test/e2e/fixtures/sample.mp3')
-        .attach('files', './test/e2e/fixtures/sample.jpg')
+        .attach('video', './test/e2e/fixtures/sample.mp3')
+        .attach('thumbnail', './test/e2e/fixtures/sample.jpg')
         .field('title', video.title)
         .field('description', video.description)
         .expect(HttpStatus.BAD_REQUEST)
         .expect({
-          message: 'Both video and thumbnail files are required.',
+          message: 'Invalid file type. Only video/mp4 and image/jpeg are supported.',
           error: 'Bad Request',
           statusCode: 400,
         });

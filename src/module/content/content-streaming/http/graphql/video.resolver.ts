@@ -1,11 +1,11 @@
 import { Query, Resolver } from '@nestjs/graphql';
 
-import { ContentCatalogueService } from '@src/module/content/content-streaming/core/service/content-catalogue.service';
+import { CatalogueService } from '@src/module/content/content-streaming/core/service/catalogue.service';
 import { Video } from './type/video.type';
 
 @Resolver(() => Video)
 export class VideoResolver {
-  constructor(private readonly videoCatalogue: ContentCatalogueService) {}
+  constructor(private readonly videoCatalogue: CatalogueService) {}
   @Query(() => [Video])
   async listVideos(): Promise<Video[]> {
     return this.videoCatalogue.listVideos();

@@ -1,36 +1,28 @@
 import { HttpStatus, INestApplication } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
-import { VideoEntity } from '@src/module/content/shared/core/entity/video.entity';
-import { StreamingModule } from '@src/module/content/streaming.module';
+import { ContentModule } from '@src/module/content/content.module';
 import fs from 'fs-extra';
 import request from 'supertest';
 
 describe('Media Player - Test (e2e)', () => {
   let app: INestApplication;
   let sampleVideo: any;
+  let module: TestingModule;
 
   beforeAll(async () => {
-    const moduleFixture: TestingModule = await Test.createTestingModule({
-      imports: [StreamingModule],
+    module = await Test.createTestingModule({
+      imports: [ContentModule],
     }).compile();
 
-    app = moduleFixture.createNestApplication();
+    app = module.createNestApplication();
     await app.init();
-    const video = VideoEntity.create({
-      title: 'Test Video',
-      description: 'This is a test video',
-      videoUrl: 'uploads/test.mp4',
-      thumbnailUrl: 'uploads/test.jpg',
-      sizeInKb: 1430145,
-      duration: 100,
-    });
 
     const { body: createdVideo } = await request(app.getHttpServer())
       .post('/admin/video')
-      .attach('files', './test/e2e/fixtures/sample.mp4')
-      .attach('files', './test/e2e/fixtures/sample.jpg')
-      .field('title', video.title)
-      .field('description', video.description)
+      .attach('video', './test/e2e/fixtures/sample.mp4')
+      .attach('thumbnail', './test/e2e/fixtures/sample.jpg')
+      .field('title', 'Test Video')
+      .field('description', 'This is a test video')
       .expect(HttpStatus.CREATED);
 
     sampleVideo = createdVideo;
@@ -38,6 +30,7 @@ describe('Media Player - Test (e2e)', () => {
   afterEach(async () => {
     await fs.remove(`.${sampleVideo.videoUrl}`);
   });
+  afterAll(() => module.close());
 
   describe('/player/stream/:videoId', () => {
     it('streams a video', async () => {

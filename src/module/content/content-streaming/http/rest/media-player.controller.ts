@@ -6,7 +6,7 @@ import * as path from 'path';
 
 @Controller('player')
 export class MediaPlayerController {
-  constructor(protected readonly playerService: MediaPlayerService) {}
+  constructor(private readonly mediaPlayerService: MediaPlayerService) {}
   @Get('stream/:videoId')
   @Header('Content-Type', 'video/mp4')
   async streamVideo(
@@ -14,7 +14,7 @@ export class MediaPlayerController {
     @Req() req: Request,
     @Res() res: Response
   ) {
-    const videoUrl = await this.playerService.prepareStreaming(videoId);
+    const videoUrl = await this.mediaPlayerService.prepareStreaming(videoId);
     const videoPath = path.join('.', videoUrl);
     const fileSize = fs.statSync(videoPath).size;
 
