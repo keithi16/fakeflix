@@ -1,7 +1,8 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { VideoEntity } from '@src/module/content/content-streaming/core/entity/video.entity';
+import { ContentStreamingModule } from '@src/module/content/content-streaming/content-streaming.module';
 import { MediaPlayerService } from '@src/module/content/content-streaming/core/service/media-player.service';
-import { VideoRepository } from '@src/module/content/content-streaming/persistence/repository/video.repository';
+import { VideoEntity } from '@src/module/content/shared/core/entity/video.entity';
+import { VideoRepository } from '@src/module/content/shared/persistence/repository/video.repository';
 import { randomUUID } from 'crypto';
 
 describe('MediaPlayerService', () => {
@@ -10,15 +11,7 @@ describe('MediaPlayerService', () => {
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [
-        MediaPlayerService,
-        {
-          provide: VideoRepository,
-          useValue: {
-            findOne: jest.fn(),
-          },
-        },
-      ],
+      imports: [ContentStreamingModule],
     }).compile();
 
     service = module.get<MediaPlayerService>(MediaPlayerService);
@@ -27,28 +20,25 @@ describe('MediaPlayerService', () => {
 
   describe('prepareStreaming', () => {
     it('returns the video URL if the video exists', async () => {
-      const video = new VideoEntity({
+      const video = VideoEntity.createFrom({
         id: randomUUID(),
-        title: 'Test Video',
-        description: 'This is a test video',
-        videoUrl: 'uploads/test.mp4',
-        thumbnailUrl: 'uploads/test.jpg',
+        url: 'uploads/test.mp4',
         sizeInKb: 1430145,
         duration: 100,
         createdAt: new Date(),
         updatedAt: new Date(),
       });
 
-      jest.spyOn(videoRepository, 'findOne').mockResolvedValueOnce(video);
+      jest.spyOn(videoRepository, 'findById').mockResolvedValueOnce(video);
 
-      const result = await service.prepareStreaming('1');
+      const result = await service.prepareStreaming(video.getId());
 
       expect(result).toEqual('uploads/test.mp4');
     });
 
-    it('should throw an error if the video does not exist', async () => {
+    it('throws an error if the video does not exist', async () => {
       const id = randomUUID();
-      jest.spyOn(videoRepository, 'findOne').mockResolvedValueOnce(null);
+      jest.spyOn(videoRepository, 'findById').mockResolvedValueOnce(null);
 
       await expect(service.prepareStreaming(id)).rejects.toThrowError('Video not found');
     });

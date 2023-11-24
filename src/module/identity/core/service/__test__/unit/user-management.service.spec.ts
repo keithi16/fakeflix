@@ -1,5 +1,4 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { UserEntity } from '@src/module/identity/core/entity/user.entity';
 import { UserManagementService } from '@src/module/identity/core/service/user-management.service';
 import { UserRepository } from '@src/module/identity/persistence/repository/user.repository';
 import { ConfigService } from '@src/shared/module/config/service/config.service';
@@ -27,12 +26,14 @@ describe('UserManagementService', () => {
         lastName: 'Doe',
       };
 
-      const createdUser = await UserEntity.create(user);
-      jest.spyOn(userRepository, 'save').mockResolvedValueOnce(createdUser);
+      jest.spyOn(userRepository, 'save').mockResolvedValueOnce();
 
-      const result = await service.create(user);
+      const createdUser = await service.create(user);
+      const { email, firstName, lastName } = createdUser.serialize();
 
-      expect(result).toEqual(createdUser);
+      expect(email).toEqual(user.email);
+      expect(firstName).toEqual(user.firstName);
+      expect(lastName).toEqual(user.lastName);
     });
   });
 });

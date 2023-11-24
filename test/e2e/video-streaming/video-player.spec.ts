@@ -1,13 +1,14 @@
 import { HttpStatus, INestApplication } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { ContentModule } from '@src/module/content/content.module';
+import { ContentRepository } from '@src/module/content/shared/persistence/repository/content.repository';
 import fs from 'fs-extra';
 import request from 'supertest';
 
 describe('Media Player - Test (e2e)', () => {
   let app: INestApplication;
-  let sampleVideo: any;
   let module: TestingModule;
+  let contentRepository: ContentRepository;
 
   beforeAll(async () => {
     module = await Test.createTestingModule({
@@ -16,24 +17,24 @@ describe('Media Player - Test (e2e)', () => {
 
     app = module.createNestApplication();
     await app.init();
-
-    const { body: createdVideo } = await request(app.getHttpServer())
-      .post('/admin/video')
-      .attach('video', './test/e2e/fixtures/sample.mp4')
-      .attach('thumbnail', './test/e2e/fixtures/sample.jpg')
-      .field('title', 'Test Video')
-      .field('description', 'This is a test video')
-      .expect(HttpStatus.CREATED);
-
-    sampleVideo = createdVideo;
+    contentRepository = module.get<ContentRepository>(ContentRepository);
   });
-  afterEach(async () => {
-    await fs.remove(`.${sampleVideo.videoUrl}`);
+
+  beforeEach(async () => {
+    await contentRepository.clear();
   });
   afterAll(() => module.close());
 
   describe('/player/stream/:videoId', () => {
     it('streams a video', async () => {
+      const { body: sampleVideo } = await request(app.getHttpServer())
+        .post('/admin/video')
+        .attach('video', './test/e2e/fixtures/sample.mp4')
+        .attach('thumbnail', './test/e2e/fixtures/sample.jpg')
+        .field('title', 'Test Video')
+        .field('description', 'This is a test video')
+        .expect(HttpStatus.CREATED);
+
       const fileSize = 1430145;
       const range = `bytes=0-${fileSize - 1}`;
 
@@ -48,6 +49,8 @@ describe('Media Player - Test (e2e)', () => {
       expect(response.headers['accept-ranges']).toBe('bytes');
       expect(response.headers['content-length']).toBe(String(fileSize));
       expect(response.headers['content-type']).toBe('video/mp4');
+
+      await fs.remove(`.${sampleVideo.videoUrl}`);
     });
     it('returns 500 if range is invalid', async () => {
       const range = 'bytes=invalid-range';

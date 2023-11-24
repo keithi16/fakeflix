@@ -35,7 +35,7 @@ describe('AuthResolver (e2e)', () => {
         password: 'password123',
       };
       await userRepository.save(
-        await UserEntity.create({
+        await UserEntity.createNew({
           firstName: 'John',
           lastName: 'Doe',
           email: signInInput.email,
@@ -92,7 +92,7 @@ describe('AuthResolver (e2e)', () => {
         password: 'password123',
       };
       await userRepository.save(
-        await UserEntity.create({
+        await UserEntity.createNew({
           firstName: 'John',
           lastName: 'Doe',
           email: signInInput.email,

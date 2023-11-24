@@ -44,12 +44,14 @@ describe('AuthenticationService', () => {
         password: 'testpassword',
       };
       const token = 'testtoken';
-      userRepository.findOne = jest.fn().mockResolvedValue(await UserEntity.create(user));
+      userRepository.findOneBy = jest
+        .fn()
+        .mockResolvedValue(await UserEntity.createNew(user));
       jwtService.signAsync = jest.fn().mockResolvedValue(token);
 
       const result = await authService.signIn(new Email(user.email), 'testpassword');
 
-      expect(userRepository.findOne).toHaveBeenCalledWith({ email: user.email });
+      expect(userRepository.findOneBy).toHaveBeenCalledWith({ email: user.email });
       expect(jwtService.signAsync).toHaveBeenCalled();
       expect(result).toEqual({ accessToken: token });
     });
@@ -61,7 +63,9 @@ describe('AuthenticationService', () => {
         lastName: 'Doe',
         password: 'testpassword',
       };
-      userRepository.findOne = jest.fn().mockResolvedValue(await UserEntity.create(user));
+      userRepository.findOneBy = jest
+        .fn()
+        .mockResolvedValue(await UserEntity.createNew(user));
 
       await expect(
         authService.signIn(new Email(user.email), 'invalidpassword')

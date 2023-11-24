@@ -2,8 +2,8 @@ import { UnauthorizedException } from '@nestjs/common';
 import { Args, Mutation, Resolver } from '@nestjs/graphql';
 import { AuthService } from '@src/module/identity/core/service/authentication.service';
 import { Email } from '@src/module/identity/core/value-object/email.value-object';
-import { AuthToken } from './dto/auth-token.dto';
-import { SignInInput } from './dto/sign-in-input.dto';
+import { AuthToken } from './type/auth-token.type';
+import { SignInInput } from './type/sign-in-input.type';
 
 @Resolver()
 export class AuthResolver {

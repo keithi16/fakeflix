@@ -10,9 +10,12 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
-import { VideoEntity } from '@src/module/content/content-management/core/entity/video.entity';
-import { VideoManagementService } from '@src/module/content/content-management/core/service/video-managament.service';
-import { CreateVideoInputDto } from '@src/module/content/content-management/http/rest/dto/video-upload.dto';
+import { ContentManagementService } from '@src/module/content/content-management/core/service/content-management.service';
+import {
+  CreateMovieInputDto,
+  CreateMovieResponseDto,
+} from '@src/module/content/content-management/http/rest/dto/create-movie.dto';
+import { VideoEntity } from '@src/module/content/shared/core/entity/video.entity';
 import { randomUUID } from 'crypto';
 import { Request } from 'express';
 import { diskStorage } from 'multer';
@@ -20,7 +23,7 @@ import { extname } from 'path';
 
 @Controller('admin/video')
 export class VideoUploadController {
-  constructor(private readonly videoManagementService: VideoManagementService) {}
+  constructor(private readonly contentManagementService: ContentManagementService) {}
   @Post()
   @HttpCode(HttpStatus.CREATED)
   @UseInterceptors(
@@ -51,12 +54,12 @@ export class VideoUploadController {
       }
     )
   )
-  async uploadDocument(
+  async uploadMovie(
     @Req() _req: Request,
-    @Body() uploadedVideo: CreateVideoInputDto,
+    @Body() contentData: CreateMovieInputDto,
     @UploadedFiles()
     files: { video?: Express.Multer.File[]; thumbnail?: Express.Multer.File[] }
-  ) {
+  ): Promise<CreateMovieResponseDto> {
     const videoFile = files.video?.[0];
     const thumbnailFile = files.thumbnail?.[0];
 
@@ -72,13 +75,26 @@ export class VideoUploadController {
       throw new BadRequestException('Thumbnail size exceeds the limit.');
     }
 
-    return await this.videoManagementService.create({
-      title: uploadedVideo.title,
-      description: uploadedVideo.description,
+    const createdMovie = await this.contentManagementService.createMovie({
+      title: contentData.title,
+      description: contentData.description,
       videoUrl: videoFile.path,
       thumbnailUrl: thumbnailFile.path,
       duration: 100, // TBD add logic to extract video duration
       sizeInKb: videoFile.size,
     });
+    const media = createdMovie.getMedia();
+    if (!media) {
+      throw new BadRequestException('Media is not defined for the content');
+    }
+    return {
+      id: media.getVideo().getId(),
+      title: createdMovie.getTitle(),
+      description: createdMovie.getDescription(),
+      videoUrl: media.getVideo().getUrl(),
+      thumbnailUrl: createdMovie.getThumbnail()?.getUrl(),
+      sizeInKb: media.getVideo().getSizeInKb(),
+      duration: media.getVideo().getDuration(),
+    };
   }
 }

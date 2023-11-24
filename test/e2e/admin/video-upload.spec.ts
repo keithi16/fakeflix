@@ -1,12 +1,11 @@
 import { HttpStatus, INestApplication } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { AppModule } from '@src/app.module';
-import { VideoEntity } from '@src/module/content/content-management/core/entity/video.entity';
-import { VideoRepository } from '@src/module/content/content-management/persistence/repository/video.repository';
+import { ContentRepository } from '@src/module/content/shared/persistence/repository/content.repository';
 import request from 'supertest';
 
 describe('VideoController (e2e)', () => {
-  let videoRepository: VideoRepository;
+  let contentRepository: ContentRepository;
   let module: TestingModule;
   let app: INestApplication;
 
@@ -18,7 +17,7 @@ describe('VideoController (e2e)', () => {
     app = module.createNestApplication();
     await app.init();
 
-    videoRepository = module.get<VideoRepository>(VideoRepository);
+    contentRepository = module.get<ContentRepository>(ContentRepository);
   });
 
   beforeEach(async () => {
@@ -26,7 +25,7 @@ describe('VideoController (e2e)', () => {
   });
 
   afterEach(async () => {
-    await videoRepository.clear();
+    await contentRepository.clear();
   });
 
   afterAll(async () => {
@@ -35,14 +34,14 @@ describe('VideoController (e2e)', () => {
 
   describe('/admin/video (POST)', () => {
     it('uploads a video', async () => {
-      const video = VideoEntity.create({
+      const video = {
         title: 'Test Video',
         description: 'This is a test video',
         videoUrl: 'uploads/test.mp4',
         thumbnailUrl: 'uploads/test.jpg',
         sizeInKb: 1430145,
         duration: 100,
-      });
+      };
 
       await request(app.getHttpServer())
         .post('/admin/video')
@@ -64,14 +63,14 @@ describe('VideoController (e2e)', () => {
     });
 
     it('throws an error when the thumbnail is not provided', async () => {
-      const video = VideoEntity.create({
+      const video = {
         title: 'Test Video',
         description: 'This is a test video',
         videoUrl: 'uploads/test.mp4',
         thumbnailUrl: 'uploads/test.jpg',
         sizeInKb: 1430145,
         duration: 100,
-      });
+      };
 
       await request(app.getHttpServer())
         .post('/admin/video')
@@ -89,14 +88,14 @@ describe('VideoController (e2e)', () => {
     });
 
     it('does not allow non mp4 files', async () => {
-      const video = VideoEntity.create({
+      const video = {
         title: 'Test Video',
         description: 'This is a test video',
         videoUrl: 'uploads/test.mp4',
         thumbnailUrl: 'uploads/test.jpg',
         sizeInKb: 100,
         duration: 100,
-      });
+      };
 
       await request(app.getHttpServer())
         .post('/admin/video')

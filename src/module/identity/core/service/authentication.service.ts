@@ -16,12 +16,12 @@ export class AuthService {
   ) {}
 
   async signIn(email: Email, password: string): Promise<{ accessToken: string }> {
-    const user = await this.userRepository.findOne({ email: email.getValue() });
+    const user = await this.userRepository.findOneBy({ email: email.getValue() });
     if (!user || (await user?.comparePassword(password)) === false) {
       throw new UserUnauthorizedException(`Cannot authorize user`);
     }
     //TODO add more fields to the JWT
-    const payload = { sub: user.id };
+    const payload = { sub: user.getId() };
     return {
       accessToken: await this.jwtService.signAsync(payload, {
         // Using HS256 algorithm to prenvent from security risk

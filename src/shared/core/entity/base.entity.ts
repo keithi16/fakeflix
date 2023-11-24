@@ -1,11 +1,3 @@
-import { Expose } from 'class-transformer';
-
-//Used for class-transformer serialization in order to expose or hide fields
-export enum ExposeFieldControl {
-  INTERNAL = 'internal',
-  PUBLIC = 'public',
-}
-
 export type BaseEntityProps = {
   id: string;
   createdAt: Date;
@@ -13,16 +5,25 @@ export type BaseEntityProps = {
 };
 
 export abstract class BaseEntity {
-  @Expose()
-  readonly id: string;
-  @Expose()
-  createdAt: Date;
-  @Expose()
-  updatedAt: Date;
+  protected readonly id: BaseEntityProps['id'];
+  protected createdAt: BaseEntityProps['createdAt'];
+  protected updatedAt: BaseEntityProps['updatedAt'];
 
   constructor(data: BaseEntityProps) {
     Object.assign(this, data);
   }
 
-  abstract serialize(group: ExposeFieldControl): Record<string, unknown>;
+  abstract serialize(): Record<string, unknown>;
+
+  getId(): string {
+    return this.id;
+  }
+
+  getCreatedAt(): Date {
+    return this.createdAt;
+  }
+
+  getUpdatedAt(): Date {
+    return this.updatedAt;
+  }
 }

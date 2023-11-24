@@ -1,5 +1,5 @@
-export abstract class StorageException extends Error {}
+export abstract class PersistenceException extends Error {}
 
-export class StorageInternalException extends StorageException {}
+export class PersistenceInternalException extends PersistenceException {}
 
-export class StorageClientException extends StorageException {}
+export class PersistenceClientException extends PersistenceException {}

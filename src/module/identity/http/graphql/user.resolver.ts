@@ -5,8 +5,8 @@ import {
   AuthGuard,
   AuthenticatedRequest,
 } from '@src/module/identity/http/guard/auth.guard';
-import { CreateUserInput } from './dto/create-user-input.dto';
-import { User } from './dto/user.dto';
+import { CreateUserInput } from './type/create-user-input.type';
+import { User } from './type/user.type';
 
 @Resolver()
 export class UserResolver {
