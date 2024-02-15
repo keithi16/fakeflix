@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { UserEntity } from '@src/module/identity/core/entity/user.entity';
-import { DefaultPrismaRepository } from '@src/shared/module/persistence/default.prisma.repository';
-import { PrismaService } from '@src/shared/module/persistence/prisma.service';
+import { DefaultPrismaRepository } from '@src/shared/module/persistence/prisma/default.prisma.repository';
+import { PrismaService } from '@src/shared/module/persistence/prisma/prisma.service';
 
 type QueryableFields = Prisma.$UserPayload['scalars'];
 @Injectable()

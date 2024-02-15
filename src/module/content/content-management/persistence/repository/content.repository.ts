@@ -1,0 +1,11 @@
+import { Inject, Injectable } from '@nestjs/common';
+import { Content } from '@src/module/content/content-management/persistence/model/content.model';
+import { DefaultTypeOrmRepository } from '@src/shared/module/persistence/typeorm/repository/default-typeorm.repository';
+import { DataSource } from 'typeorm';
+
+@Injectable()
+export class ContentRepository extends DefaultTypeOrmRepository<Content> {
+  constructor(@Inject(DataSource) readonly dataSource: DataSource) {
+    super(Content, dataSource);
+  }
+}

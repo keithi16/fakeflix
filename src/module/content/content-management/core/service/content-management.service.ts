@@ -1,43 +1,43 @@
 import { Injectable } from '@nestjs/common';
-import {
-  ContentEntity,
-  ContentType,
-} from '@src/module/content/shared/core/entity/content.entity';
-import { MovieEntity } from '@src/module/content/shared/core/entity/movie.entity';
-import { ThumbnailEntity } from '@src/module/content/shared/core/entity/thumbnail.entity';
-import { VideoEntity } from '@src/module/content/shared/core/entity/video.entity';
-import { ContentRepository } from '@src/module/content/shared/persistence/repository/content.repository';
+import { ContentType } from '@src/module/content/content-management/core/enum/content-type.enum';
+import { Content } from '@src/module/content/content-management/persistence/model/content.model';
+import { Movie } from '@src/module/content/content-management/persistence/model/movie.model';
+import { Thumbnail } from '@src/module/content/content-management/persistence/model/thumbnail.model';
+import { Video } from '@src/module/content/content-management/persistence/model/video.model';
+import { ContentRepository } from '@src/module/content/content-management/persistence/repository/content.repository';
 
-export type CreateVideoDto = {
-  title: string;
-  description: string;
-  videoUrl: string;
-  thumbnailUrl?: string;
-  duration: number;
-  sizeInKb: number;
-};
 @Injectable()
 export class ContentManagementService {
   constructor(private readonly contentRepository: ContentRepository) {}
 
-  async createMovie(video: CreateVideoDto): Promise<ContentEntity> {
-    const content = ContentEntity.createNew({
+  async createMovie(video: {
+    //TODO add userId
+    title: string;
+    description: string;
+    videoUrl: string;
+    thumbnailUrl?: string;
+    duration: number;
+    sizeInKb: number;
+  }): Promise<Content> {
+    const contentModel = new Content({
       title: video.title,
       description: video.description,
       type: ContentType.MOVIE,
-      media: MovieEntity.createNew({
-        video: VideoEntity.createNew({
+      movie: new Movie({
+        video: new Video({
           url: video.videoUrl,
           duration: video.duration,
           sizeInKb: video.sizeInKb,
         }),
       }),
     });
+
     if (video.thumbnailUrl) {
-      content.addThumbnail(ThumbnailEntity.createNew({ url: video.thumbnailUrl }));
+      contentModel.thumbnail = new Thumbnail({
+        url: video.thumbnailUrl,
+      });
     }
 
-    await this.contentRepository.save(content);
-    return content;
+    return this.contentRepository.save(contentModel);
   }
 }

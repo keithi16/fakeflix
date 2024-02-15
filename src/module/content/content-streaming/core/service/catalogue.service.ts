@@ -1,8 +1,4 @@
 import { Injectable } from '@nestjs/common';
-import { ContentEntity } from '@src/module/content/shared/core/entity/content.entity';
-import { VideoEntity } from '@src/module/content/shared/core/entity/video.entity';
-import { ContentRepository } from '@src/module/content/shared/persistence/repository/content.repository';
-import { VideoRepository } from '@src/module/content/shared/persistence/repository/video.repository';
 
 export interface ContentFilterOpts {
   movie: string;
@@ -10,15 +6,11 @@ export interface ContentFilterOpts {
 
 @Injectable()
 export class CatalogueService {
-  constructor(
-    private readonly videoRepository: VideoRepository,
-    private readonly contentRepository: ContentRepository
-  ) {}
-  async listContent(filter?: ContentFilterOpts): Promise<ContentEntity[]> {
-    return this.contentRepository.findAll(filter);
+  async listContent(): Promise<any[]> {
+    return [];
   }
 
-  async getVideoInfo(id: string): Promise<VideoEntity | null> {
-    return this.videoRepository.findById(id);
+  async getVideoInfo(videoId: string): Promise<any | null> {
+    return videoId;
   }
 }

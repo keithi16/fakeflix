@@ -15,7 +15,6 @@ import {
   CreateMovieInputDto,
   CreateMovieResponseDto,
 } from '@src/module/content/content-management/http/rest/dto/create-movie.dto';
-import { VideoEntity } from '@src/module/content/shared/core/entity/video.entity';
 import { randomUUID } from 'crypto';
 import { Request } from 'express';
 import { diskStorage } from 'multer';
@@ -67,11 +66,15 @@ export class VideoUploadController {
       throw new BadRequestException('Both video and thumbnail files are required.');
     }
 
-    //TODO review if the entity should be exposed here
-    if (videoFile.size > VideoEntity.getMaxFileSize()) {
+    //TODO make it a custom pipe
+    const MAX_FILE_SIZE = 1024 * 1024 * 1024; // 1 gigabyte
+
+    if (videoFile.size > MAX_FILE_SIZE) {
       throw new BadRequestException('File size exceeds the limit.');
     }
-    if (thumbnailFile.size > VideoEntity.getMaxThumbnailSize()) {
+    const MAX_THUMBNAIL_SIZE = 1024 * 1024 * 10; // 10 megabytes
+
+    if (thumbnailFile.size > MAX_THUMBNAIL_SIZE) {
       throw new BadRequestException('Thumbnail size exceeds the limit.');
     }
 
@@ -83,18 +86,14 @@ export class VideoUploadController {
       duration: 100, // TBD add logic to extract video duration
       sizeInKb: videoFile.size,
     });
-    const media = createdMovie.getMedia();
-    if (!media) {
-      throw new BadRequestException('Media is not defined for the content');
-    }
     return {
-      id: media.getVideo().getId(),
-      title: createdMovie.getTitle(),
-      description: createdMovie.getDescription(),
-      videoUrl: media.getVideo().getUrl(),
-      thumbnailUrl: createdMovie.getThumbnail()?.getUrl(),
-      sizeInKb: media.getVideo().getSizeInKb(),
-      duration: media.getVideo().getDuration(),
+      id: createdMovie.id,
+      title: createdMovie.title,
+      description: createdMovie.description,
+      videoUrl: createdMovie.movie.video.url,
+      thumbnailUrl: createdMovie.thumbnail?.url,
+      sizeInKb: createdMovie.movie.video.sizeInKb,
+      duration: createdMovie.movie.video.duration,
     };
   }
 }

@@ -6,6 +6,7 @@ import { Video } from './type/video.type';
 export class VideoResolver {
   @Query(() => [Video])
   async listVideos(): Promise<Video[]> {
+    //TODO implement it
     return [{ name: 'video1' }, { name: 'video2' }];
   }
 }

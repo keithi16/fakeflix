@@ -2,7 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { UserManagementService } from '@src/module/identity/core/service/user-management.service';
 import { UserRepository } from '@src/module/identity/persistence/repository/user.repository';
 import { ConfigService } from '@src/shared/module/config/service/config.service';
-import { PrismaService } from '@src/shared/module/persistence/prisma.service';
+import { PrismaService } from '@src/shared/module/persistence/prisma/prisma.service';
 
 describe('UserManagementService', () => {
   let service: UserManagementService;

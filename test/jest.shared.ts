@@ -10,4 +10,5 @@ export default {
   },
   setupFiles: ['<rootDir>/test/setup.ts'],
   verbose: true,
+  resetMocks: true,
 };
