@@ -20,9 +20,9 @@ import { UserRepository } from './persistence/repository/user.repository';
     AuthResolver,
     UserResolver,
     UserManagementService,
-    PrismaService,
     ConfigService,
     UserRepository,
+    PrismaService,
   ],
 })
 export class IdentityModule {}

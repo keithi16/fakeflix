@@ -1,13 +1,12 @@
 import { HttpStatus, INestApplication } from '@nestjs/common';
 import { TestingModule } from '@nestjs/testing';
+import { CONTENT_TEST_FIXTURES } from '@src/module/content/__test__/contants';
+
 import { ContentRepository } from '@src/module/content/content-management/persistence/repository/content.repository';
 import { MovieRepository } from '@src/module/content/content-management/persistence/repository/movie.repository';
 import { VideoRepository } from '@src/module/content/content-management/persistence/repository/video.repository';
-import path from 'path';
+import { createNestApp } from '@testInfra/test-e2e.setup';
 import request from 'supertest';
-import { createNestApp } from '../../../../../../test/test-e2e.setup';
-
-const FIXTURES_PATH = path.join(__dirname, '..', 'fixtures');
 
 describe('VideoController (e2e)', () => {
   let contentRepository: ContentRepository;
@@ -55,8 +54,8 @@ describe('VideoController (e2e)', () => {
 
       await request(app.getHttpServer())
         .post('/admin/video')
-        .attach('video', `${FIXTURES_PATH}/sample.mp4`)
-        .attach('thumbnail', `${FIXTURES_PATH}/sample.jpg`)
+        .attach('video', `${CONTENT_TEST_FIXTURES}/sample.mp4`)
+        .attach('thumbnail', `${CONTENT_TEST_FIXTURES}/sample.jpg`)
         .field('title', video.title)
         .field('description', video.description)
         .expect(HttpStatus.CREATED)
@@ -84,7 +83,7 @@ describe('VideoController (e2e)', () => {
 
       await request(app.getHttpServer())
         .post('/admin/video')
-        .attach('video', `${FIXTURES_PATH}/sample.mp4`)
+        .attach('video', `${CONTENT_TEST_FIXTURES}/sample.mp4`)
         .field('title', video.title)
         .field('description', video.description)
         .expect(HttpStatus.BAD_REQUEST)
@@ -101,16 +100,12 @@ describe('VideoController (e2e)', () => {
       const video = {
         title: 'Test Video',
         description: 'This is a test video',
-        videoUrl: 'uploads/test.mp4',
-        thumbnailUrl: 'uploads/test.jpg',
-        sizeInKb: 100,
-        duration: 100,
       };
 
       await request(app.getHttpServer())
         .post('/admin/video')
-        .attach('video', `${FIXTURES_PATH}/sample.mp3`)
-        .attach('thumbnail', `${FIXTURES_PATH}/sample.jpg`)
+        .attach('video', `${CONTENT_TEST_FIXTURES}/sample.mp3`)
+        .attach('thumbnail', `${CONTENT_TEST_FIXTURES}/sample.jpg`)
         .field('title', video.title)
         .field('description', video.description)
         .expect(HttpStatus.BAD_REQUEST)

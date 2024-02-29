@@ -1,14 +1,24 @@
 import { Injectable } from '@nestjs/common';
 import { ContentType } from '@src/module/content/content-management/core/enum/content-type.enum';
-import { Content } from '@src/module/content/content-management/persistence/model/content.model';
-import { Movie } from '@src/module/content/content-management/persistence/model/movie.model';
-import { Thumbnail } from '@src/module/content/content-management/persistence/model/thumbnail.model';
-import { Video } from '@src/module/content/content-management/persistence/model/video.model';
+import { Content } from '@src/module/content/content-management/persistence/entity/content.entity';
+import { Movie } from '@src/module/content/content-management/persistence/entity/movie.entity';
+import { Thumbnail } from '@src/module/content/content-management/persistence/entity/thumbnail.entity';
+import { Video } from '@src/module/content/content-management/persistence/entity/video.entity';
 import { ContentRepository } from '@src/module/content/content-management/persistence/repository/content.repository';
+import { ContentManagementOperationType } from '@src/shared/events/content/content-management.event';
+import { EntityChangedEvent } from '@src/shared/events/entity-changed.event';
+import { EventEmitterService } from '@src/shared/module/event/service/event-emitter.service';
 
 @Injectable()
 export class ContentManagementService {
-  constructor(private readonly contentRepository: ContentRepository) {}
+  constructor(
+    private readonly contentRepository: ContentRepository,
+    /**
+     * TODO wrap the event emitter into our own service
+     * To allow easy swapping of the event emitter library
+     */
+    private readonly eventEmitter: EventEmitterService
+  ) {}
 
   async createMovie(video: {
     //TODO add userId
@@ -38,6 +48,15 @@ export class ContentManagementService {
       });
     }
 
-    return this.contentRepository.save(contentModel);
+    const content = await this.contentRepository.save(contentModel);
+    this.eventEmitter.emit(
+      ContentManagementOperationType.CONTENT_CREATED,
+      new EntityChangedEvent(
+        ContentManagementOperationType.CONTENT_CREATED,
+        content.id,
+        content
+      )
+    );
+    return content;
   }
 }

@@ -23,6 +23,7 @@
     "outDir": "./dist",
     "paths": {
       "@src/*": ["./src/*"],
+      "@testInfra/*": ["./test/*"],
       "@resource/*": ["./resource/*"]
     },
     "removeComments": true,

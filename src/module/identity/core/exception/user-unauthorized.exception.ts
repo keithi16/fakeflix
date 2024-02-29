@@ -1,3 +1,3 @@
-import { DomainException } from '@src/shared/core/exception/domain.exception';
+import { DomainException } from '@src/shared/core/exeption/domain.exception';
 
 export class UserUnauthorizedException extends DomainException {}

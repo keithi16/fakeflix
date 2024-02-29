@@ -1,25 +1,51 @@
-import { faker } from '@faker-js/faker/locale/af_ZA';
-import { Test, TestingModule } from '@nestjs/testing';
-import { ContentStreamingModule } from '@src/module/content/content-streaming/content-streaming.module';
+import { faker } from '@faker-js/faker';
+import { Test } from '@nestjs/testing';
 import { MediaPlayerService } from '@src/module/content/content-streaming/core/service/media-player.service';
+import { ContentRepository } from '@src/module/content/content-streaming/persistence/repository/content.repository';
 
 describe('MediaPlayerService', () => {
-  let service: MediaPlayerService;
+  let mediaPlayerService: MediaPlayerService;
+  let contentRepository: jest.Mocked<ContentRepository>;
 
   beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
-      imports: [ContentStreamingModule],
+    const moduleRef = await Test.createTestingModule({
+      providers: [
+        MediaPlayerService,
+        {
+          provide: ContentRepository,
+          useValue: {
+            getVideoById: jest.fn(),
+          },
+        },
+      ],
     }).compile();
 
-    service = module.get<MediaPlayerService>(MediaPlayerService);
+    mediaPlayerService = moduleRef.get<MediaPlayerService>(MediaPlayerService);
+    contentRepository = moduleRef.get(ContentRepository);
   });
 
-  describe('prepareStreaming', () => {
-    it('returns the video URL if the video exists', async () => {
-      const fakeVideoId = faker.string.uuid();
-      const result = await service.prepareStreaming(fakeVideoId);
+  it('should return video url if video exists', async () => {
+    const videoId = '123';
+    const videoUrl = 'http://example.com/video.mp4';
+    contentRepository.getVideoById.mockResolvedValue({
+      metadata: {
+        url: videoUrl,
+      },
+    } as any);
 
-      expect(result).toEqual(`http://video/${fakeVideoId}`);
-    });
+    const result = await mediaPlayerService.prepareStreaming(videoId);
+
+    expect(result).toBe(videoUrl);
+    expect(contentRepository.getVideoById).toHaveBeenCalledWith(videoId);
+  });
+
+  it('should throw VideoNotFoundException if video does not exist', async () => {
+    const videoId = faker.string.uuid();
+    contentRepository.getVideoById.mockResolvedValue(undefined);
+
+    await expect(mediaPlayerService.prepareStreaming(videoId)).rejects.toThrow(
+      `video with id ${videoId} not found`
+    );
+    expect(contentRepository.getVideoById).toHaveBeenCalledWith(videoId);
   });
 });

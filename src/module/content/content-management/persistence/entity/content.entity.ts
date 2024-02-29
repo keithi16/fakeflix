@@ -1,13 +1,12 @@
 import { ContentType } from '@src/module/content/content-management/core/enum/content-type.enum';
-import { DefaultModel } from '@src/shared/module/persistence/typeorm/model/default.model';
+import { DefaultEntity } from '@src/shared/module/persistence/typeorm/entity/default.entity';
 import { Column, Entity, OneToOne } from 'typeorm';
-import { Movie } from './movie.model';
-import { Thumbnail } from './thumbnail.model';
-import { TvShow } from './tv-show.model';
+import { Movie } from './movie.entity';
+import { Thumbnail } from './thumbnail.entity';
+import { TvShow } from './tv-show.entity';
 
 @Entity({ name: 'Content' })
-export class Content extends DefaultModel<Content> {
-  //todo add enum
+export class Content extends DefaultEntity<Content> {
   @Column({ nullable: false, type: 'enum', enum: ContentType })
   type: ContentType;
 
@@ -20,7 +19,7 @@ export class Content extends DefaultModel<Content> {
   @OneToOne(() => Thumbnail, (thumbnail) => thumbnail.content, {
     cascade: true,
   })
-  thumbnail: Thumbnail;
+  thumbnail?: Thumbnail;
 
   @OneToOne(() => Movie, (movie) => movie.content, {
     cascade: true,
@@ -30,5 +29,5 @@ export class Content extends DefaultModel<Content> {
   @OneToOne(() => TvShow, (tvShow) => tvShow.content, {
     cascade: true,
   })
-  tvShow: TvShow;
+  tvShow?: TvShow;
 }

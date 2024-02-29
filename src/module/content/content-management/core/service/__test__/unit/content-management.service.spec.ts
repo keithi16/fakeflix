@@ -1,8 +1,9 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ContentType } from '@src/module/content/content-management/core/enum/content-type.enum';
 import { ContentManagementService } from '@src/module/content/content-management/core/service/content-management.service';
-import { Content } from '@src/module/content/content-management/persistence/model/content.model';
+import { Content } from '@src/module/content/content-management/persistence/entity/content.entity';
 import { ContentRepository } from '@src/module/content/content-management/persistence/repository/content.repository';
+import { EventEmitterService } from '@src/shared/module/event/service/event-emitter.service';
 import { Repository } from 'typeorm';
 
 describe('ContentManagementService', () => {
@@ -17,6 +18,12 @@ describe('ContentManagementService', () => {
           provide: ContentRepository,
           useValue: {
             save: jest.fn(),
+          },
+        },
+        {
+          provide: EventEmitterService,
+          useValue: {
+            emit: jest.fn(),
           },
         },
       ],
@@ -37,7 +44,7 @@ describe('ContentManagementService', () => {
 
     const saveSpy = jest
       .spyOn(contentRepository, 'save')
-      .mockResolvedValue(undefined as any);
+      .mockImplementation(async (content) => content as any);
 
     await service.createMovie(video);
 

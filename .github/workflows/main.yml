@@ -5,8 +5,11 @@ on: push
 jobs:
   build-and-test:
     name: Build and test
-
     runs-on: ubuntu-latest
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      PORT: 3001
+      NODE_ENV: test
 
     services:
       postgres:
@@ -22,6 +25,10 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
+      localstack:
+        image: localstack/localstack
+        ports:
+          - 4566:4566
 
     steps:
       - name: Checkout
@@ -30,36 +37,61 @@ jobs:
       - name: Install Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '20.4.0'
+          node-version: '20.11.0'
+
+      - name: Install AWS CLI
+        run: sudo pip install awscli
+
+      - name: Configure AWS CLI
+        run: |
+          aws configure set aws_access_key_id test
+          aws configure set aws_secret_access_key test
+          aws configure set region us-east-1
+          aws configure set output json
+
+      - name: export env
+        uses: krisalay/export-env@v1.0.0
+        with:
+          filename: .env.test
 
       - name: Install dependencies
-        run: npm ci
+        run: yarn --frozen-lockfile
 
       - name: Code format
         shell: bash
         run: |
-          npm run lint:check
-          npm run format:check
+          yarn lint:check
+          yarn format:check
 
-      - name: Setup database and Prisma types
+      - name: Setup Indentity DB
         shell: bash
         run: |
-          npm run test:db:migrate
+          yarn identity:db:push
+
+      - name: Setup Content Management database
+        shell: bash
+        run: |
+          yarn content-management:db:migrate
+
+      - name: Setup DynamoDB
+        shell: bash
+        run: |
+          yarn content-streaming:db:setup
 
       - name: Test types
         shell: bash
-        run: npm run test:type
+        run: yarn test:type
 
       - name: Test unit
         shell: bash
-        run: npm run test:unit
+        run: yarn test:unit
 
       - name: Test integration
         shell: bash
         run: |
-          npm run test:integration
+          yarn test:integration
 
       - name: Test E2E
         shell: bash
         run: |
-          npm run test:e2e
+          yarn test:e2e

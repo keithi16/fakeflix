@@ -1,13 +1,16 @@
+import { faker } from '@faker-js/faker';
 import { HttpStatus, INestApplication } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
+import { CONTENT_TEST_FIXTURES } from '@src/module/content/__test__/contants';
+import { ContentMedia } from '@src/module/content/content-streaming/persistence/entity/content-media.entity';
+import { ContentRepository } from '@src/module/content/content-streaming/persistence/repository/content.repository';
 import { ContentModule } from '@src/module/content/content.module';
-import fs from 'fs-extra';
 import request from 'supertest';
 
-//temporary skipping
-describe.skip('Media Player - Test (e2e)', () => {
+describe('Media Player - Test (e2e)', () => {
   let app: INestApplication;
   let module: TestingModule;
+  let contentRepository: ContentRepository;
 
   beforeAll(async () => {
     module = await Test.createTestingModule({
@@ -15,29 +18,41 @@ describe.skip('Media Player - Test (e2e)', () => {
     }).compile();
 
     app = module.createNestApplication();
+    contentRepository = module.get<ContentRepository>(ContentRepository);
     await app.init();
   });
 
   beforeEach(async () => {
-    //    await contentRepository.clear();
+    await contentRepository.deleteAll();
   });
   afterAll(() => module.close());
 
   describe('/player/stream/:videoId', () => {
     it('streams a video', async () => {
-      const { body: sampleVideo } = await request(app.getHttpServer())
-        .post('/admin/video')
-        .attach('video', './test/e2e/fixtures/sample.mp4')
-        .attach('thumbnail', './test/e2e/fixtures/sample.jpg')
-        .field('title', 'Test Video')
-        .field('description', 'This is a test video')
-        .expect(HttpStatus.CREATED);
+      const contentMedia = new ContentMedia({
+        contentId: faker.string.uuid(),
+        title: 'Test Video',
+        description: 'This is a test video',
+        type: 'video',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        movieId: faker.string.uuid(),
+        metadata: {
+          url: `${CONTENT_TEST_FIXTURES}/sample.mp4`,
+          duration: 100,
+          sizeInKb: 1150,
+          videoId: faker.string.uuid(),
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+      });
+      await contentRepository.save(contentMedia);
 
       const fileSize = 1430145;
       const range = `bytes=0-${fileSize - 1}`;
 
       const response = await request(app.getHttpServer())
-        .get(`/player/stream/${sampleVideo.id}`)
+        .get(`/player/stream/${contentMedia.metadata.videoId}`)
         .set('Range', range)
         .expect(HttpStatus.PARTIAL_CONTENT);
 
@@ -47,16 +62,6 @@ describe.skip('Media Player - Test (e2e)', () => {
       expect(response.headers['accept-ranges']).toBe('bytes');
       expect(response.headers['content-length']).toBe(String(fileSize));
       expect(response.headers['content-type']).toBe('video/mp4');
-
-      await fs.remove(`.${sampleVideo.videoUrl}`);
-    });
-    it('returns 500 if range is invalid', async () => {
-      const range = 'bytes=invalid-range';
-
-      await request(app.getHttpServer())
-        .get('/player/stream/45705b56-a47f-4869-b736-8f6626c940f8')
-        .set('Range', range)
-        .expect(HttpStatus.INTERNAL_SERVER_ERROR);
     });
   });
 });

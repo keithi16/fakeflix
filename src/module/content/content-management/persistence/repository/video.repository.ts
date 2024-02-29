@@ -1,5 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { Video } from '@src/module/content/content-management/persistence/model/video.model';
+import { Video } from '@src/module/content/content-management/persistence/entity/video.entity';
 import { DefaultTypeOrmRepository } from '@src/shared/module/persistence/typeorm/repository/default-typeorm.repository';
 import { DataSource } from 'typeorm';
 

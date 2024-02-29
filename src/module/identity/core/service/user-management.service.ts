@@ -18,7 +18,6 @@ export class UserManagementService {
   }
 
   async getUserById(id: string) {
-    const user = await this.userRepository.findOneBy({ id });
-    return user;
+    return this.userRepository.findOneBy({ id });
   }
 }

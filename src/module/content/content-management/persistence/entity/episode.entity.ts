@@ -1,11 +1,11 @@
-import { DefaultModel } from '@src/shared/module/persistence/typeorm/model/default.model';
+import { DefaultEntity } from '@src/shared/module/persistence/typeorm/entity/default.entity';
 import { Column, Entity, ManyToOne, OneToOne } from 'typeorm';
-import { Thumbnail } from './thumbnail.model';
-import { TvShow } from './tv-show.model';
-import { Video } from './video.model';
+import { Thumbnail } from './thumbnail.entity';
+import { TvShow } from './tv-show.entity';
+import { Video } from './video.entity';
 
 @Entity('episode')
-export class Episode extends DefaultModel<Episode> {
+export class Episode extends DefaultEntity<Episode> {
   @Column()
   title: string;
 

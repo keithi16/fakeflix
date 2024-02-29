@@ -1,8 +1,8 @@
-import { BaseEntity, DataSource, EntityTarget, Repository } from 'typeorm';
+import { DataSource, EntityTarget, ObjectLiteral, Repository } from 'typeorm';
 
 //TODO change to hide typeorm repository, stop using inheritance
 export abstract class DefaultTypeOrmRepository<
-  T extends BaseEntity
+  T extends ObjectLiteral
 > extends Repository<T> {
   constructor(readonly model: EntityTarget<T>, readonly dataSource: DataSource) {
     super(model, dataSource.createEntityManager());

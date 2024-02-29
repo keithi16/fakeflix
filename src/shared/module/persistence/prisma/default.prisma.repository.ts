@@ -3,7 +3,7 @@ import { Prisma } from '@prisma/client';
 import {
   PersistenceClientException,
   PersistenceInternalException,
-} from '@src/shared/core/exception/storage.exception';
+} from '@src/shared/core/exeption/storage.exception';
 
 @Injectable()
 export abstract class DefaultPrismaRepository {

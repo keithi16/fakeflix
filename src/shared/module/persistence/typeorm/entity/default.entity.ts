@@ -1,6 +1,5 @@
 import { randomUUID } from 'crypto';
 import {
-  BaseEntity,
   BeforeInsert,
   BeforeUpdate,
   CreateDateColumn,
@@ -9,20 +8,22 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 
-export abstract class DefaultModel<T> extends BaseEntity {
+/**
+ * Do not extend TypeORM's BaseEntity to avoid coupling with TypeORM
+ */
+export abstract class DefaultEntity<T> {
   constructor(data: Partial<T>) {
-    super();
     Object.assign(this, data);
+    this.id = this.id || randomUUID();
   }
   @BeforeInsert()
-  protected beforeInsert(): void {
-    this.id = this.id || randomUUID();
+  beforeInsert(): void {
     this.createdAt = this.createdAt || new Date();
     this.updatedAt = new Date();
   }
 
   @BeforeUpdate()
-  protected beforeUpdate(): void {
+  beforeUpdate(): void {
     this.updatedAt = new Date();
   }
 
