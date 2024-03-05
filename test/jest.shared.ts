@@ -4,6 +4,7 @@ export default {
   testEnvironment: 'node',
   moduleNameMapper: {
     '^@src/(.*)$': '<rootDir>/src/$1',
+    '^@database/(.*)$': '<rootDir>/database/$1',
     '^@testInfra/(.*)$': '<rootDir>/test/$1',
   },
   transform: {

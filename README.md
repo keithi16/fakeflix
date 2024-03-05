@@ -1,6 +1,7 @@
 # Fakeflix
 
-Repositório oficial do curso Aplicações Enterprise com Node.js da [Tech Leads club](https://comece.techleads.club)
+Repositório oficial do curso Aplicações Enterprise com Node.js da [Tech Leads
+club](https://comece.techleads.club)
 
 ## 🛠️ Instalação
 
@@ -16,7 +17,7 @@ cp .env.default .env
 npm run docker:up
 
 # Criar o banco de dados e rodar as migrações.
-npm run db:migrate
+npm run db:setup
 ```
 
 ## ✅ Testes

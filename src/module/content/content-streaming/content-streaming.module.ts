@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 
-import { ConfigService } from '@src/shared/module/config/service/config.service';
+import { ConfigService } from '@src/shared/module/config/config.service';
 import { DynamoDBPersistenceModule } from '@src/shared/module/persistence/dynamodb/dynamodb.module';
 import { CatalogueService } from './core/service/catalogue.service';
 import { ContentIndexingService } from './core/service/content-indexing.service';

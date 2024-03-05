@@ -23,6 +23,7 @@
     "outDir": "./dist",
     "paths": {
       "@src/*": ["./src/*"],
+      "@database/*": ["./database/*"],
       "@testInfra/*": ["./test/*"],
       "@resource/*": ["./resource/*"]
     },

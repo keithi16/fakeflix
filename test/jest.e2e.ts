@@ -4,4 +4,5 @@ export default {
   ...config,
   testMatch: ['<rootDir>/src/**/__test__/e2e/**/*.spec.ts'],
   setupFiles: ['<rootDir>/test/setup.ts'],
+  setupFilesAfterEnv: ['<rootDir>/test/migration-setup.ts'],
 };

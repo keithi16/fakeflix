@@ -47,7 +47,6 @@ export class ContentManagementService {
         url: video.thumbnailUrl,
       });
     }
-
     const content = await this.contentRepository.save(contentModel);
     this.eventEmitter.emit(
       ContentManagementOperationType.CONTENT_CREATED,

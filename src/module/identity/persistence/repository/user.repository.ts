@@ -5,6 +5,7 @@ import { DefaultPrismaRepository } from '@src/shared/module/persistence/prisma/d
 import { PrismaService } from '@src/shared/module/persistence/prisma/prisma.service';
 
 type QueryableFields = Prisma.$UserPayload['scalars'];
+
 @Injectable()
 export class UserRepository extends DefaultPrismaRepository {
   private readonly model: PrismaService['user'];

@@ -6,10 +6,6 @@ jobs:
   build-and-test:
     name: Build and test
     runs-on: ubuntu-latest
-    env:
-      DATABASE_URL: ${{ secrets.DATABASE_URL }}
-      PORT: 3001
-      NODE_ENV: test
 
     services:
       postgres:
@@ -49,10 +45,9 @@ jobs:
           aws configure set region us-east-1
           aws configure set output json
 
-      - name: export env
-        uses: krisalay/export-env@v1.0.0
-        with:
-          filename: .env.test
+      - name: Copy test environment variables
+        run: |
+          cp .env.test .env
 
       - name: Install dependencies
         run: yarn --frozen-lockfile
@@ -63,20 +58,10 @@ jobs:
           yarn lint:check
           yarn format:check
 
-      - name: Setup Indentity DB
+      - name: Setup modules databases
         shell: bash
         run: |
-          yarn identity:db:push
-
-      - name: Setup Content Management database
-        shell: bash
-        run: |
-          yarn content-management:db:migrate
-
-      - name: Setup DynamoDB
-        shell: bash
-        run: |
-          yarn content-streaming:db:setup
+          yarn test:db:setup
 
       - name: Test types
         shell: bash

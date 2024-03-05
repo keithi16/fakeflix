@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { UserManagementService } from '@src/module/identity/core/service/user-management.service';
 import { UserRepository } from '@src/module/identity/persistence/repository/user.repository';
-import { ConfigService } from '@src/shared/module/config/service/config.service';
+import { ConfigModule } from '@src/shared/module/config/config.module';
 import { PrismaService } from '@src/shared/module/persistence/prisma/prisma.service';
 
 describe('UserManagementService', () => {
@@ -10,7 +10,8 @@ describe('UserManagementService', () => {
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [UserManagementService, UserRepository, PrismaService, ConfigService],
+      imports: [ConfigModule.forRoot()],
+      providers: [UserManagementService, UserRepository, PrismaService],
     }).compile();
 
     service = module.get<UserManagementService>(UserManagementService);

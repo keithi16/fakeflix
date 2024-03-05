@@ -1,19 +1,14 @@
-import { registerAs } from '@nestjs/config';
-import envParser from '@src/shared/module/persistence/typeorm/config/env-parser';
-import { resolve } from 'path';
-import { DataSource, DataSourceOptions } from 'typeorm';
+import { getDataSource } from './typeorm-migration-helper';
 
-console.log(
-  'envParser',
-  resolve(__dirname, '../../../src/module/content/content-management/persistence/model')
-);
-const newConfig = Object.assign({}, envParser, {
-  entities: [
-    resolve(__dirname, '../../../src/module/content/content-management/**/*.model.ts'),
-  ],
-  migrations: [resolve(__dirname, './migrations/*.ts')],
-  logging: true,
-});
+const prepareDateSourceForMigration = async () => {
+  const dataSource = await getDataSource();
+  /**
+   * In order to use Nest modules and have just one connection
+   * we need to close the connection that nest created so TypeOrm migration manager can create a new one.
+   * see https://github.com/typeorm/typeorm/issues/8914#issuecomment-1938005518
+   */
+  await dataSource.destroy();
+  return dataSource;
+};
 
-export default registerAs('typeorm', () => newConfig);
-export const connectionSource = new DataSource(newConfig as DataSourceOptions);
+export default prepareDateSourceForMigration();

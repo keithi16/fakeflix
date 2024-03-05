@@ -1,5 +1,4 @@
 import {
-  Inject,
   Injectable,
   Logger,
   OnApplicationShutdown,
@@ -7,7 +6,7 @@ import {
   OnModuleInit,
 } from '@nestjs/common';
 import { PrismaClient } from '@prisma/client';
-import { ConfigService } from '@src/shared/module/config/service/config.service';
+import { ConfigService } from '@src/shared/module/config/config.service';
 
 @Injectable()
 export class PrismaService
@@ -16,11 +15,11 @@ export class PrismaService
 {
   private logger = new Logger(PrismaService.name);
 
-  constructor(@Inject(ConfigService) configService: ConfigService) {
+  constructor(private configService: ConfigService) {
     super({
       datasources: {
         db: {
-          url: configService.get('DATABASE_URL'),
+          url: configService.get('database.url'),
         },
       },
     });
