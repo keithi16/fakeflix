@@ -2,7 +2,6 @@ import { ContentType } from '@src/module/content/content-management/core/enum/co
 import { DefaultEntity } from '@src/shared/module/persistence/typeorm/entity/default.entity';
 import { Column, Entity, OneToOne } from 'typeorm';
 import { Movie } from './movie.entity';
-import { Thumbnail } from './thumbnail.entity';
 import { TvShow } from './tv-show.entity';
 
 @Entity({ name: 'Content' })
@@ -15,11 +14,6 @@ export class Content extends DefaultEntity<Content> {
 
   @Column({ type: 'varchar', nullable: false })
   description: string;
-
-  @OneToOne(() => Thumbnail, (thumbnail) => thumbnail.content, {
-    cascade: true,
-  })
-  thumbnail?: Thumbnail;
 
   @OneToOne(() => Movie, (movie) => movie.content, {
     cascade: true,

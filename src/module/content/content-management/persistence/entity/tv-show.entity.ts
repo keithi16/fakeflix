@@ -1,5 +1,6 @@
+import { Thumbnail } from '@src/module/content/content-management/persistence/entity/thumbnail.entity';
 import { DefaultEntity } from '@src/shared/module/persistence/typeorm/entity/default.entity';
-import { Entity, OneToMany, OneToOne } from 'typeorm';
+import { Entity, JoinColumn, OneToMany, OneToOne } from 'typeorm';
 import { Content } from './content.entity';
 import { Episode } from './episode.entity';
 
@@ -9,5 +10,10 @@ export class TvShow extends DefaultEntity<TvShow> {
   episodes: Episode[];
 
   @OneToOne(() => Content)
+  @JoinColumn()
   content: Content;
+
+  @OneToOne(() => Thumbnail)
+  @JoinColumn()
+  thumbnail: Thumbnail;
 }

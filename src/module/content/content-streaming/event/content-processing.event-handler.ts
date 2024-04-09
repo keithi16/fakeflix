@@ -30,10 +30,10 @@ export class ContentProcessingEventHandler {
         videoId: payload.entityData.movie?.video.id,
         createdAt: payload.entityData.movie?.video.createdAt,
         updatedAt: payload.entityData.movie?.video.updatedAt,
-        thumbnail: payload.entityData.thumbnail
+        thumbnail: payload.entityData.movie?.thumbnail
           ? {
-              url: payload.entityData.thumbnail.url,
-              thumbnailId: payload.entityData.thumbnail.id,
+              url: payload.entityData.movie.thumbnail.url,
+              thumbnailId: payload.entityData.movie.thumbnail.id,
             }
           : undefined,
       },

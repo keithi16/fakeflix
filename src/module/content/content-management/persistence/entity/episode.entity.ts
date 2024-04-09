@@ -1,5 +1,5 @@
 import { DefaultEntity } from '@src/shared/module/persistence/typeorm/entity/default.entity';
-import { Column, Entity, ManyToOne, OneToOne } from 'typeorm';
+import { Column, Entity, JoinColumn, ManyToOne, OneToOne } from 'typeorm';
 import { Thumbnail } from './thumbnail.entity';
 import { TvShow } from './tv-show.entity';
 import { Video } from './video.entity';
@@ -21,7 +21,8 @@ export class Episode extends DefaultEntity<Episode> {
   @ManyToOne(() => TvShow, (tvShow) => tvShow.episodes)
   tvShow: TvShow;
 
-  @OneToOne(() => Thumbnail, (thumbnail) => thumbnail.episode)
+  @OneToOne(() => Thumbnail)
+  @JoinColumn()
   thumbnail: Thumbnail;
 
   @OneToOne(() => Video, (video) => video.episode)

@@ -1,3 +1,4 @@
+import { Thumbnail } from '@src/module/content/content-management/persistence/entity/thumbnail.entity';
 import { DefaultEntity } from '@src/shared/module/persistence/typeorm/entity/default.entity';
 import { Entity, JoinColumn, OneToOne } from 'typeorm';
 import { Content } from './content.entity';
@@ -13,4 +14,10 @@ export class Movie extends DefaultEntity<Movie> {
   @OneToOne(() => Content, (content) => content.movie)
   @JoinColumn()
   content: Content;
+
+  @OneToOne(() => Thumbnail, {
+    cascade: true,
+  })
+  @JoinColumn()
+  thumbnail: Thumbnail;
 }

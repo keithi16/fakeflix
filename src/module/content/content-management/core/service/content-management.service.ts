@@ -43,7 +43,7 @@ export class ContentManagementService {
     });
 
     if (video.thumbnailUrl) {
-      contentModel.thumbnail = new Thumbnail({
+      contentModel.movie.thumbnail = new Thumbnail({
         url: video.thumbnailUrl,
       });
     }

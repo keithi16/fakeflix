@@ -19,5 +19,6 @@ export class Video extends DefaultEntity<Video> {
   movie: Movie;
 
   @OneToOne(() => Episode, (episode) => episode.video)
+  @JoinColumn()
   episode: Episode;
 }

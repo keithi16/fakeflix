@@ -91,7 +91,7 @@ export class VideoUploadController {
       title: createdMovie.title,
       description: createdMovie.description,
       videoUrl: createdMovie.movie.video.url,
-      thumbnailUrl: createdMovie.thumbnail?.url,
+      thumbnailUrl: createdMovie.movie.thumbnail?.url,
       sizeInKb: createdMovie.movie.video.sizeInKb,
       duration: createdMovie.movie.video.duration,
     };
