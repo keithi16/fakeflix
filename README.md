@@ -1,44 +1,28 @@
-# Fakeflix
+![Logo](https://assets.circle.so/vwlv5vb7k62knu2ww18v0f674xv7)
 
-Repositório oficial do curso Aplicações Enterprise com Node.js da [Tech Leads
-club](https://comece.techleads.club)
+# Construindo Aplicações Enterprise - Repositório Base (Lab)
 
-## 🛠️ Instalação
+Esse é o repositório base do curso Consturindo Aplicações Enterprise, ele é usado para experimentos e referência do código que sera utilizado no curso.
 
-Requisitos mínimos:
+Tenha em mente que esse código muda constantemente conforme estamos testando coisas para serem adicionadas no curso, e ele sempre reflete o ultimo estado dos nossos experimentos.
 
-- Node.js 20.x
-- Docker
+Para ter um passo a passo e referência para cada parte do curso utilize o repositório [enterprise-apps-classes](https://github.com/tech-leads-club/enterprise-apps-classes)
 
-```shell
-cp .env.default .env
+## Executando o projeto
 
-# Instalar e rodar dependências externas.
-npm run docker:up
+Necessário `Docker` e `docker-compose`
 
-# Criar o banco de dados e rodar as migrações.
-npm run db:setup
+```bash
+  yarn --frozen-lockfile //instala as dependencias na versão especifica do lockfile
+  docker-compose up -d //inicia dependencias
+  yarn test:db:setup //aplica migrações
+  yarn test //executa os testes
 ```
 
-## ✅ Testes
+## Contribuindo
 
-```shell
-# Testes de tipagem.
-npm run test:types
+Todos membros da Tech Leads club são livres para contribuir com ideas para o projeto, basta abrir um pull request.
 
-# Testes de unidade. 
-npm run test:unit
-npm run test:unit:watch
+## Licença
 
-# Testes de integração e E2E (requer os containers do docker).
-# Rodar as migrações apenas uma vez para criar o banco de testes.
-npm run test:db:migrate 
-
-# Testes de integração.
-npm run test:integration
-npm run test:integration:watch
-
-# Testes end-to-end.
-npm run test:e2e
-npm run test:e2e:watch
-```
+Esse código é proprietário da Tech Leads club e não deve ser compartilhado externamente.
