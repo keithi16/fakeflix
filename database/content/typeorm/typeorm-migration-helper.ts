@@ -1,14 +1,20 @@
 import { NestFactory } from '@nestjs/core';
-import { ContentManagementPersistenceModule } from '@src/module/content/content-management/persistence/content-management-persistence.module';
+import { PersistenceModule } from '@src/module/content/content-management/persistence/persistence.module';
 import { ConfigService } from '@src/shared/module/config/config.service';
 import { TypeOrmMigrationService } from '@src/shared/module/persistence/typeorm/service/typeorm-migration.service';
 import { DataSourceOptions } from 'typeorm';
 import { createPostgresDatabase } from 'typeorm-extension';
 
-export const migrate = async () => {
-  const migrationModule = await NestFactory.createApplicationContext(
-    ContentManagementPersistenceModule
+const createDatabaseModule = async () => {
+  return await NestFactory.createApplicationContext(
+    PersistenceModule.forRoot({
+      migrations: [__dirname + '/migrations/*'],
+    })
   );
+};
+
+export const migrate = async () => {
+  const migrationModule = await createDatabaseModule();
   migrationModule.init();
   const configService = migrationModule.get<ConfigService>(ConfigService);
   const options = {
@@ -23,8 +29,6 @@ export const migrate = async () => {
 };
 
 export const getDataSource = async () => {
-  const migrationModule = await NestFactory.createApplicationContext(
-    ContentManagementPersistenceModule
-  );
+  const migrationModule = await createDatabaseModule();
   return migrationModule.get(TypeOrmMigrationService).getDataSource();
 };

@@ -7,7 +7,7 @@ import { TypeOrmMigrationService } from './service/typeorm-migration.service';
 
 @Module({})
 export class TypeOrmPersistenceModule {
-  static forRootAsync(options: {
+  static forRoot(options: {
     migrations?: string[];
     entities?: Array<typeof DefaultEntity>;
   }): DynamicModule {
@@ -21,6 +21,7 @@ export class TypeOrmPersistenceModule {
             const configService: ConfigService = args.find(
               (arg) => arg instanceof ConfigService
             );
+
             return {
               type: 'postgres',
               logging: false,

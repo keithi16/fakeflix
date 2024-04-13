@@ -4,14 +4,10 @@ import { EventEmitterModule } from '@src/shared/module/event/event-emitter.modul
 import { ContentManagementService } from './core/service/content-management.service';
 import { VideoResolver } from './http/graphql/video.resolver';
 import { VideoUploadController } from './http/rest/video-upload.controller';
-import { ContentManagementPersistenceModule } from './persistence/content-management-persistence.module';
+import { PersistenceModule } from './persistence/persistence.module';
 
 @Module({
-  imports: [
-    ContentManagementPersistenceModule,
-    EventEmitterModule,
-    ConfigModule.forRoot(),
-  ],
+  imports: [ConfigModule.forRoot(), PersistenceModule.forRoot(), EventEmitterModule],
   providers: [VideoResolver, ContentManagementService],
   controllers: [VideoUploadController],
 })
