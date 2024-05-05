@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ContentType } from '@src/module/content/content-management/core/enum/content-type.enum';
 import { ContentManagementService } from '@src/module/content/content-management/core/service/content-management.service';
+import { ExternalMovieRatingClient } from '@src/module/content/content-management/http/client/external-movie-rating/external-movie-rating.client';
 import { Content } from '@src/module/content/content-management/persistence/entity/content.entity';
 import { ContentRepository } from '@src/module/content/content-management/persistence/repository/content.repository';
 import { EventEmitterService } from '@src/shared/module/event/service/event-emitter.service';
@@ -24,6 +25,12 @@ describe('ContentManagementService', () => {
           provide: EventEmitterService,
           useValue: {
             emit: jest.fn(),
+          },
+        },
+        {
+          provide: ExternalMovieRatingClient,
+          useValue: {
+            getRating: jest.fn(),
           },
         },
       ],

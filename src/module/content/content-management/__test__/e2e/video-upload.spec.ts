@@ -6,6 +6,7 @@ import { ContentRepository } from '@src/module/content/content-management/persis
 import { MovieRepository } from '@src/module/content/content-management/persistence/repository/movie.repository';
 import { VideoRepository } from '@src/module/content/content-management/persistence/repository/video.repository';
 import { createNestApp } from '@testInfra/test-e2e.setup';
+import nock from 'nock';
 import request from 'supertest';
 
 describe('VideoController (e2e)', () => {
@@ -33,6 +34,7 @@ describe('VideoController (e2e)', () => {
     await videoRepository.deleteAll();
     await movieRepository.deleteAll();
     await contentRepository.deleteAll();
+    nock.cleanAll();
   });
 
   afterAll(async () => {
@@ -43,6 +45,47 @@ describe('VideoController (e2e)', () => {
 
   describe('/admin/video (POST)', () => {
     it('uploads a video', async () => {
+      //nock has support to native fetch only in 14.0.0-beta.4
+      //https://github.com/nock/nock/issues/2397
+      nock('https://api.themoviedb.org/3', {
+        encodedQueryParams: true,
+        reqheaders: {
+          Authorization: (): boolean => true,
+        },
+      })
+        .defaultReplyHeaders({ 'access-control-allow-origin': '*' })
+        .get(`/search/keyword`)
+        .query({
+          query: 'Test Video',
+          page: '1',
+        })
+        .reply(200, {
+          results: [
+            {
+              id: '1',
+            },
+          ],
+        });
+
+      nock('https://api.themoviedb.org/3', {
+        encodedQueryParams: true,
+        reqheaders: {
+          Authorization: (): boolean => true,
+        },
+      })
+        .defaultReplyHeaders({ 'access-control-allow-origin': '*' })
+        .get(`discover/movie`)
+        .query({
+          with_keywords: '1',
+        })
+        .reply(200, {
+          results: [
+            {
+              vote_average: 8.5,
+            },
+          ],
+        });
+
       const video = {
         title: 'Test Video',
         description: 'This is a test video',
