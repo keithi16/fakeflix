@@ -25,7 +25,7 @@ describe('UserResolver (e2e)', () => {
 
   afterAll(async () => {
     await userRepository.clear();
-    module.close();
+    await module.close();
   });
 
   describe('Identity - createUser mutation', () => {
@@ -91,7 +91,9 @@ describe('UserResolver (e2e)', () => {
           `,
         })
         .expect(200);
-      expect(response.body.errors[0].message).toBe('Invalid email address');
+      expect(response.body.errors[0].message).toBe(
+        `Invalid email: ${createUserInput.email}`
+      );
     });
   });
 });

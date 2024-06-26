@@ -14,7 +14,7 @@ describe('CatalogueService', () => {
   });
 
   describe('getVideoInfo', () => {
-    it('should return the video with the specified ID', async () => {
+    it('returns the video with the specified ID', async () => {
       const id = faker.string.uuid();
 
       const result = await service.getVideoInfo(id);

@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
-import { UserEntity } from '@src/module/identity/core/entity/user.entity';
+import { UserModel } from '@src/module/identity/core/model/user.model';
 import { DefaultPrismaRepository } from '@src/shared/module/persistence/prisma/default.prisma.repository';
 import { PrismaService } from '@src/shared/module/persistence/prisma/prisma.service';
 
@@ -14,17 +14,17 @@ export class UserRepository extends DefaultPrismaRepository {
     this.model = prismaService.user;
   }
 
-  async save(user: UserEntity): Promise<void> {
+  async save(user: UserModel): Promise<void> {
     try {
       await this.model.create({
-        data: user.serialize(),
+        data: user,
       });
     } catch (error) {
       this.handleAndThrowError(error);
     }
   }
 
-  async findOneBy(fields: Partial<QueryableFields>): Promise<UserEntity | undefined> {
+  async findOneBy(fields: Partial<QueryableFields>): Promise<UserModel | undefined> {
     try {
       const user = await this.model.findFirst({
         where: fields,
@@ -33,7 +33,7 @@ export class UserRepository extends DefaultPrismaRepository {
         return;
       }
 
-      return UserEntity.createFrom(user);
+      return UserModel.createFrom(user);
     } catch (error) {
       this.handleAndThrowError(error);
     }

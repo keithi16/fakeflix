@@ -1,10 +1,10 @@
 import { JwtService } from '@nestjs/jwt';
 import { Test, TestingModule } from '@nestjs/testing';
-import { UserEntity } from '@src/module/identity/core/entity/user.entity';
 import { UserUnauthorizedException } from '@src/module/identity/core/exception/user-unauthorized.exception';
+import { UserModel } from '@src/module/identity/core/model/user.model';
 import { AuthService } from '@src/module/identity/core/service/authentication.service';
-import { Email } from '@src/module/identity/core/value-object/email.value-object';
 import { UserRepository } from '@src/module/identity/persistence/repository/user.repository';
+import bcrypt from 'bcrypt';
 
 describe('AuthenticationService', () => {
   let authService: AuthService;
@@ -44,12 +44,13 @@ describe('AuthenticationService', () => {
         password: 'testpassword',
       };
       const token = 'testtoken';
+      const encryptedPassword = bcrypt.hashSync(user.password, 10);
       userRepository.findOneBy = jest
         .fn()
-        .mockResolvedValue(await UserEntity.createNew(user));
+        .mockResolvedValue(UserModel.create({ ...user, password: encryptedPassword }));
       jwtService.signAsync = jest.fn().mockResolvedValue(token);
 
-      const result = await authService.signIn(new Email(user.email), 'testpassword');
+      const result = await authService.signIn(user.email, 'testpassword');
 
       expect(userRepository.findOneBy).toHaveBeenCalledWith({ email: user.email });
       expect(jwtService.signAsync).toHaveBeenCalled();
@@ -63,13 +64,11 @@ describe('AuthenticationService', () => {
         lastName: 'Doe',
         password: 'testpassword',
       };
-      userRepository.findOneBy = jest
-        .fn()
-        .mockResolvedValue(await UserEntity.createNew(user));
+      userRepository.findOneBy = jest.fn().mockResolvedValue(UserModel.create(user));
 
-      await expect(
-        authService.signIn(new Email(user.email), 'invalidpassword')
-      ).rejects.toThrow(UserUnauthorizedException);
+      await expect(authService.signIn(user.email, 'invalidpassword')).rejects.toThrow(
+        UserUnauthorizedException
+      );
     });
   });
 });

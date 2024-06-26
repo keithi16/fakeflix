@@ -30,7 +30,7 @@ describe('UserManagementService', () => {
       jest.spyOn(userRepository, 'save').mockResolvedValueOnce();
 
       const createdUser = await service.create(user);
-      const { email, firstName, lastName } = createdUser.serialize();
+      const { email, firstName, lastName } = createdUser;
 
       expect(email).toEqual(user.email);
       expect(firstName).toEqual(user.firstName);

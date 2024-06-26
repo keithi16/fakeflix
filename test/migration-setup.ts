@@ -1,5 +1,7 @@
+import 'tsconfig-paths/register';
+
 import { migrate } from '@database/content/typeorm/typeorm-migration-helper';
 
-beforeAll(async () => {
+export default async () => {
   await migrate();
-});
+};

@@ -1,12 +1,14 @@
 import { INestApplication } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { AppModule } from '@src/app.module';
-import { UserEntity } from '@src/module/identity/core/entity/user.entity';
+import { UserModel } from '@src/module/identity/core/model/user.model';
+import { UserManagementService } from '@src/module/identity/core/service/user-management.service';
 import { UserRepository } from '@src/module/identity/persistence/repository/user.repository';
 import request from 'supertest';
 
 describe('AuthResolver (e2e)', () => {
   let app: INestApplication;
+  let userManagementService: UserManagementService;
   let userRepository: UserRepository;
   let module: TestingModule;
 
@@ -17,6 +19,7 @@ describe('AuthResolver (e2e)', () => {
 
     app = module.createNestApplication();
     await app.init();
+    userManagementService = module.get<UserManagementService>(UserManagementService);
     userRepository = module.get<UserRepository>(UserRepository);
   });
 
@@ -25,7 +28,7 @@ describe('AuthResolver (e2e)', () => {
   });
   afterAll(async () => {
     await userRepository.clear();
-    module.close();
+    await module.close();
   });
 
   describe('signIn mutation', () => {
@@ -34,8 +37,8 @@ describe('AuthResolver (e2e)', () => {
         email: 'johndoe@example.com',
         password: 'password123',
       };
-      await userRepository.save(
-        await UserEntity.createNew({
+      await userManagementService.create(
+        UserModel.create({
           firstName: 'John',
           lastName: 'Doe',
           email: signInInput.email,
@@ -91,8 +94,8 @@ describe('AuthResolver (e2e)', () => {
         email: 'johndoe@example.com',
         password: 'password123',
       };
-      await userRepository.save(
-        await UserEntity.createNew({
+      await userManagementService.create(
+        UserModel.create({
           firstName: 'John',
           lastName: 'Doe',
           email: signInInput.email,

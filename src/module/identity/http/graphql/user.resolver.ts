@@ -16,7 +16,7 @@ export class UserResolver {
     @Args('CreateUserInput') createUserInput: CreateUserInput
   ): Promise<User> {
     const user = await this.userManagementService.create(createUserInput);
-    return user.serialize();
+    return user;
   }
 
   @Query(() => User)
@@ -25,6 +25,6 @@ export class UserResolver {
     @Context('req')
     req: AuthenticatedRequest
   ): Promise<User> {
-    return req.user.serialize();
+    return req.user;
   }
 }

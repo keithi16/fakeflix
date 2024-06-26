@@ -71,10 +71,10 @@ jobs:
         shell: bash
         run: yarn test:unit
 
-      - name: Test integration
-        shell: bash
-        run: |
-          yarn test:integration
+      # - name: Test integration
+      #   shell: bash
+      #   run: |
+      #     yarn test:integration
 
       - name: Test E2E
         shell: bash

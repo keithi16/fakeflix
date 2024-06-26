@@ -24,7 +24,7 @@ describe('MediaPlayerService', () => {
     contentRepository = moduleRef.get(ContentRepository);
   });
 
-  it('should return video url if video exists', async () => {
+  it('returns video url if video exists', async () => {
     const videoId = '123';
     const videoUrl = 'http://example.com/video.mp4';
     contentRepository.getVideoById.mockResolvedValue({
@@ -39,7 +39,7 @@ describe('MediaPlayerService', () => {
     expect(contentRepository.getVideoById).toHaveBeenCalledWith(videoId);
   });
 
-  it('should throw VideoNotFoundException if video does not exist', async () => {
+  it('throws VideoNotFoundException if video does not exist', async () => {
     const videoId = faker.string.uuid();
     contentRepository.getVideoById.mockResolvedValue(undefined);
 

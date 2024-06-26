@@ -25,7 +25,7 @@ describe('Media Player - Test (e2e)', () => {
   beforeEach(async () => {
     await contentRepository.deleteAll();
   });
-  afterAll(() => module.close());
+  afterAll(async () => await module.close());
 
   describe('/player/stream/:videoId', () => {
     it('streams a video', async () => {

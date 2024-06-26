@@ -40,7 +40,7 @@ describe('VideoController (e2e)', () => {
   afterAll(async () => {
     //TODO move it to be shared
     await app.close();
-    module.close();
+    await module.close();
   });
 
   describe('/admin/video (POST)', () => {
