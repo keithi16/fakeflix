@@ -9,6 +9,7 @@ import { ContentRepository } from '@src/module/content/content-management/persis
 import { ContentManagementOperationType } from '@src/shared/events/content/content-management.event';
 import { EntityChangedEvent } from '@src/shared/events/entity-changed.event';
 import { EventEmitterService } from '@src/shared/module/event/service/event-emitter.service';
+import { AppLogger } from '@src/shared/module/logger/service/app-logger.service';
 
 export interface ExternalMovieRating {
   rating: number;
@@ -23,7 +24,8 @@ export class ContentManagementService {
      * To allow easy swapping of the event emitter library
      */
     private readonly eventEmitter: EventEmitterService,
-    private readonly externalMovieRatingClient: ExternalMovieRatingClient
+    private readonly externalMovieRatingClient: ExternalMovieRatingClient,
+    private readonly appLogger: AppLogger
   ) {}
 
   async createMovie(video: {
@@ -64,6 +66,9 @@ export class ContentManagementService {
         content
       )
     );
+    this.appLogger.log(`Created movie with id ${content.id}`, {
+      contentBody: content,
+    });
     return content;
   }
 }

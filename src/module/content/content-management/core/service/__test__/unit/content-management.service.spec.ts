@@ -5,6 +5,7 @@ import { ExternalMovieRatingClient } from '@src/module/content/content-managemen
 import { Content } from '@src/module/content/content-management/persistence/entity/content.entity';
 import { ContentRepository } from '@src/module/content/content-management/persistence/repository/content.repository';
 import { EventEmitterService } from '@src/shared/module/event/service/event-emitter.service';
+import { AppLogger } from '@src/shared/module/logger/service/app-logger.service';
 import { Repository } from 'typeorm';
 
 describe('ContentManagementService', () => {
@@ -31,6 +32,12 @@ describe('ContentManagementService', () => {
           provide: ExternalMovieRatingClient,
           useValue: {
             getRating: jest.fn(),
+          },
+        },
+        {
+          provide: AppLogger,
+          useValue: {
+            log: jest.fn(),
           },
         },
       ],
