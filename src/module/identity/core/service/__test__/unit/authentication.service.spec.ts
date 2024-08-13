@@ -4,7 +4,7 @@ import { UserUnauthorizedException } from '@src/module/identity/core/exception/u
 import { UserModel } from '@src/module/identity/core/model/user.model';
 import { AuthService } from '@src/module/identity/core/service/authentication.service';
 import { UserRepository } from '@src/module/identity/persistence/repository/user.repository';
-import bcrypt from 'bcrypt';
+import { hashSync } from 'bcrypt';
 
 describe('AuthenticationService', () => {
   let authService: AuthService;
@@ -44,7 +44,7 @@ describe('AuthenticationService', () => {
         password: 'testpassword',
       };
       const token = 'testtoken';
-      const encryptedPassword = bcrypt.hashSync(user.password, 10);
+      const encryptedPassword = hashSync(user.password, 10);
       userRepository.findOneBy = jest
         .fn()
         .mockResolvedValue(UserModel.create({ ...user, password: encryptedPassword }));

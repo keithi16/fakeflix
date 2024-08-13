@@ -1,4 +1,4 @@
-import { SubscriptionStatus } from '@src/module/billing/model/subscription.model';
+import { SubscriptionStatus } from '@src/module/billing/core/model/subscription.model';
 import {
   boolean,
   integer,

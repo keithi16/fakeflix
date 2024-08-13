@@ -1,4 +1,4 @@
-import { DefaultModel } from '@src/module/billing/model/default.model';
+import { DefaultModel } from '@src/shared/core/model/default.model';
 import { InferSelectModel, eq } from 'drizzle-orm';
 import { AnyPgColumn, AnyPgTable } from 'drizzle-orm/pg-core';
 import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';

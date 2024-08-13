@@ -1,5 +1,5 @@
-import { DefaultModel, WithOptional } from '@src/module/billing/model/default.model';
-import { PlanModel } from '@src/module/billing/model/plan.model';
+import { PlanModel } from '@src/module/billing/core/model/plan.model';
+import { DefaultModel, WithOptional } from '@src/shared/core/model/default.model';
 import { randomUUID } from 'crypto';
 
 export enum SubscriptionStatus {

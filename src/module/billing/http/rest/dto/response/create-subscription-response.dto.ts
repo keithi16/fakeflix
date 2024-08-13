@@ -1,5 +1,5 @@
+import { SubscriptionStatus } from '@src/module/billing/core/model/subscription.model';
 import { DefaultResponseDto } from '@src/module/billing/http/rest/dto/response/default-response.dto';
-import { SubscriptionStatus } from '@src/module/billing/model/subscription.model';
 import { Expose, Type } from 'class-transformer';
 import {
   IsBoolean,

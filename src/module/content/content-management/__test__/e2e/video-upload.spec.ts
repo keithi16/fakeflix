@@ -6,7 +6,7 @@ import { ContentRepository } from '@src/module/content/content-management/persis
 import { MovieRepository } from '@src/module/content/content-management/persistence/repository/movie.repository';
 import { VideoRepository } from '@src/module/content/content-management/persistence/repository/video.repository';
 import { createNestApp } from '@testInfra/test-e2e.setup';
-import nock from 'nock';
+import nock, { cleanAll } from 'nock';
 import request from 'supertest';
 
 describe('VideoController (e2e)', () => {
@@ -34,7 +34,7 @@ describe('VideoController (e2e)', () => {
     await videoRepository.deleteAll();
     await movieRepository.deleteAll();
     await contentRepository.deleteAll();
-    nock.cleanAll();
+    cleanAll();
   });
 
   afterAll(async () => {

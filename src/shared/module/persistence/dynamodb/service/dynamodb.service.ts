@@ -1,11 +1,10 @@
 import { Injectable } from '@nestjs/common';
-import * as AWS from 'aws-sdk';
 import { DocumentClient } from 'aws-sdk/clients/dynamodb';
 
 @Injectable()
 export class DynamoDBService {
   getClient(): DocumentClient {
-    return new AWS.DynamoDB.DocumentClient({
+    return new DocumentClient({
       /**
        * TODO: use env vars
        */

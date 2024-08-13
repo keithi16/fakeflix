@@ -2,7 +2,8 @@ import { Injectable } from '@nestjs/common';
 import {
   SubscriptionModel,
   SubscriptionStatus,
-} from '@src/module/billing/model/subscription.model';
+} from '@src/module/billing/core/model/subscription.model';
+
 import { PlanRepository } from '@src/module/billing/persistence/repository/plan.repository';
 import { SubscriptionRepository } from '@src/module/billing/persistence/repository/subscription.repository';
 import { NotFoundDomainException } from '@src/shared/core/exeption/not-found-domain.exception';

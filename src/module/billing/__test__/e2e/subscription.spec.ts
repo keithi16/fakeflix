@@ -1,7 +1,7 @@
 import { HttpStatus, INestApplication } from '@nestjs/common';
 import { TestingModule } from '@nestjs/testing';
 import { BillingModule } from '@src/module/billing/billing.module';
-import { PlanModel } from '@src/module/billing/model/plan.model';
+import { PlanModel } from '@src/module/billing/core/model/plan.model';
 import { PlanRepository } from '@src/module/billing/persistence/repository/plan.repository';
 import { SubscriptionRepository } from '@src/module/billing/persistence/repository/subscription.repository';
 import { createNestApp } from '@testInfra/test-e2e.setup';

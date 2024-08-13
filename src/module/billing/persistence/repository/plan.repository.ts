@@ -1,5 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { PlanModel } from '@src/module/billing/model/plan.model';
+import { PlanModel } from '@src/module/billing/core/model/plan.model';
 import * as schema from '@src/module/billing/persistence/schema';
 import { plansTable } from '@src/module/billing/persistence/schema';
 import { DrizzleDefaultRepository } from '@src/shared/module/persistence/drizzle/repository/drizzle-default.repository';

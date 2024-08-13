@@ -5,8 +5,21 @@ module.exports = {
     tsconfigRootDir: __dirname,
     sourceType: 'module',
   },
-  plugins: ['@typescript-eslint/eslint-plugin', 'no-relative-import-paths'],
-  extends: ['plugin:@typescript-eslint/recommended', 'plugin:prettier/recommended'],
+  plugins: ['@typescript-eslint', 'no-relative-import-paths', 'import'],
+  extends: [
+    'eslint:recommended',
+    'plugin:@typescript-eslint/recommended',
+    'plugin:prettier/recommended',
+    'plugin:import/recommended',
+    'plugin:import/typescript',
+  ],
+  settings: {
+    'import/resolver': {
+      typescript: {
+        project: './tsconfig.json',
+      },
+    },
+  },
   root: true,
   env: {
     node: true,
@@ -36,6 +49,22 @@ module.exports = {
             importNames: ['ConfigModule', 'ConfigService'],
             message: 'Please use classes from @src/shared/module/config instead',
           },
+        ],
+      },
+    ],
+    'import/no-restricted-paths': [
+      'error',
+      {
+        zones: [
+          { target: './src/shared', from: './src/module/content*' },
+          { target: './src/shared', from: './src/module/identity' },
+          { target: './src/shared', from: './src/module/billing' },
+          { target: './src/module/content*', from: './src/module/billing' },
+          { target: './src/module/content*', from: './src/module/identity' },
+          { target: './src/module/billing', from: './src/module/content' },
+          { target: './src/module/billing', from: './src/module/identity' },
+          { target: './src/module/identity', from: './src/module/content' },
+          { target: './src/module/identity', from: './src/module/billing' },
         ],
       },
     ],
