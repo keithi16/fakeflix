@@ -1,5 +1,5 @@
 import { NestFactory } from '@nestjs/core';
-import { PersistenceModule } from '@src/module/content/content-management/persistence/persistence.module';
+import { PersistenceModule } from '@src/module/content/persistence/persistence.module';
 import { ConfigService } from '@src/shared/module/config/config.service';
 import { TypeOrmMigrationService } from '@src/shared/module/persistence/typeorm/service/typeorm-migration.service';
 import { DataSourceOptions } from 'typeorm';
