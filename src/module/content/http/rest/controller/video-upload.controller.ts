@@ -14,7 +14,8 @@ import { ContentManagementService } from '@src/module/content/core/service/conte
 import {
   CreateMovieInputDto,
   CreateMovieResponseDto,
-} from '@src/module/content/http/rest/dto/create-movie.dto';
+} from '@src/module/content/http/rest/dto/request/create-movie.dto';
+
 import { randomUUID } from 'crypto';
 import { Request } from 'express';
 import { diskStorage } from 'multer';

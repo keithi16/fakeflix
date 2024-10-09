@@ -85,7 +85,9 @@ describe('AuthResolver (e2e)', () => {
           `,
         })
         .expect(200);
-      expect(response.body.errors[0].message).toEqual('Cannot authorize user');
+      expect(response.body.errors[0].message).toEqual(
+        'Cannot authorize user Cannot authorize user: johndoe@example.com'
+      );
     });
   });
   describe('getProfile query', () => {

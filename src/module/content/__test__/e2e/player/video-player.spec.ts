@@ -1,7 +1,7 @@
 import { faker } from '@faker-js/faker';
 import { HttpStatus, INestApplication } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
-import { CONTENT_TEST_FIXTURES } from '@src/module/content/__test__/contants';
+import { CONTENT_TEST_FIXTURES } from '@src/module/content/__test__/e2e/contants';
 import { ContentModule } from '@src/module/content/content.module';
 import { ContentMedia } from '@src/module/content/persistence/entity/content-media.entity';
 import { ContentMediaRepository } from '@src/module/content/persistence/repository/content-media.repository';

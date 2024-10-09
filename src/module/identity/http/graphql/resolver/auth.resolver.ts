@@ -1,8 +1,8 @@
 import { UnauthorizedException } from '@nestjs/common';
 import { Args, Mutation, Resolver } from '@nestjs/graphql';
 import { AuthService } from '@src/module/identity/core/service/authentication.service';
-import { AuthToken } from './type/auth-token.type';
-import { SignInInput } from './type/sign-in-input.type';
+import { AuthToken } from '@src/module/identity/http/graphql/type/auth-token.type';
+import { SignInInput } from '@src/module/identity/http/graphql/type/sign-in-input.type';
 
 @Resolver()
 export class AuthResolver {
@@ -14,7 +14,9 @@ export class AuthResolver {
       const token = await this.authService.signIn(email, password);
       return token;
     } catch (error) {
-      throw new UnauthorizedException('Cannot authorize user');
+      throw new UnauthorizedException(
+        `Cannot authorize user ${(error as Error).message}`
+      );
     }
   }
 }

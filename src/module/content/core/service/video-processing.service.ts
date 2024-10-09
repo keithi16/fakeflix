@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { Content } from '@src/module/content/persistence/entity/content.entity';
-import { ContentProcessingEvent } from '@src/shared/events/content/content-processing.event';
-import { EntityChangedEvent } from '@src/shared/events/entity-changed.event';
+import { ContentProcessingEvent } from '@src/shared/event/content/content-processing.event';
+import { EntityChangedEvent } from '@src/shared/event/entity-changed.event';
 import { instanceToInstance } from 'class-transformer';
 
 @Injectable()

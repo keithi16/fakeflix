@@ -1,6 +1,6 @@
 import { HttpStatus, INestApplication } from '@nestjs/common';
 import { TestingModule } from '@nestjs/testing';
-import { CONTENT_TEST_FIXTURES } from '@src/module/content/__test__/contants';
+import { CONTENT_TEST_FIXTURES } from '@src/module/content/__test__/e2e/contants';
 
 import { ContentRepository } from '@src/module/content/persistence/repository/content.repository';
 import { MovieRepository } from '@src/module/content/persistence/repository/movie.repository';

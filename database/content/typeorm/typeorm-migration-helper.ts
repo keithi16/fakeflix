@@ -8,7 +8,7 @@ import { createPostgresDatabase } from 'typeorm-extension';
 const createDatabaseModule = async () => {
   return await NestFactory.createApplicationContext(
     PersistenceModule.forRoot({
-      migrations: [__dirname + '/migrations/*'],
+      migrations: [__dirname + '/migration/*'],
     })
   );
 };

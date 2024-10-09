@@ -33,7 +33,7 @@ export class ContentMediaRepository {
         },
       });
     } catch (error) {
-      throw new Error('Error saving content');
+      throw new Error(`Error saving content ${(error as Error)?.message}`);
     }
   }
 

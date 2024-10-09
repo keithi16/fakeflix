@@ -1,7 +1,7 @@
 import { Query, Resolver } from '@nestjs/graphql';
 
 import { CatalogueService } from '@src/module/content/core/service/catalogue.service';
-import { Content } from './type/content.type';
+import { Content } from '@src/module/content/http/graphql/type/content.type';
 
 @Resolver(() => Content)
 export class ContentResolver {

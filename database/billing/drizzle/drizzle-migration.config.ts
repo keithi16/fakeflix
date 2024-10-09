@@ -28,7 +28,7 @@ const host = process.env.DATABASE_HOST as string;
 const database = process.env.DATABASE_NAME as string;
 
 export default defineConfig({
-  schema: './src/module/billing/persistence/schema.ts',
+  schema: './src/module/billing/persistence/database.schema.ts',
   out: __dirname + '/migration',
   dialect: 'postgresql',
   dbCredentials: {

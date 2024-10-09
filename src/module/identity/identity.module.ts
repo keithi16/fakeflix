@@ -3,8 +3,8 @@ import { JwtModule } from '@nestjs/jwt';
 import { PersistenceModule } from '@src/shared/module/persistence/prisma/persistence.module';
 import { AuthService, jwtConstants } from './core/service/authentication.service';
 import { UserManagementService } from './core/service/user-management.service';
-import { AuthResolver } from './http/graphql/auth.resolver';
-import { UserResolver } from './http/graphql/user.resolver';
+import { AuthResolver } from './http/graphql/resolver/auth.resolver';
+import { UserResolver } from './http/graphql/resolver/user.resolver';
 import { UserRepository } from './persistence/repository/user.repository';
 
 @Module({

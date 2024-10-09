@@ -1,7 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { SubscriptionModel } from '@src/module/billing/core/model/subscription.model';
-import * as schema from '@src/module/billing/persistence/schema';
-import { subscriptionsTable } from '@src/module/billing/persistence/schema';
+import * as schema from '@src/module/billing/persistence/database.schema';
+import { subscriptionsTable } from '@src/module/billing/persistence/database.schema';
 import { DrizzleDefaultRepository } from '@src/shared/module/persistence/drizzle/repository/drizzle-default.repository';
 import { InferSelectModel } from 'drizzle-orm';
 import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';

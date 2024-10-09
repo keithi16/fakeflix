@@ -6,8 +6,8 @@ import { Movie } from '@src/module/content/persistence/entity/movie.entity';
 import { Thumbnail } from '@src/module/content/persistence/entity/thumbnail.entity';
 import { Video } from '@src/module/content/persistence/entity/video.entity';
 import { ContentRepository } from '@src/module/content/persistence/repository/content.repository';
-import { ContentManagementOperationType } from '@src/shared/events/content/content-management.event';
-import { EntityChangedEvent } from '@src/shared/events/entity-changed.event';
+import { ContentManagementOperationType } from '@src/shared/event/content/content-management.event';
+import { EntityChangedEvent } from '@src/shared/event/entity-changed.event';
 import { EventEmitterService } from '@src/shared/module/event/service/event-emitter.service';
 import { AppLogger } from '@src/shared/module/logger/service/app-logger.service';
 
