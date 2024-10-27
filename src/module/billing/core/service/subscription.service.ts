@@ -31,4 +31,8 @@ export class SubscriptionService {
     await this.subscriptionRepository.create(subscription);
     return subscription;
   }
+
+  async getSubscriptionByUserId(userId: string): Promise<SubscriptionModel | null> {
+    return this.subscriptionRepository.findByUserId(userId);
+  }
 }

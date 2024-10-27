@@ -3,8 +3,8 @@ import { DefaultModel, WithOptional } from '@src/shared/core/model/default.model
 import { randomUUID } from 'crypto';
 
 export enum SubscriptionStatus {
-  Inactive = 'Inactive',
-  Active = 'Active',
+  Inactive = 'INACTIVE',
+  Active = 'ACTIVE',
 }
 export class SubscriptionModel extends DefaultModel {
   userId: string;

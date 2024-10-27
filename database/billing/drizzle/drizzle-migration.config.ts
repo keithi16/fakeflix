@@ -27,10 +27,13 @@ dotenv.config({ path: testEnvFile, override: true });
 const host = process.env.DATABASE_HOST as string;
 const database = process.env.DATABASE_NAME as string;
 
+console.log(`Migrating database ${database} on host ${host}`);
+
 export default defineConfig({
   schema: './src/module/billing/persistence/database.schema.ts',
   out: __dirname + '/migration',
   dialect: 'postgresql',
+  tablesFilter: ['Subscription', 'Plan'],
   dbCredentials: {
     host,
     user: process.env.DATABASE_USERNAME,
@@ -38,4 +41,6 @@ export default defineConfig({
     database,
     ssl: false,
   },
+
+  verbose: true,
 });

@@ -1,7 +1,9 @@
+import { PlanInterval } from '@src/module/billing/core/model/plan.model';
 import { SubscriptionStatus } from '@src/module/billing/core/model/subscription.model';
 import {
   boolean,
   integer,
+  numeric,
   pgEnum,
   pgTable,
   timestamp,
@@ -13,18 +15,19 @@ export function enumToPgEnum<T extends Record<string, any>>(
   return Object.values(myEnum).map((value: any) => `${value}`) as any;
 }
 export const status = pgEnum('status', enumToPgEnum(SubscriptionStatus));
+export const planInterval = pgEnum('planInterval', enumToPgEnum(PlanInterval));
 
 export const plansTable = pgTable('Plan', {
   id: varchar('id', { length: 36 }).primaryKey(),
   name: varchar('name', { length: 100 }).notNull(),
   description: varchar('description', { length: 255 }),
-  amount: integer('amount').notNull(),
+  amount: numeric('amount').notNull(),
   currency: varchar('currency', { length: 3 }).notNull(),
-  interval: varchar('interval', { length: 10 }).notNull(),
-  trialPeriod: integer('trial_period'),
-  createdAt: timestamp('created_at').notNull().defaultNow(),
-  updatedAt: timestamp('updated_at').notNull().defaultNow(),
-  deletedAt: timestamp('deleted_at'),
+  interval: planInterval('interval').notNull(),
+  trialPeriod: integer('trialPeriod'),
+  createdAt: timestamp('createdAt').notNull().defaultNow(),
+  updatedAt: timestamp('updatedAt').notNull().defaultNow(),
+  deletedAt: timestamp('deletedAt'),
 });
 
 export const subscriptionsTable = pgTable('Subscription', {
@@ -34,10 +37,10 @@ export const subscriptionsTable = pgTable('Subscription', {
     .notNull()
     .references(() => plansTable.id),
   status: status('status').notNull().default(SubscriptionStatus.Inactive),
-  startDate: timestamp('start_date').notNull().defaultNow(),
-  endDate: timestamp('end_date'),
-  autoRenew: boolean('auto_renew').notNull().default(true),
-  createdAt: timestamp('created_at').notNull().defaultNow(),
-  updatedAt: timestamp('updated_at').notNull().defaultNow(),
-  deletedAt: timestamp('deleted_at'),
+  startDate: timestamp('startDate').notNull().defaultNow(),
+  endDate: timestamp('endDate'),
+  autoRenew: boolean('autoRenew').notNull().default(true),
+  createdAt: timestamp('createdAt').notNull().defaultNow(),
+  updatedAt: timestamp('updatedAt').notNull().defaultNow(),
+  deletedAt: timestamp('deletedAt'),
 });

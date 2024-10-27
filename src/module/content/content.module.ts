@@ -7,9 +7,9 @@ import { ContentProcessingEventHandler } from '@src/module/content/event/handler
 import { ExternalMovieRatingClient } from '@src/module/content/http/client/external-movie-rating/external-movie-rating.client';
 import { MediaPlayerController } from '@src/module/content/http/rest/controller/media-player.controller';
 import { ContentMediaRepository } from '@src/module/content/persistence/repository/content-media.repository';
-import { HttpClient } from '@src/shared/http/client/http.client';
 import { ConfigModule } from '@src/shared/module/config/config.module';
 import { EventEmitterModule } from '@src/shared/module/event/event-emitter.module';
+import { HttpClientModule } from '@src/shared/module/http-client/http-client.module';
 import { LoggerModule } from '@src/shared/module/logger/logger.module';
 import { DynamoDBPersistenceModule } from '@src/shared/module/persistence/dynamodb/dynamodb.module';
 import { ContentManagementService } from './core/service/content-management.service';
@@ -24,12 +24,12 @@ import { PersistenceModule } from './persistence/persistence.module';
     EventEmitterModule,
     LoggerModule,
     DynamoDBPersistenceModule,
+    HttpClientModule,
   ],
   providers: [
     VideoResolver,
     ContentManagementService,
     ExternalMovieRatingClient,
-    HttpClient,
     ContentManagementEventHandler,
     VideoProcessingService,
     ContentIndexingService,

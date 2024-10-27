@@ -1,4 +1,4 @@
-import { getDataSource } from './typeorm-migration-helper';
+import { getDataSource } from './typeorm-migration.helper';
 
 const prepareDateSourceForMigration = async () => {
   const dataSource = await getDataSource();

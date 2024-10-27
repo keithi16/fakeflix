@@ -2,12 +2,16 @@ import { SubscriptionModel } from '@src/module/billing/core/model/subscription.m
 import { DefaultModel, WithOptional } from '@src/shared/core/model/default.model';
 import { randomUUID } from 'crypto';
 
+export enum PlanInterval {
+  Month = 'MONTH',
+  Year = 'YEAR',
+}
 export class PlanModel extends DefaultModel {
   name: string;
   description?: string | null;
-  amount: number;
+  amount: string;
   currency: string;
-  interval: string;
+  interval: PlanInterval;
   trialPeriod: number | null = null;
   Subscriptions?: SubscriptionModel[];
 

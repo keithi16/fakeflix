@@ -1,5 +1,5 @@
 {
-  "id": "7bb40f0a-4cd8-467d-8bb5-cebe79342e64",
+  "id": "712152fd-8222-4e59-a3f6-cb2907de4947",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -28,7 +28,7 @@
         },
         "amount": {
           "name": "amount",
-          "type": "integer",
+          "type": "numeric",
           "primaryKey": false,
           "notNull": true
         },
@@ -40,32 +40,33 @@
         },
         "interval": {
           "name": "interval",
-          "type": "varchar(10)",
+          "type": "planInterval",
+          "typeSchema": "public",
           "primaryKey": false,
           "notNull": true
         },
-        "trial_period": {
-          "name": "trial_period",
+        "trialPeriod": {
+          "name": "trialPeriod",
           "type": "integer",
           "primaryKey": false,
           "notNull": false
         },
-        "created_at": {
-          "name": "created_at",
+        "createdAt": {
+          "name": "createdAt",
           "type": "timestamp",
           "primaryKey": false,
           "notNull": true,
           "default": "now()"
         },
-        "updated_at": {
-          "name": "updated_at",
+        "updatedAt": {
+          "name": "updatedAt",
           "type": "timestamp",
           "primaryKey": false,
           "notNull": true,
           "default": "now()"
         },
-        "deleted_at": {
-          "name": "deleted_at",
+        "deletedAt": {
+          "name": "deletedAt",
           "type": "timestamp",
           "primaryKey": false,
           "notNull": false
@@ -74,7 +75,8 @@
       "indexes": {},
       "foreignKeys": {},
       "compositePrimaryKeys": {},
-      "uniqueConstraints": {}
+      "uniqueConstraints": {},
+      "checkConstraints": {}
     },
     "public.Subscription": {
       "name": "Subscription",
@@ -104,44 +106,44 @@
           "typeSchema": "public",
           "primaryKey": false,
           "notNull": true,
-          "default": "'Inactive'"
+          "default": "'INACTIVE'"
         },
-        "start_date": {
-          "name": "start_date",
+        "startDate": {
+          "name": "startDate",
           "type": "timestamp",
           "primaryKey": false,
           "notNull": true,
           "default": "now()"
         },
-        "end_date": {
-          "name": "end_date",
+        "endDate": {
+          "name": "endDate",
           "type": "timestamp",
           "primaryKey": false,
           "notNull": false
         },
-        "auto_renew": {
-          "name": "auto_renew",
+        "autoRenew": {
+          "name": "autoRenew",
           "type": "boolean",
           "primaryKey": false,
           "notNull": true,
           "default": true
         },
-        "created_at": {
-          "name": "created_at",
+        "createdAt": {
+          "name": "createdAt",
           "type": "timestamp",
           "primaryKey": false,
           "notNull": true,
           "default": "now()"
         },
-        "updated_at": {
-          "name": "updated_at",
+        "updatedAt": {
+          "name": "updatedAt",
           "type": "timestamp",
           "primaryKey": false,
           "notNull": true,
           "default": "now()"
         },
-        "deleted_at": {
-          "name": "deleted_at",
+        "deletedAt": {
+          "name": "deletedAt",
           "type": "timestamp",
           "primaryKey": false,
           "notNull": false
@@ -164,20 +166,31 @@
         }
       },
       "compositePrimaryKeys": {},
-      "uniqueConstraints": {}
+      "uniqueConstraints": {},
+      "checkConstraints": {}
     }
   },
   "enums": {
+    "public.planInterval": {
+      "name": "planInterval",
+      "schema": "public",
+      "values": [
+        "MONTH",
+        "YEAR"
+      ]
+    },
     "public.status": {
       "name": "status",
       "schema": "public",
       "values": [
-        "Inactive",
-        "Active"
+        "INACTIVE",
+        "ACTIVE"
       ]
     }
   },
   "schemas": {},
+  "sequences": {},
+  "views": {},
   "_meta": {
     "columns": {},
     "schemas": {},

@@ -7,7 +7,6 @@ const envFile = `.env`;
 if (!fs.existsSync(envFile)) {
   throw new Error('.env file not found');
 }
-
 // Ensure a test environment variable file exists because of the override config
 // loading mechanics below.
 if (!fs.existsSync(testEnvFile)) {

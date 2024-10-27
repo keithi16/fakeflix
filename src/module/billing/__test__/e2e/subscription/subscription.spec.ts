@@ -1,7 +1,8 @@
 import { HttpStatus, INestApplication } from '@nestjs/common';
 import { TestingModule } from '@nestjs/testing';
 import { BillingModule } from '@src/module/billing/billing.module';
-import { PlanModel } from '@src/module/billing/core/model/plan.model';
+import { PlanInterval, PlanModel } from '@src/module/billing/core/model/plan.model';
+import { SubscriptionStatus } from '@src/module/billing/core/model/subscription.model';
 import { PlanRepository } from '@src/module/billing/persistence/repository/plan.repository';
 import { SubscriptionRepository } from '@src/module/billing/persistence/repository/subscription.repository';
 import { createNestApp } from '@testInfra/test-e2e.setup';
@@ -43,8 +44,8 @@ describe('Subscription e2e test', () => {
       name: 'Basic',
       description: 'Basic montly plan',
       currency: 'USD',
-      amount: 10,
-      interval: 'month',
+      amount: '10',
+      interval: PlanInterval.Month,
       trialPeriod: 7,
     });
     await planRepository.create(plan);
@@ -59,7 +60,7 @@ describe('Subscription e2e test', () => {
       deletedAt: null,
       userId: 'user-id',
       planId: plan.id,
-      status: 'Active',
+      status: SubscriptionStatus.Active,
       startDate: expect.any(String),
       autoRenew: true,
     });

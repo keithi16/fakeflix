@@ -44,7 +44,7 @@ class PlanResponseDto {
   readonly trialPeriod: number | null;
 }
 
-export class CreateSubscriptionResponseDto extends DefaultResponseDto {
+export class SubscriptionResponseDto extends DefaultResponseDto {
   @IsUUID(4)
   @Expose()
   @IsNotEmpty()

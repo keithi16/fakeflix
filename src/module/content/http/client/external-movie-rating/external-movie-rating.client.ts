@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
-import { HttpClient } from '@src/shared/http/client/http.client';
 import { ConfigService } from '@src/shared/module/config/config.service';
+import { HttpClient } from '@src/shared/module/http-client/client/http.client';
+import { HttpClientInternalException } from '@src/shared/module/http-client/exception/http-client.exception';
 
 interface ApiResponse<T extends Record<string, any>> {
   results: Array<T>;
@@ -50,6 +51,13 @@ export class ExternalMovieRatingClient {
       },
     };
 
-    return this.httpClient.get<ApiResponse<T>>(url, options);
+    try {
+      const response = await this.httpClient.get<ApiResponse<T>>(url, options);
+      return response;
+    } catch (error) {
+      throw new HttpClientInternalException(
+        `Error fetching external movie rating: ${error}`
+      );
+    }
   }
 }

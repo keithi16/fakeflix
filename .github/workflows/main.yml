@@ -15,6 +15,7 @@ jobs:
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: fakeflix_test
         # Set health checks to wait until Postgres has started.
         options: >-
           --health-cmd pg_isready
@@ -25,6 +26,9 @@ jobs:
         image: localstack/localstack
         ports:
           - 4566:4566
+
+    env:
+      PGPASSWORD: postgres
 
     steps:
       - name: Checkout
@@ -58,6 +62,17 @@ jobs:
           yarn lint:check
           yarn format:check
 
+      - name: Wait for PostgreSQL to be ready
+        run: |
+          until pg_isready -h localhost -p 5432 -U postgres; do
+            sleep 1
+          done
+
+      - name: Drop and Recreate Database
+        run: |
+          psql -h localhost -U postgres -c "DROP DATABASE IF EXISTS fakeflix_test WITH (FORCE);"
+          psql -h localhost -U postgres -c "CREATE DATABASE fakeflix_test;"
+
       - name: Setup modules databases
         shell: bash
         run: |
@@ -70,11 +85,6 @@ jobs:
       - name: Test unit
         shell: bash
         run: yarn test:unit
-
-      # - name: Test integration
-      #   shell: bash
-      #   run: |
-      #     yarn test:integration
 
       - name: Test E2E
         shell: bash

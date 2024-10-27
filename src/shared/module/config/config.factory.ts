@@ -18,6 +18,9 @@ export const factory = (): Config => {
       apiToken: process.env.MOVIEDB_API_TOKEN,
       url: process.env.MOVIEDB_BASE_URL,
     },
+    billingApi: {
+      url: process.env.BILLING_API_URL,
+    },
   });
 
   if (result.success) {

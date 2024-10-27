@@ -4,6 +4,7 @@ import { UserUnauthorizedException } from '@src/module/identity/core/exception/u
 import { UserModel } from '@src/module/identity/core/model/user.model';
 import { AuthService } from '@src/module/identity/core/service/authentication.service';
 import { UserRepository } from '@src/module/identity/persistence/repository/user.repository';
+import { BillingSubsriptionStatusApi } from '@src/shared/module/integration/interface/billing-integration.interface';
 import { hashSync } from 'bcrypt';
 
 describe('AuthenticationService', () => {
@@ -25,6 +26,12 @@ describe('AuthenticationService', () => {
           provide: JwtService,
           useValue: {
             signAsync: jest.fn(),
+          },
+        },
+        {
+          provide: BillingSubsriptionStatusApi,
+          useValue: {
+            isUserSubscriptionActive: jest.fn().mockResolvedValue(true),
           },
         },
       ],

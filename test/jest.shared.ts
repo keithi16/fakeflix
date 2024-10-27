@@ -10,7 +10,7 @@ export default {
   transform: {
     '^.+\\.(t|j)s$': 'ts-jest',
   },
-  setupFiles: ['<rootDir>/test/setup.ts'],
+  setupFiles: ['<rootDir>/test/jest.setup.ts'],
   verbose: true,
   resetMocks: true,
 };

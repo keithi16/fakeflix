@@ -50,6 +50,14 @@ export const folderStructureConfig = createFolderStructure({
                       ruleId: 'finalDirectoryWithUnitTests_service',
                     },
                     {
+                      name: 'client',
+                      children: [
+                        {
+                          name: '{kebab-case}.{kebab-case}.interface.ts',
+                        },
+                      ],
+                    },
+                    {
                       name: 'model',
                       ruleId: 'finalDirectoryWithUnitTests_model',
                     },
@@ -69,6 +77,15 @@ export const folderStructureConfig = createFolderStructure({
                     {
                       name: 'handler',
                       ruleId: 'finalDirectoryWithUnitTests_eventHandler',
+                    },
+                  ],
+                },
+                {
+                  name: 'integration',
+                  children: [
+                    {
+                      name: 'provider',
+                      ruleId: 'finalDirectoryWithUnitTests_integrationProvider',
                     },
                   ],
                 },
@@ -142,6 +159,15 @@ export const folderStructureConfig = createFolderStructure({
                       ruleId: 'finalDirectoryWithUnitTests_repository',
                     },
                     {
+                      name: 'external',
+                      children: [
+                        {
+                          name: 'repository',
+                          ruleId: 'finalDirectoryWithUnitTests_repository',
+                        },
+                      ],
+                    },
+                    {
                       name: '{kebab-case}.*.ts', //persisnce may need some files like a module or a schema definition
                     },
                   ],
@@ -186,6 +212,14 @@ export const folderStructureConfig = createFolderStructure({
                             {
                               name: '{kebab-case}.*.ts',
                             },
+                            {
+                              name: '{kebab-case}',
+                              children: [
+                                {
+                                  name: '{kebab-case}.*.ts',
+                                },
+                              ],
+                            },
                           ],
                         },
                         {
@@ -223,7 +257,7 @@ export const folderStructureConfig = createFolderStructure({
               name: '{kebab-case}',
               children: [
                 {
-                  name: '{kebab-case}.(ts|json|prisma)',
+                  name: '{kebab-case}.{kebab-case}.(ts|json|prisma)',
                 },
                 {
                   name: 'migration',
@@ -243,7 +277,23 @@ export const folderStructureConfig = createFolderStructure({
       name: 'test',
       children: [
         {
-          name: '*',
+          name: '{kebab-case}.{kebab-case}.ts',
+        },
+        {
+          name: '{kebab-case}',
+          children: [
+            {
+              name: '{kebab-case}',
+              children: [
+                {
+                  name: '{kebab-case}.{kebab-case}.ts',
+                },
+              ],
+            },
+            {
+              name: '{kebab-case}.{kebab-case}.ts',
+            },
+          ],
         },
       ],
     },
@@ -262,6 +312,8 @@ export const folderStructureConfig = createFolderStructure({
     finalDirectoryWithUnitTests_eventHandler:
       finalDirectoryWithUnitTestsBuilder('event-handler'),
     finalDirectoryWithUnitTests_httpClient: finalDirectoryWithUnitTestsBuilder('client'),
+    finalDirectoryWithUnitTests_integrationProvider:
+      finalDirectoryWithUnitTestsBuilder('provider'),
     tsOnlyFiles: {
       children: [{ name: '*.ts' }],
     },
@@ -288,19 +340,5 @@ export const folderStructureConfig = createFolderStructure({
     end2endTestFile: {
       name: '{kebab-case}.spec.ts',
     },
-
-    // moduleFolder: {
-    //   name: '{kebab-case}',
-    //   children: [{ ruleId: 'internalModuleFolder' }],
-    // },
-    // internalModuleFolder: {
-    //   name: '{kebab-case}',
-    //   children: [
-    //     { name: '{kebab-case}.module.ts' },
-    //     { name: 'core' },
-    //     { name: 'http' },
-    //     { name: 'persistence' },
-    //   ],
-    // },
   },
 });
