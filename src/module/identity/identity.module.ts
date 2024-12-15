@@ -7,7 +7,7 @@ import { BillingModule } from '@src/module/billing/billing.module';
 import { BillingPublicApiProvider } from '@src/module/billing/integration/provider/public-api.provider';
 import { IdentitySubscriptionRepository } from '@src/module/identity/persistence/external/repository/identity-subscription.repository';
 import { DomainModuleIntegrationModule } from '@src/shared/module/integration/domain-module-integration.module';
-import { BillingSubsriptionStatusApi } from '@src/shared/module/integration/interface/billing-integration.interface';
+import { BillingSubscriptionStatusApi } from '@src/shared/module/integration/interface/billing-integration.interface';
 import { PersistenceModule } from '@src/shared/module/persistence/prisma/persistence.module';
 import { AuthService, jwtConstants } from './core/service/authentication.service';
 import { UserManagementService } from './core/service/user-management.service';
@@ -27,7 +27,7 @@ import { UserRepository } from './persistence/repository/user.repository';
   ],
   providers: [
     {
-      provide: BillingSubsriptionStatusApi,
+      provide: BillingSubscriptionStatusApi,
       useExisting: BillingPublicApiProvider,
     },
     AuthService,

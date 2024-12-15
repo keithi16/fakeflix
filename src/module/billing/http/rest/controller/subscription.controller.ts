@@ -9,6 +9,7 @@ import {
 import { SubscriptionService } from '@src/module/billing/core/service/subscription.service';
 import { CreateSubscriptionRequestDto } from '@src/module/billing/http/rest/dto/request/create-subscription.dto';
 import { SubscriptionResponseDto } from '@src/module/billing/http/rest/dto/response/subscription-response.dto';
+import { UserSubscriptionActiveResponseDto } from '@src/module/billing/http/rest/dto/response/user-subscription-active.dto';
 import { NotFoundDomainException } from '@src/shared/core/exeption/not-found-domain.exception';
 import { plainToInstance } from 'class-transformer';
 
@@ -47,5 +48,19 @@ export class SubscriptionController {
     return plainToInstance(SubscriptionResponseDto, subscription, {
       excludeExtraneousValues: true,
     });
+  }
+
+  @Get('/user/:userId/active')
+  async isUserSubscriptionActive(
+    userId: string
+  ): Promise<UserSubscriptionActiveResponseDto> {
+    const isActive = this.subscriptionService.isUserSubscriptionActive(userId);
+    return plainToInstance(
+      UserSubscriptionActiveResponseDto,
+      { isActive },
+      {
+        excludeExtraneousValues: true,
+      }
+    );
   }
 }

@@ -1,5 +1,5 @@
-export interface BillingSubsriptionStatusApi {
+export interface BillingSubscriptionStatusApi {
   isUserSubscriptionActive(userId: string): Promise<boolean>;
 }
 
-export const BillingSubsriptionStatusApi = Symbol('BillingSubsriptionStatusApi');
+export const BillingSubscriptionStatusApi = Symbol('BillingSubsriptionStatusApi');

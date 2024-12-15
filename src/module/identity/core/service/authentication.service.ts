@@ -2,7 +2,7 @@ import { Inject, Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UserUnauthorizedException } from '@src/module/identity/core/exception/user-unauthorized.exception';
 import { UserRepository } from '@src/module/identity/persistence/repository/user.repository';
-import { BillingSubsriptionStatusApi } from '@src/shared/module/integration/interface/billing-integration.interface';
+import { BillingSubscriptionStatusApi } from '@src/shared/module/integration/interface/billing-integration.interface';
 import { compare } from 'bcrypt';
 
 // TODO: move this to a .env file and config
@@ -15,8 +15,8 @@ export class AuthService {
   constructor(
     private readonly userRepository: UserRepository,
     private readonly jwtService: JwtService,
-    @Inject(BillingSubsriptionStatusApi)
-    private readonly subscriptionServiceClient: BillingSubsriptionStatusApi
+    @Inject(BillingSubscriptionStatusApi)
+    private readonly subscriptionServiceClient: BillingSubscriptionStatusApi
   ) {}
 
   async signIn(email: string, password: string): Promise<{ accessToken: string }> {

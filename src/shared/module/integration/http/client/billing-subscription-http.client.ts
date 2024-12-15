@@ -1,14 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@src/shared/module/config/config.service';
 import { HttpClient } from '@src/shared/module/http-client/client/http.client';
-import {
-  BillingApiSubscriptionStatus,
-  BillingApiSubscriptionStatusResponseDto,
-} from '@src/shared/module/integration/http/dto/response/billing-api-subscription-status-response.dto';
-import { BillingSubsriptionStatusApi } from '@src/shared/module/integration/interface/billing-integration.interface';
+import { BillingApiUserSubscriptionActiveResponseDto } from '@src/shared/module/integration/http/dto/response/billing-api-subscription-status-response.dto';
+import { BillingSubscriptionStatusApi } from '@src/shared/module/integration/interface/billing-integration.interface';
 
 @Injectable()
-export class BillingSubscriptionHttpClient implements BillingSubsriptionStatusApi {
+export class BillingSubscriptionHttpClient implements BillingSubscriptionStatusApi {
   constructor(
     private readonly httpClient: HttpClient,
     private readonly configService: ConfigService
@@ -22,13 +19,15 @@ export class BillingSubscriptionHttpClient implements BillingSubsriptionStatusAp
         Authorization: `Bearer PUT SOMETHING`,
       },
     };
-    const url = `${this.configService.get('billingApi').url}/subscription/user/${userId}`;
+    const url = `${
+      this.configService.get('billingApi').url
+    }/subscription/user/${userId}/active`;
 
-    const response = await this.httpClient.get<BillingApiSubscriptionStatusResponseDto>(
-      url,
-      options
-    );
-
-    return response.status === BillingApiSubscriptionStatus.Active ? true : false;
+    const { isActive } =
+      await this.httpClient.get<BillingApiUserSubscriptionActiveResponseDto>(
+        url,
+        options
+      );
+    return isActive;
   }
 }
