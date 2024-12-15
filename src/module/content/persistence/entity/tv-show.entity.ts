@@ -6,14 +6,20 @@ import { Episode } from './episode.entity';
 
 @Entity({ name: 'TvShow' })
 export class TvShow extends DefaultEntity<TvShow> {
-  @OneToMany(() => Episode, (episode) => episode.tvShow)
+  @OneToMany(() => Episode, (episode) => episode.tvShow, {
+    cascade: true,
+    onDelete: 'CASCADE',
+  })
   episodes: Episode[];
 
   @OneToOne(() => Content)
   @JoinColumn()
   content: Content;
 
-  @OneToOne(() => Thumbnail)
+  @OneToOne(() => Thumbnail, {
+    cascade: true,
+    onDelete: 'CASCADE',
+  })
   @JoinColumn()
   thumbnail: Thumbnail;
 }

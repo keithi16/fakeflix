@@ -17,6 +17,7 @@ export class VideoProcessingService {
     /**
      * Updates the duration of the video
      */
+
     newContent.movie.video.duration = 100;
     /**
      * Emits a new event

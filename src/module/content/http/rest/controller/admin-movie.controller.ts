@@ -11,18 +11,16 @@ import {
 } from '@nestjs/common';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { ContentManagementService } from '@src/module/content/core/service/content-management.service';
-import {
-  CreateMovieInputDto,
-  CreateMovieResponseDto,
-} from '@src/module/content/http/rest/dto/request/create-movie.dto';
+import { CreateMovieInputDto } from '@src/module/content/http/rest/dto/request/create-movie.dto';
+import { CreateMovieResponseDto } from '@src/module/content/http/rest/dto/response/create-movie.dto';
 
 import { randomUUID } from 'crypto';
 import { Request } from 'express';
 import { diskStorage } from 'multer';
 import { extname } from 'path';
 
-@Controller('admin/video')
-export class VideoUploadController {
+@Controller('admin/movie')
+export class AdminMovieController {
   constructor(private readonly contentManagementService: ContentManagementService) {}
   @Post()
   @HttpCode(HttpStatus.CREATED)

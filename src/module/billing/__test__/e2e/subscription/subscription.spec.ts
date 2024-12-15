@@ -4,7 +4,8 @@ import { BillingModule } from '@src/module/billing/billing.module';
 import { PlanInterval, PlanModel } from '@src/module/billing/core/model/plan.model';
 import { SubscriptionStatus } from '@src/module/billing/core/model/subscription.model';
 import { PlanRepository } from '@src/module/billing/persistence/repository/plan.repository';
-import { SubscriptionRepository } from '@src/module/billing/persistence/repository/subscription.repository';
+import { Tables } from '@testInfra/enum/tables.enum';
+import { testDbClient } from '@testInfra/knex.database';
 import { createNestApp } from '@testInfra/test-e2e.setup';
 import { randomUUID } from 'crypto';
 import request from 'supertest';
@@ -13,7 +14,6 @@ describe('Subscription e2e test', () => {
   let app: INestApplication;
   let module: TestingModule;
   let planRepository: PlanRepository;
-  let subscriptionRepository: SubscriptionRepository;
 
   beforeAll(async () => {
     const nestTestSetup = await createNestApp([BillingModule]);
@@ -21,7 +21,6 @@ describe('Subscription e2e test', () => {
     module = nestTestSetup.module;
 
     planRepository = module.get<PlanRepository>(PlanRepository);
-    subscriptionRepository = module.get<SubscriptionRepository>(SubscriptionRepository);
   });
 
   beforeEach(async () => {
@@ -29,8 +28,8 @@ describe('Subscription e2e test', () => {
   });
 
   afterEach(async () => {
-    await subscriptionRepository.deleteAll();
-    await planRepository.deleteAll();
+    await testDbClient(Tables.Subscription).del();
+    await testDbClient(Tables.Plan).del();
   });
 
   afterAll(async () => {

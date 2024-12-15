@@ -11,6 +11,7 @@ export class Movie extends DefaultEntity<Movie> {
 
   @OneToOne(() => Video, (video) => video.movie, {
     cascade: true,
+    nullable: false,
   })
   video: Video;
 
@@ -20,7 +21,8 @@ export class Movie extends DefaultEntity<Movie> {
 
   @OneToOne(() => Thumbnail, {
     cascade: true,
+    nullable: true,
   })
   @JoinColumn()
-  thumbnail: Thumbnail;
+  thumbnail: Thumbnail | null;
 }

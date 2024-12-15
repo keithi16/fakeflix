@@ -23,10 +23,4 @@ export abstract class DrizzleDefaultRepository<
   }
 
   protected abstract mapToModel(data: InferSelectModel<T>): M;
-
-  async deleteAll(): Promise<void> {
-    if (process.env.NODE_ENV === 'test') {
-      await this.db.delete(this.table).execute();
-    }
-  }
 }

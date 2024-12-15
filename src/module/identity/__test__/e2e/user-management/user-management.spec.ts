@@ -1,12 +1,12 @@
 import { INestApplication } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { AppModule } from '@src/app.module';
-import { UserRepository } from '@src/module/identity/persistence/repository/user.repository';
+import { Tables } from '@testInfra/enum/tables.enum';
+import { testDbClient } from '@testInfra/knex.database';
 import request from 'supertest';
 
 describe('UserResolver (e2e)', () => {
   let app: INestApplication;
-  let userRepository: UserRepository;
   let module: TestingModule;
 
   beforeAll(async () => {
@@ -16,15 +16,14 @@ describe('UserResolver (e2e)', () => {
 
     app = module.createNestApplication();
     await app.init();
-    userRepository = module.get<UserRepository>(UserRepository);
   });
 
   beforeEach(async () => {
-    await userRepository.clear();
+    await testDbClient(Tables.User).del();
   });
 
   afterAll(async () => {
-    await userRepository.clear();
+    await testDbClient(Tables.User).del();
     await module.close();
   });
 

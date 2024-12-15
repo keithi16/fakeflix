@@ -15,6 +15,13 @@ export class Content extends DefaultEntity<Content> {
   @Column({ type: 'varchar', nullable: false })
   description: string;
 
+  @Column({ type: 'int', nullable: true })
+  ageRecommendation: number | null;
+
+  @Column({ type: 'date', nullable: true })
+  releaseDate: Date | null;
+
+  //TODO make it nullable
   @OneToOne(() => Movie, (movie) => movie.content, {
     cascade: true,
   })
@@ -23,5 +30,5 @@ export class Content extends DefaultEntity<Content> {
   @OneToOne(() => TvShow, (tvShow) => tvShow.content, {
     cascade: true,
   })
-  tvShow?: TvShow;
+  tvShow: TvShow | null;
 }

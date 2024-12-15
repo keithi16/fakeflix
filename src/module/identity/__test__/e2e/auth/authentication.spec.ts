@@ -3,7 +3,6 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { AppModule } from '@src/app.module';
 import { UserModel } from '@src/module/identity/core/model/user.model';
 import { UserManagementService } from '@src/module/identity/core/service/user-management.service';
-import { UserRepository } from '@src/module/identity/persistence/repository/user.repository';
 import { Tables } from '@testInfra/enum/tables.enum';
 import { planFactory } from '@testInfra/factory/identity/plan.test-factory';
 import { subscriptionFactory } from '@testInfra/factory/identity/subscription.test-factory';
@@ -14,7 +13,6 @@ import request from 'supertest';
 describe('AuthResolver (e2e)', () => {
   let app: INestApplication;
   let userManagementService: UserManagementService;
-  let userRepository: UserRepository;
   let module: TestingModule;
 
   beforeAll(async () => {
@@ -25,16 +23,15 @@ describe('AuthResolver (e2e)', () => {
     app = module.createNestApplication();
     await app.init();
     userManagementService = module.get<UserManagementService>(UserManagementService);
-    userRepository = module.get<UserRepository>(UserRepository);
   });
 
   beforeEach(async () => {
-    await userRepository.clear();
+    await testDbClient(Tables.User).del();
     await testDbClient(Tables.Subscription).del();
     await testDbClient(Tables.Plan).del();
   });
   afterAll(async () => {
-    await userRepository.clear();
+    await testDbClient(Tables.User).del();
     await testDbClient(Tables.Subscription).del();
     await testDbClient(Tables.Plan).del();
     await module.close();

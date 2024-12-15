@@ -4,7 +4,7 @@ import { Thumbnail } from './thumbnail.entity';
 import { TvShow } from './tv-show.entity';
 import { Video } from './video.entity';
 
-@Entity('episode')
+@Entity('Episode')
 export class Episode extends DefaultEntity<Episode> {
   @Column()
   title: string;
@@ -18,13 +18,19 @@ export class Episode extends DefaultEntity<Episode> {
   @Column()
   number: number;
 
+  @Column()
+  tvShowId: string;
+
   @ManyToOne(() => TvShow, (tvShow) => tvShow.episodes)
   tvShow: TvShow;
 
   @OneToOne(() => Thumbnail)
   @JoinColumn()
-  thumbnail: Thumbnail;
+  thumbnail: Thumbnail | null;
 
-  @OneToOne(() => Video, (video) => video.episode)
+  @OneToOne(() => Video, (video) => video.episode, {
+    cascade: true,
+    nullable: false,
+  })
   video: Video;
 }

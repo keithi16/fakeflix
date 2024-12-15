@@ -28,6 +28,13 @@ export class TypeOrmPersistenceModule {
               ...options,
             };
           },
+          // async dataSourceFactory(options) {
+          //   if (!options) {
+          //     throw new Error('Invalid options passed');
+          //   }
+
+          //   return addTransactionalDataSource(new DataSource(options));
+          // },
         }),
       ],
       providers: [TypeOrmMigrationService],
