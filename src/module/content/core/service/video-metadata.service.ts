@@ -1,10 +1,9 @@
 import { Injectable } from '@nestjs/common';
+import { Video } from '@src/module/content/persistence/entity/video.entity';
 
 @Injectable()
 export class VideoMetadataService {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  async getVideoDurantaion(_videoPath: string): Promise<number> {
-    // This is a placeholder for the actual implementation
-    return 100;
+  async setVideoDuration(video: Video): Promise<void> {
+    video.duration = 100;
   }
 }

@@ -1,10 +1,13 @@
 import { Module } from '@nestjs/common';
+import { CreateTvShowEpisodeUseCase } from '@src/module/content/application/use-case/create-tv-show-episode.use-case';
 import { AgeRecommendationService } from '@src/module/content/core/service/age-recommendation.service';
 import { ContentDistributionService } from '@src/module/content/core/service/content-distribution.service';
 import { ContentIndexingService } from '@src/module/content/core/service/content-indexing.service';
+import { EpisodeLifecycleService } from '@src/module/content/core/service/episode-lifecycle.service';
 import { MediaPlayerService } from '@src/module/content/core/service/media-player.service';
 import { VideoMetadataService } from '@src/module/content/core/service/video-metadata.service';
 import { VideoProcessingService } from '@src/module/content/core/service/video-processing.service';
+import { VideoProcessorService } from '@src/module/content/core/service/video-processor.service';
 import { VideoProfanityFilterService } from '@src/module/content/core/service/video-profanity-filter.service';
 import { ContentManagementEventHandler } from '@src/module/content/event/handler/content-management.event-handler';
 import { ContentProcessingEventHandler } from '@src/module/content/event/handler/content-processing.event-handler';
@@ -37,10 +40,13 @@ import { PersistenceModule } from './persistence/persistence.module';
     ContentIndexingService,
     ContentProcessingEventHandler,
     MediaPlayerService,
-    AgeRecommendationService,
     VideoMetadataService,
-    ContentDistributionService,
     VideoProfanityFilterService,
+    CreateTvShowEpisodeUseCase,
+    AgeRecommendationService,
+    ContentDistributionService,
+    EpisodeLifecycleService,
+    VideoProcessorService,
   ],
   controllers: [AdminMovieController, AdminTvShowController, MediaPlayerController],
 })

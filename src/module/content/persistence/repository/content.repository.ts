@@ -30,12 +30,15 @@ export class ContentRepository extends DefaultTypeOrmRepository<Content> {
       title: content.title,
       description: content.description,
       movie: content.movie,
+      ageRecommendation: content.ageRecommendation,
       createdAt: content.createdAt,
       updatedAt: content.updatedAt,
       deletedAt: content.deletedAt,
     });
   }
   async saveTvShow(entity: TvShowContentModel): Promise<TvShowContentModel> {
+    const episodes = entity.tvShow.episodes;
+    //Saves content and tvShow but skips the episodes
     const content = new Content({
       id: entity.id,
       title: entity.title,
@@ -45,7 +48,12 @@ export class ContentRepository extends DefaultTypeOrmRepository<Content> {
       releaseDate: entity.releaseDate,
       tvShow: entity.tvShow,
     });
+
     await super.save(content);
+    //saves the relations from the ManyToOne relationship side to avoid replacement
+    if (Array.isArray(episodes) && episodes.length > 0) {
+      await this.transactionalEntityManager.save(episodes);
+    }
 
     if (!content.tvShow) {
       throw new NotFoundDomainException(`Tv show not found for content ${content.id}`);

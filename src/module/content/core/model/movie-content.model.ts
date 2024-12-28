@@ -9,6 +9,7 @@ export class MovieContentModel {
   description: string;
   type: ContentType;
   movie: Movie;
+  ageRecommendation: number | null;
   createdAt: Date;
   updatedAt: Date;
   deletedAt: Date | null;

@@ -12,6 +12,7 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { CreateTvShowEpisodeUseCase } from '@src/module/content/application/use-case/create-tv-show-episode.use-case';
 import { ContentManagementService } from '@src/module/content/core/service/content-management.service';
 import { CreateEpisodeRequestDto } from '@src/module/content/http/rest/dto/request/create-episode.dto';
 import { CreateTvShowRequestDto } from '@src/module/content/http/rest/dto/request/create-tv-show.dto';
@@ -25,7 +26,10 @@ import { extname } from 'node:path';
 
 @Controller('admin/tv-show')
 export class AdminTvShowController {
-  constructor(private readonly contentManagementService: ContentManagementService) {}
+  constructor(
+    private readonly contentManagementService: ContentManagementService,
+    private readonly createTvShowEpisodeUseCase: CreateTvShowEpisodeUseCase
+  ) {}
   @Post()
   @HttpCode(HttpStatus.CREATED)
   @UseInterceptors(
@@ -100,7 +104,7 @@ export class AdminTvShowController {
       throw new BadRequestException('Video file is required.');
     }
 
-    const createdEpisode = await this.contentManagementService.createEpisode({
+    const createdEpisode = await this.createTvShowEpisodeUseCase.execute({
       ...episodeData,
       contentId,
       videoUrl: video.path,
