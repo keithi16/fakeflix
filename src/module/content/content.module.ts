@@ -1,10 +1,13 @@
 import { Module } from '@nestjs/common';
+import { CreateMovieUseCase } from '@src/module/content/application/use-case/create-movie.use-case';
 import { CreateTvShowEpisodeUseCase } from '@src/module/content/application/use-case/create-tv-show-episode.use-case';
+import { CreateTvShowUseCase } from '@src/module/content/application/use-case/create-tv-show.use-case';
+import { GetStreamingURLUseCase } from '@src/module/content/application/use-case/get-streaming-url.use-case';
+import { ListContentUseCase } from '@src/module/content/application/use-case/list-content.use-case';
 import { AgeRecommendationService } from '@src/module/content/core/service/age-recommendation.service';
 import { ContentDistributionService } from '@src/module/content/core/service/content-distribution.service';
 import { ContentIndexingService } from '@src/module/content/core/service/content-indexing.service';
 import { EpisodeLifecycleService } from '@src/module/content/core/service/episode-lifecycle.service';
-import { MediaPlayerService } from '@src/module/content/core/service/media-player.service';
 import { VideoMetadataService } from '@src/module/content/core/service/video-metadata.service';
 import { VideoProcessingService } from '@src/module/content/core/service/video-processing.service';
 import { VideoProcessorService } from '@src/module/content/core/service/video-processor.service';
@@ -19,7 +22,6 @@ import { ConfigModule } from '@src/shared/module/config/config.module';
 import { EventEmitterModule } from '@src/shared/module/event/event-emitter.module';
 import { HttpClientModule } from '@src/shared/module/http-client/http-client.module';
 import { LoggerModule } from '@src/shared/module/logger/logger.module';
-import { ContentManagementService } from './core/service/content-management.service';
 import { VideoResolver } from './http/graphql/resolver/video.resolver';
 import { PersistenceModule } from './persistence/persistence.module';
 
@@ -33,13 +35,11 @@ import { PersistenceModule } from './persistence/persistence.module';
   ],
   providers: [
     VideoResolver,
-    ContentManagementService,
     ExternalMovieRatingClient,
     ContentManagementEventHandler,
     VideoProcessingService,
     ContentIndexingService,
     ContentProcessingEventHandler,
-    MediaPlayerService,
     VideoMetadataService,
     VideoProfanityFilterService,
     CreateTvShowEpisodeUseCase,
@@ -47,6 +47,12 @@ import { PersistenceModule } from './persistence/persistence.module';
     ContentDistributionService,
     EpisodeLifecycleService,
     VideoProcessorService,
+    CreateMovieUseCase,
+    CreateTvShowEpisodeUseCase,
+    CreateMovieUseCase,
+    ListContentUseCase,
+    GetStreamingURLUseCase,
+    CreateTvShowUseCase,
   ],
   controllers: [AdminMovieController, AdminTvShowController, MediaPlayerController],
 })

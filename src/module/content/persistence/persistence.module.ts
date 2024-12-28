@@ -1,7 +1,6 @@
 import { DynamicModule, Module } from '@nestjs/common';
 import { ContentMediaRepository } from '@src/module/content/persistence/repository/content-media.repository';
 import { EpisodeRepository } from '@src/module/content/persistence/repository/episode.repository';
-import { TvShowRepository } from '@src/module/content/persistence/repository/tv-show.repository';
 import { TransactionManagerService } from '@src/module/content/persistence/transaction-manager.service';
 import { ConfigModule } from '@src/shared/module/config/config.module';
 import { EventEmitterModule } from '@src/shared/module/event/event-emitter.module';
@@ -15,8 +14,6 @@ import { Thumbnail } from './entity/thumbnail.entity';
 import { TvShow } from './entity/tv-show.entity';
 import { Video } from './entity/video.entity';
 import { ContentRepository } from './repository/content.repository';
-import { MovieRepository } from './repository/movie.repository';
-import { VideoRepository } from './repository/video.repository';
 
 @Module({})
 export class PersistenceModule {
@@ -42,30 +39,9 @@ export class PersistenceModule {
           inject: [DataSource],
         },
         {
-          provide: MovieRepository,
-          useFactory: (dataSource: DataSource) => {
-            return new MovieRepository(dataSource.manager);
-          },
-          inject: [DataSource],
-        },
-        {
-          provide: VideoRepository,
-          useFactory: (dataSource: DataSource) => {
-            return new VideoRepository(dataSource.manager);
-          },
-          inject: [DataSource],
-        },
-        {
           provide: EpisodeRepository,
           useFactory: (dataSource: DataSource) => {
             return new EpisodeRepository(dataSource.manager);
-          },
-          inject: [DataSource],
-        },
-        {
-          provide: TvShowRepository,
-          useFactory: (dataSource: DataSource) => {
-            return new TvShowRepository(dataSource.manager);
           },
           inject: [DataSource],
         },
@@ -74,10 +50,7 @@ export class PersistenceModule {
       ],
       exports: [
         ContentRepository,
-        MovieRepository,
-        VideoRepository,
         EpisodeRepository,
-        TvShowRepository,
         ContentMediaRepository,
         TransactionManagerService,
       ],

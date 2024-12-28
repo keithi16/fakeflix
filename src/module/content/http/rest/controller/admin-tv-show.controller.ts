@@ -13,7 +13,7 @@ import {
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { CreateTvShowEpisodeUseCase } from '@src/module/content/application/use-case/create-tv-show-episode.use-case';
-import { ContentManagementService } from '@src/module/content/core/service/content-management.service';
+import { CreateTvShowUseCase } from '@src/module/content/application/use-case/create-tv-show.use-case';
 import { CreateEpisodeRequestDto } from '@src/module/content/http/rest/dto/request/create-episode.dto';
 import { CreateTvShowRequestDto } from '@src/module/content/http/rest/dto/request/create-tv-show.dto';
 import { CreateEpisodeResponseDto } from '@src/module/content/http/rest/dto/response/create-episode.dto';
@@ -27,8 +27,8 @@ import { extname } from 'node:path';
 @Controller('admin/tv-show')
 export class AdminTvShowController {
   constructor(
-    private readonly contentManagementService: ContentManagementService,
-    private readonly createTvShowEpisodeUseCase: CreateTvShowEpisodeUseCase
+    private readonly createTvShowEpisodeUseCase: CreateTvShowEpisodeUseCase,
+    private readonly createTvShowUseCase: CreateTvShowUseCase
   ) {}
   @Post()
   @HttpCode(HttpStatus.CREATED)
@@ -58,7 +58,7 @@ export class AdminTvShowController {
     )
     thumbnail: Express.Multer.File
   ): Promise<CreateTvShowResponseDto> {
-    const content = await this.contentManagementService.createTvShow({
+    const content = await this.createTvShowUseCase.execute({
       title: contentData.title,
       description: contentData.description,
       thumbnailUrl: thumbnail.path,

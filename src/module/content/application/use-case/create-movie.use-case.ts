@@ -1,10 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { MovieContentModel } from '@src/module/content/core/model/movie-content.model';
-import { TvShowContentModel } from '@src/module/content/core/model/tv-show-content.model';
+import { AgeRecommendationService } from '@src/module/content/core/service/age-recommendation.service';
+import { VideoProcessorService } from '@src/module/content/core/service/video-processor.service';
 import { ExternalMovieRatingClient } from '@src/module/content/http/client/external-movie-rating/external-movie-rating.client';
 import { Movie } from '@src/module/content/persistence/entity/movie.entity';
 import { Thumbnail } from '@src/module/content/persistence/entity/thumbnail.entity';
-import { TvShow } from '@src/module/content/persistence/entity/tv-show.entity';
 import { Video } from '@src/module/content/persistence/entity/video.entity';
 import { ContentRepository } from '@src/module/content/persistence/repository/content.repository';
 import { ContentManagementOperationType } from '@src/shared/event/content/content-management.event';
@@ -17,7 +17,7 @@ export interface ExternalMovieRating {
 }
 
 @Injectable()
-export class ContentManagementService {
+export class CreateMovieUseCase {
   constructor(
     private readonly contentRepository: ContentRepository,
     /**
@@ -25,12 +25,14 @@ export class ContentManagementService {
      * To allow easy swapping of the event emitter library
      */
     private readonly eventEmitter: EventEmitterService,
+    private readonly videoProcessorService: VideoProcessorService,
+    private readonly ageRecommendationService: AgeRecommendationService,
     private readonly externalMovieRatingClient: ExternalMovieRatingClient,
 
     private readonly appLogger: AppLogger
   ) {}
 
-  async createMovie(video: {
+  async execute(video: {
     //TODO add userId
     title: string;
     description: string;
@@ -48,7 +50,6 @@ export class ContentManagementService {
         externalRating: externalRating ?? null,
         video: new Video({
           url: video.videoUrl,
-          duration: video.duration,
           sizeInKb: video.sizeInKb,
         }),
       }),
@@ -59,6 +60,13 @@ export class ContentManagementService {
         url: video.thumbnailUrl,
       });
     }
+
+    Promise.all([
+      await this.videoProcessorService.processMetadataAndSecurity(
+        contentModel.movie.video
+      ),
+      await this.ageRecommendationService.setAgeRecommendationForContent(contentModel),
+    ]);
     const content = await this.contentRepository.saveMovie(contentModel);
     this.eventEmitter.emit(
       ContentManagementOperationType.CONTENT_CREATED,
@@ -72,25 +80,5 @@ export class ContentManagementService {
       contentBody: content,
     });
     return content;
-  }
-
-  async createTvShow(tvShow: {
-    //TODO add userId
-    title: string;
-    description: string;
-    thumbnailUrl?: string;
-  }): Promise<TvShowContentModel> {
-    const content = new TvShowContentModel({
-      title: tvShow.title,
-      description: tvShow.description,
-      tvShow: new TvShow({}),
-    });
-
-    if (tvShow.thumbnailUrl && content.tvShow) {
-      content.tvShow.thumbnail = new Thumbnail({
-        url: tvShow.thumbnailUrl,
-      });
-    }
-    return await this.contentRepository.saveTvShow(content);
   }
 }

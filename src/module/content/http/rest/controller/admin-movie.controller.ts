@@ -10,7 +10,7 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
-import { ContentManagementService } from '@src/module/content/core/service/content-management.service';
+import { CreateMovieUseCase } from '@src/module/content/application/use-case/create-movie.use-case';
 import { CreateMovieInputDto } from '@src/module/content/http/rest/dto/request/create-movie.dto';
 import { CreateMovieResponseDto } from '@src/module/content/http/rest/dto/response/create-movie.dto';
 
@@ -21,7 +21,7 @@ import { extname } from 'path';
 
 @Controller('admin/movie')
 export class AdminMovieController {
-  constructor(private readonly contentManagementService: ContentManagementService) {}
+  constructor(private readonly createMovieUseCase: CreateMovieUseCase) {}
   @Post()
   @HttpCode(HttpStatus.CREATED)
   @UseInterceptors(
@@ -77,7 +77,7 @@ export class AdminMovieController {
       throw new BadRequestException('Thumbnail size exceeds the limit.');
     }
 
-    const createdMovie = await this.contentManagementService.createMovie({
+    const createdMovie = await this.createMovieUseCase.execute({
       title: contentData.title,
       description: contentData.description,
       videoUrl: videoFile.path,

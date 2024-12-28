@@ -1,12 +1,12 @@
 import { Controller, Get, Header, HttpStatus, Param, Req, Res } from '@nestjs/common';
-import { MediaPlayerService } from '@src/module/content/core/service/media-player.service';
+import { GetStreamingURLUseCase } from '@src/module/content/application/use-case/get-streaming-url.use-case';
 import { Request, Response } from 'express';
 import * as fs from 'fs';
 import * as path from 'path';
 
 @Controller('player')
 export class MediaPlayerController {
-  constructor(private readonly mediaPlayerService: MediaPlayerService) {}
+  constructor(private readonly getStreamingURLUSeCase: GetStreamingURLUseCase) {}
   @Get('stream/:videoId')
   @Header('Content-Type', 'video/mp4')
   async streamVideo(
@@ -14,7 +14,7 @@ export class MediaPlayerController {
     @Req() req: Request,
     @Res() res: Response
   ) {
-    const videoUrl = await this.mediaPlayerService.prepareStreaming(videoId);
+    const videoUrl = await this.getStreamingURLUSeCase.execute(videoId);
     console.log('here', videoUrl);
     const videoPath = path.join('.', videoUrl);
     const fileSize = fs.statSync(videoPath).size;
