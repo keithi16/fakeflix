@@ -61,8 +61,7 @@ export class AdminTvShowController {
     });
     return {
       id: content.id,
-      //TODO fix !
-      tvShowId: content.tvShow!.id,
+      tvShowId: content.tvShow.id,
       title: content.title,
       description: content.description,
       thumbnailUrl: content.tvShow?.thumbnail?.url,
@@ -84,7 +83,7 @@ export class AdminTvShowController {
   async uploadEpisodeToTvShowContent(
     @Req() _req: Request,
     @Body() episodeData: CreateEpisodeRequestDto,
-    @Param('tvShowId') tvShowId: string,
+    @Param('contentId') contentId: string,
     @UploadedFile(
       new ParseFilePipeBuilder()
         .addFileTypeValidator({
@@ -103,7 +102,7 @@ export class AdminTvShowController {
 
     const createdEpisode = await this.contentManagementService.createEpisode({
       ...episodeData,
-      tvShowId,
+      contentId,
       videoUrl: video.path,
       videoSizeInKb: video.size,
     });
@@ -112,9 +111,9 @@ export class AdminTvShowController {
       id: createdEpisode.id,
       title: createdEpisode.title,
       description: createdEpisode.description,
-      videoUrl: createdEpisode.video?.url,
-      duration: createdEpisode.video?.duration,
-      sizeInKb: createdEpisode.video?.sizeInKb,
+      videoUrl: createdEpisode.video.url,
+      duration: createdEpisode.video.duration,
+      sizeInKb: createdEpisode.video.sizeInKb,
     };
   }
 }

@@ -1,0 +1,33 @@
+import { ContentType } from '@src/module/content/core/enum/content-type.enum';
+import { Movie } from '@src/module/content/persistence/entity/movie.entity';
+import { WithOptional } from '@src/shared/core/model/default.model';
+import { randomUUID } from 'crypto';
+
+export class MovieContentModel {
+  id: string;
+  title: string;
+  description: string;
+  type: ContentType;
+  movie: Movie;
+  createdAt: Date;
+  updatedAt: Date;
+  deletedAt: Date | null;
+
+  constructor(
+    data: Omit<
+      WithOptional<MovieContentModel, 'id' | 'createdAt' | 'updatedAt' | 'deletedAt'>,
+      'type'
+    >
+  ) {
+    Object.assign(this, {
+      ...data,
+      id: data.id ? data.id : randomUUID(),
+      //encapsulates the creation
+      type: ContentType.MOVIE,
+      createdAt: data.createdAt || Date.now(),
+      updatedAt: data.updatedAt || Date.now(),
+      deletedAt: data.deletedAt,
+      movie: data.movie,
+    });
+  }
+}

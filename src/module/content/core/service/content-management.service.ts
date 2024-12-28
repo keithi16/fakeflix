@@ -1,12 +1,12 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
-import { ContentType } from '@src/module/content/core/enum/content-type.enum';
+import { MovieContentModel } from '@src/module/content/core/model/movie-content.model';
+import { TvShowContentModel } from '@src/module/content/core/model/tv-show-content.model';
 import { AgeRecommendationService } from '@src/module/content/core/service/age-recommendation.service';
 import { ContentDistributionService } from '@src/module/content/core/service/content-distribution.service';
 import { VideoMetadataService } from '@src/module/content/core/service/video-metadata.service';
 import { VideoProfanityFilterService } from '@src/module/content/core/service/video-profanity-filter.service';
 import { ExternalMovieRatingClient } from '@src/module/content/http/client/external-movie-rating/external-movie-rating.client';
 import { CreateEpisodeRequestDto } from '@src/module/content/http/rest/dto/request/create-episode.dto';
-import { Content } from '@src/module/content/persistence/entity/content.entity';
 import { Episode } from '@src/module/content/persistence/entity/episode.entity';
 import { Movie } from '@src/module/content/persistence/entity/movie.entity';
 import { Thumbnail } from '@src/module/content/persistence/entity/thumbnail.entity';
@@ -52,12 +52,11 @@ export class ContentManagementService {
     thumbnailUrl?: string;
     duration: number;
     sizeInKb: number;
-  }): Promise<Content> {
+  }): Promise<MovieContentModel> {
     const externalRating = await this.externalMovieRatingClient.getRating(video.title);
-    const contentModel = new Content({
+    const contentModel = new MovieContentModel({
       title: video.title,
       description: video.description,
-      type: ContentType.MOVIE,
       movie: new Movie({
         externalRating: externalRating ?? null,
         video: new Video({
@@ -73,7 +72,7 @@ export class ContentManagementService {
         url: video.thumbnailUrl,
       });
     }
-    const content = await this.contentRepository.save(contentModel);
+    const content = await this.contentRepository.saveMovie(contentModel);
     this.eventEmitter.emit(
       ContentManagementOperationType.CONTENT_CREATED,
       new EntityChangedEvent(
@@ -93,11 +92,10 @@ export class ContentManagementService {
     title: string;
     description: string;
     thumbnailUrl?: string;
-  }): Promise<Content> {
-    const content = new Content({
+  }): Promise<TvShowContentModel> {
+    const content = new TvShowContentModel({
       title: tvShow.title,
       description: tvShow.description,
-      type: ContentType.TV_SHOW,
       tvShow: new TvShow({}),
     });
 
@@ -106,30 +104,31 @@ export class ContentManagementService {
         url: tvShow.thumbnailUrl,
       });
     }
-    return await this.contentRepository.save(content);
+    return await this.contentRepository.saveTvShow(content);
   }
 
   async createEpisode(
     episodeData: CreateEpisodeRequestDto & {
       videoUrl: string;
-      tvShowId: string;
+      contentId: string;
       videoSizeInKb: number;
     }
   ): Promise<Episode> {
     //Problem: Requires too many repositories
-    const content = await this.contentRepository.findOneById(episodeData.tvShowId, [
-      'tvShow',
-    ]);
+    const content = await this.contentRepository.findTvShowContentById(
+      episodeData.contentId,
+      ['tvShow']
+    );
     if (!content?.tvShow) {
       throw new NotFoundDomainException(
-        `TV Show with id ${episodeData.tvShowId} not found`
+        `TV Show with id ${episodeData.contentId} not found`
       );
     }
     //Domain logic validation
     const episodeWithSameSeasonAndNumber = await this.episodeRepository.existsBy({
       season: episodeData.season,
       number: episodeData.number,
-      tvShowId: episodeData.tvShowId,
+      tvShowId: content.tvShow.id,
     });
     if (episodeWithSameSeasonAndNumber) {
       throw new BadRequestException(
@@ -138,7 +137,7 @@ export class ContentManagementService {
     }
 
     const lastEpisode = await this.episodeRepository.findByLastEpisodeByTvShowAndSeason(
-      episodeData.tvShowId,
+      episodeData.contentId,
       episodeData.season
     );
     if (lastEpisode && lastEpisode.number + 1 !== episodeData.number) {
@@ -174,7 +173,7 @@ export class ContentManagementService {
 
     //Perform transactional operation
     return await this.transactionManager.executeWithinTransaction(async () => {
-      await this.contentRepository.save(content);
+      await this.contentRepository.saveTvShow(content);
 
       const savedEpisode = await this.episodeRepository.save(episode);
       //If it fails the transaction is rolled back

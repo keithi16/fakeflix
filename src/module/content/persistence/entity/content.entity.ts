@@ -21,14 +21,15 @@ export class Content extends DefaultEntity<Content> {
   @Column({ type: 'date', nullable: true })
   releaseDate: Date | null;
 
-  //TODO make it nullable
   @OneToOne(() => Movie, (movie) => movie.content, {
     cascade: true,
+    nullable: true,
   })
-  movie: Movie;
+  movie: Movie | null;
 
   @OneToOne(() => TvShow, (tvShow) => tvShow.content, {
     cascade: true,
+    nullable: true,
   })
   tvShow: TvShow | null;
 }
