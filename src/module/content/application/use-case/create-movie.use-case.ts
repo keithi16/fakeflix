@@ -68,6 +68,12 @@ export class CreateMovieUseCase {
       await this.ageRecommendationService.setAgeRecommendationForContent(contentModel),
     ]);
     const content = await this.contentRepository.saveMovie(contentModel);
+    /**
+     * Atenção NUNCA USE EVENT EMITTER EM PRODUÇÃO PARA COMUNICAÇÃO
+     * Utilize um Event Broker como SNS ou Kafka pois EventEmitter não persiste eventos.
+     * Esse é somente um experimento que no futuro vai virar uma comunicação utilizando um broker de verdade
+     * Saiba mais sobre isso aqui https://youtu.be/7D-EB_VpLRQ?si=X04R8FTchSr0_WuV
+     */
     this.eventEmitter.emit(
       ContentManagementOperationType.CONTENT_CREATED,
       new EntityChangedEvent(
