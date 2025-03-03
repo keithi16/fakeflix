@@ -7,7 +7,6 @@ import { CreateEpisodeRequestDto } from '@src/module/content/http/rest/dto/reque
 import { Episode } from '@src/module/content/persistence/entity/episode.entity';
 import { Video } from '@src/module/content/persistence/entity/video.entity';
 import { ContentRepository } from '@src/module/content/persistence/repository/content.repository';
-import { TransactionManagerService } from '@src/module/content/persistence/transaction-manager.service';
 import { NotFoundDomainException } from '@src/shared/core/exeption/not-found-domain.exception';
 
 @Injectable()
@@ -15,7 +14,6 @@ export class CreateTvShowEpisodeUseCase {
   constructor(
     private readonly contentRepository: ContentRepository,
     private readonly ageRecommendationService: AgeRecommendationService,
-    private readonly transactionManager: TransactionManagerService,
     private readonly contendDistributionService: ContentDistributionService,
     private readonly videoProcessorService: VideoProcessorService,
     private readonly episodeLifecycleService: EpisodeLifecycleService
@@ -64,14 +62,9 @@ export class CreateTvShowEpisodeUseCase {
     content.tvShow.episodes = [];
     content.tvShow.episodes.push(episode);
 
-    //Perform transactional operation
-    await this.transactionManager.executeWithinTransaction(async () => {
-      //should try to use only one repository
-      await this.contentRepository.saveTvShow(content);
+    await this.contentRepository.saveTvShow(content);
+    await this.contendDistributionService.distributeContent(content.id);
 
-      //If it fails the transaction is rolled back
-      await this.contendDistributionService.distributeContent(content.id);
-    });
     return episode;
   }
 }

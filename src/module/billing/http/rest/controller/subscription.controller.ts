@@ -28,7 +28,7 @@ export class SubscriptionController {
       //TODO validate
       return plainToInstance(
         SubscriptionResponseDto,
-        { ...createdSubscription, ...{ plan: createdSubscription.Plan } },
+        { ...createdSubscription, ...{ plan: createdSubscription.plan } },
         {
           excludeExtraneousValues: true,
         }

@@ -20,7 +20,7 @@ export class AuthService {
   ) {}
 
   async signIn(email: string, password: string): Promise<{ accessToken: string }> {
-    const user = await this.userRepository.findOneBy({ email });
+    const user = await this.userRepository.findOneByEmail(email);
 
     if (!user || !(await this.comparePassword(password, user.password))) {
       throw new UserUnauthorizedException(`Cannot authorize user: ${email}`);

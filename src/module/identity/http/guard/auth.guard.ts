@@ -7,13 +7,13 @@ import {
 } from '@nestjs/common';
 import { GqlExecutionContext } from '@nestjs/graphql';
 import { JwtService } from '@nestjs/jwt';
-import { UserModel } from '@src/module/identity/core/model/user.model';
 import { jwtConstants } from '@src/module/identity/core/service/authentication.service';
 import { UserManagementService } from '@src/module/identity/core/service/user-management.service';
+import { User } from '@src/module/identity/persistence/entity/user.entity';
 import { Request } from 'express';
 
 export interface AuthenticatedRequest extends Request {
-  user: UserModel;
+  user: User;
 }
 @Injectable()
 export class AuthGuard implements CanActivate {

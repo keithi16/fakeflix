@@ -1,19 +1,23 @@
 import { Injectable } from '@nestjs/common';
+import { InjectDataSource } from '@nestjs/typeorm';
 import { Episode } from '@src/module/content/persistence/entity/episode.entity';
 import { DefaultTypeOrmRepository } from '@src/shared/module/persistence/typeorm/repository/default-typeorm.repository';
-import { EntityManager } from 'typeorm';
+import { DataSource } from 'typeorm';
 
 @Injectable()
 export class EpisodeRepository extends DefaultTypeOrmRepository<Episode> {
-  constructor(readonly transactionalEntityManager: EntityManager) {
-    super(Episode, transactionalEntityManager);
+  constructor(
+    @InjectDataSource('content')
+    dataSource: DataSource
+  ) {
+    super(Episode, dataSource.manager);
   }
 
   async findByLastEpisodeByTvShowAndSeason(
     tvShowId: string,
     season: number
   ): Promise<Episode | null> {
-    return this.find({
+    return this.findOne({
       where: {
         tvShowId,
         season,

@@ -5,7 +5,7 @@ import { BillingPublicApiProvider } from '@src/module/billing/integration/provid
 import { BillingPersistenceModule } from '@src/module/billing/persistence/billing-persistence.module';
 
 @Module({
-  imports: [BillingPersistenceModule],
+  imports: [BillingPersistenceModule.forRoot()],
   providers: [SubscriptionService, BillingPublicApiProvider],
   controllers: [SubscriptionController],
   exports: [BillingPublicApiProvider],

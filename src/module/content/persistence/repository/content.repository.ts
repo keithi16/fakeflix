@@ -1,15 +1,19 @@
 import { Injectable } from '@nestjs/common';
+import { InjectDataSource } from '@nestjs/typeorm';
 import { MovieContentModel } from '@src/module/content/core/model/movie-content.model';
 import { TvShowContentModel } from '@src/module/content/core/model/tv-show-content.model';
 import { Content } from '@src/module/content/persistence/entity/content.entity';
 import { NotFoundDomainException } from '@src/shared/core/exeption/not-found-domain.exception';
 import { DefaultTypeOrmRepository } from '@src/shared/module/persistence/typeorm/repository/default-typeorm.repository';
-import { EntityManager } from 'typeorm';
+import { DataSource } from 'typeorm';
 
 @Injectable()
 export class ContentRepository extends DefaultTypeOrmRepository<Content> {
-  constructor(readonly transactionalEntityManager: EntityManager) {
-    super(Content, transactionalEntityManager);
+  constructor(
+    @InjectDataSource('content')
+    dataSource: DataSource
+  ) {
+    super(Content, dataSource.manager);
   }
 
   async saveMovie(entity: MovieContentModel): Promise<MovieContentModel> {

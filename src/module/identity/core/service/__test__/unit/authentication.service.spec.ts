@@ -1,8 +1,8 @@
 import { JwtService } from '@nestjs/jwt';
 import { Test, TestingModule } from '@nestjs/testing';
 import { UserUnauthorizedException } from '@src/module/identity/core/exception/user-unauthorized.exception';
-import { UserModel } from '@src/module/identity/core/model/user.model';
 import { AuthService } from '@src/module/identity/core/service/authentication.service';
+import { User } from '@src/module/identity/persistence/entity/user.entity';
 import { UserRepository } from '@src/module/identity/persistence/repository/user.repository';
 import { BillingSubscriptionStatusApi } from '@src/shared/module/integration/interface/billing-integration.interface';
 import { hashSync } from 'bcrypt';
@@ -20,6 +20,7 @@ describe('AuthenticationService', () => {
           provide: UserRepository,
           useValue: {
             findOne: jest.fn(),
+            findOneByEmail: jest.fn(),
           },
         },
         {
@@ -52,14 +53,14 @@ describe('AuthenticationService', () => {
       };
       const token = 'testtoken';
       const encryptedPassword = hashSync(user.password, 10);
-      userRepository.findOneBy = jest
+      userRepository.findOneByEmail = jest
         .fn()
-        .mockResolvedValue(UserModel.create({ ...user, password: encryptedPassword }));
+        .mockResolvedValue(new User({ ...user, password: encryptedPassword }));
       jwtService.signAsync = jest.fn().mockResolvedValue(token);
 
       const result = await authService.signIn(user.email, 'testpassword');
 
-      expect(userRepository.findOneBy).toHaveBeenCalledWith({ email: user.email });
+      expect(userRepository.findOneByEmail).toHaveBeenCalledWith(user.email);
       expect(jwtService.signAsync).toHaveBeenCalled();
       expect(result).toEqual({ accessToken: token });
     });
@@ -71,7 +72,7 @@ describe('AuthenticationService', () => {
         lastName: 'Doe',
         password: 'testpassword',
       };
-      userRepository.findOneBy = jest.fn().mockResolvedValue(UserModel.create(user));
+      userRepository.findOne = jest.fn().mockResolvedValue(new User(user));
 
       await expect(authService.signIn(user.email, 'invalidpassword')).rejects.toThrow(
         UserUnauthorizedException

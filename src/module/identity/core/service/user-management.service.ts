@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { UserModel } from '@src/module/identity/core/model/user.model';
+import { User } from '@src/module/identity/persistence/entity/user.entity';
 import { UserRepository } from '@src/module/identity/persistence/repository/user.repository';
 import { DomainException } from '@src/shared/core/exeption/domain.exception';
 import { hash } from 'bcrypt';
@@ -21,10 +21,11 @@ export class UserManagementService {
     if (!this.validateEmail(user.email)) {
       throw new DomainException(`Invalid email: ${user.email}`);
     }
-    const newUser = UserModel.create({
+    const newUser = new User({
       ...user,
       password: await hash(user.password, PASSWORD_HASH_SALT),
     });
+
     await this.userRepository.save(newUser);
     return newUser;
   }
@@ -35,6 +36,6 @@ export class UserManagementService {
   }
 
   async getUserById(id: string) {
-    return this.userRepository.findOneBy({ id });
+    return this.userRepository.findOneById(id);
   }
 }

@@ -1,12 +1,24 @@
-import { Module } from '@nestjs/common';
-import * as billingSchema from '@src/module/billing/persistence/database.schema';
+import { DynamicModule } from '@nestjs/common';
+import { Plan } from '@src/module/billing/persistence/entity/plan.entity';
+import { Subscription } from '@src/module/billing/persistence/entity/subscription.entity';
 import { PlanRepository } from '@src/module/billing/persistence/repository/plan.repository';
 import { SubscriptionRepository } from '@src/module/billing/persistence/repository/subscription.repository';
-import { DrizzlePersistenceModule } from '@src/shared/module/persistence/drizzle/drizzle-persistence.module';
+import { TypeOrmPersistenceModule } from '@src/shared/module/persistence/typeorm/typeorm-persistence.module';
 
-@Module({
-  imports: [DrizzlePersistenceModule.forRoot(billingSchema)],
-  providers: [PlanRepository, SubscriptionRepository],
-  exports: [PlanRepository, SubscriptionRepository],
-})
-export class BillingPersistenceModule {}
+export class BillingPersistenceModule {
+  static forRoot(opts?: { migrations?: string[] }): DynamicModule {
+    const { migrations } = opts || {};
+    return {
+      module: BillingPersistenceModule,
+      imports: [
+        TypeOrmPersistenceModule.forRoot({
+          connectionName: 'billing',
+          migrations,
+          entities: [Plan, Subscription],
+        }),
+      ],
+      providers: [PlanRepository, SubscriptionRepository],
+      exports: [PlanRepository, SubscriptionRepository],
+    };
+  }
+}

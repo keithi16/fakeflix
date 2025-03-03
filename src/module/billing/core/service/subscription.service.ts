@@ -1,8 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import {
-  SubscriptionModel,
-  SubscriptionStatus,
-} from '@src/module/billing/core/model/subscription.model';
+import { SubscriptionStatus } from '@src/module/billing/core/enum/subscription-status.enum';
+import { Subscription } from '@src/module/billing/persistence/entity/subscription.entity';
 
 import { PlanRepository } from '@src/module/billing/persistence/repository/plan.repository';
 import { SubscriptionRepository } from '@src/module/billing/persistence/repository/subscription.repository';
@@ -15,29 +13,29 @@ export class SubscriptionService {
     private readonly subscriptionRepository: SubscriptionRepository
   ) {}
 
-  async createSubscription({ planId }: { planId: string }): Promise<SubscriptionModel> {
-    const plan = await this.planRepository.findById(planId);
+  async createSubscription({ planId }: { planId: string }): Promise<Subscription> {
+    const plan = await this.planRepository.findOneById(planId);
     if (!plan) {
       throw new NotFoundDomainException(`Plan with id ${planId} not found`);
     }
-    const subscription = SubscriptionModel.create({
-      planId,
+    const subscription = new Subscription({
+      plan,
       //TODO replace with user id from the JWT
       userId: 'user-id',
       status: SubscriptionStatus.Active,
       startDate: new Date(),
       autoRenew: true,
     });
-    await this.subscriptionRepository.create(subscription);
+    await this.subscriptionRepository.save(subscription);
     return subscription;
   }
 
-  async getSubscriptionByUserId(userId: string): Promise<SubscriptionModel | null> {
-    return this.subscriptionRepository.findByUserId(userId);
+  async getSubscriptionByUserId(userId: string): Promise<Subscription | null> {
+    return this.subscriptionRepository.findOneByUserId(userId);
   }
 
   async isUserSubscriptionActive(userId: string): Promise<boolean> {
-    const subscription = await this.subscriptionRepository.findByUserId(userId);
+    const subscription = await this.subscriptionRepository.findOneByUserId(userId);
     return subscription?.status === SubscriptionStatus.Active;
   }
 }

@@ -5,9 +5,9 @@ import { JwtModule } from '@nestjs/jwt';
 import { BillingModule } from '@src/module/billing/billing.module';
 // eslint-disable-next-line import/no-restricted-paths
 import { BillingPublicApiProvider } from '@src/module/billing/integration/provider/public-api.provider';
+import { IdentityPersistenceModule } from '@src/module/identity/persistence/identity-persistence.module';
 import { DomainModuleIntegrationModule } from '@src/shared/module/integration/domain-module-integration.module';
 import { BillingSubscriptionStatusApi } from '@src/shared/module/integration/interface/billing-integration.interface';
-import { PersistenceModule } from '@src/shared/module/persistence/prisma/persistence.module';
 import { AuthService, jwtConstants } from './core/service/authentication.service';
 import { UserManagementService } from './core/service/user-management.service';
 import { AuthResolver } from './http/graphql/resolver/auth.resolver';
@@ -20,7 +20,7 @@ import { UserRepository } from './persistence/repository/user.repository';
       secret: jwtConstants.secret,
       signOptions: { expiresIn: '60m' },
     }),
-    PersistenceModule,
+    IdentityPersistenceModule.forRoot(),
     DomainModuleIntegrationModule,
     BillingModule,
   ],

@@ -1,12 +1,13 @@
 import { faker } from '@faker-js/faker/.';
-import { PlanInterval, PlanModel } from '@src/module/billing/core/model/plan.model';
+import { PlanInterval } from '@src/module/billing/core/enum/plan-interval.enum';
+import { Plan } from '@src/module/billing/persistence/entity/plan.entity';
 import * as Factory from 'factory.ts';
 
-export const planFactory = Factory.Sync.makeFactory<PlanModel>({
+export const planFactory = Factory.Sync.makeFactory<Partial<Plan>>({
   id: faker.string.uuid(),
   name: faker.string.sample(),
   description: faker.string.sample(),
-  amount: faker.number.float().toString(),
+  amount: 10,
   currency: faker.finance.currencyCode(),
   interval: PlanInterval.Month,
   trialPeriod: 0,

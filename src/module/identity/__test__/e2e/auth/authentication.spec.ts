@@ -1,7 +1,6 @@
 import { INestApplication } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { AppModule } from '@src/app.module';
-import { UserModel } from '@src/module/identity/core/model/user.model';
 import { UserManagementService } from '@src/module/identity/core/service/user-management.service';
 import { Tables } from '@testInfra/enum/tables.enum';
 import { planFactory } from '@testInfra/factory/identity/plan.test-factory';
@@ -43,18 +42,16 @@ describe('AuthResolver (e2e)', () => {
         email: 'johndoe@example.com',
         password: 'password123',
       };
-      const createdUser = await userManagementService.create(
-        UserModel.create({
-          firstName: 'John',
-          lastName: 'Doe',
-          email: signInInput.email,
-          password: signInInput.password,
-        })
-      );
+      const createdUser = await userManagementService.create({
+        firstName: 'John',
+        lastName: 'Doe',
+        email: signInInput.email,
+        password: signInInput.password,
+      });
       const plan = planFactory.build();
       const subscription = subscriptionFactory.build({
         planId: plan.id,
-        status: 'ACTIVE' as any,
+        status: 'Active' as any,
         userId: createdUser.id,
       });
       await testDbClient(Tables.Plan).insert(plan);
@@ -109,14 +106,12 @@ describe('AuthResolver (e2e)', () => {
         password: 'password123',
       };
 
-      await userManagementService.create(
-        UserModel.create({
-          firstName: 'John',
-          lastName: 'Doe',
-          email: signInInput.email,
-          password: signInInput.password,
-        })
-      );
+      await userManagementService.create({
+        firstName: 'John',
+        lastName: 'Doe',
+        email: signInInput.email,
+        password: signInInput.password,
+      });
 
       const response = await request(app.getHttpServer())
         .post('/graphql')
@@ -144,18 +139,16 @@ describe('AuthResolver (e2e)', () => {
         email: 'johndoe@example.com',
         password: 'password123',
       };
-      const createdUser = await userManagementService.create(
-        UserModel.create({
-          firstName: 'John',
-          lastName: 'Doe',
-          email: signInInput.email,
-          password: signInInput.password,
-        })
-      );
+      const createdUser = await userManagementService.create({
+        firstName: 'John',
+        lastName: 'Doe',
+        email: signInInput.email,
+        password: signInInput.password,
+      });
       const plan = planFactory.build();
       const subscription = subscriptionFactory.build({
         planId: plan.id,
-        status: 'ACTIVE' as any,
+        status: 'Active' as any,
         userId: createdUser.id,
       });
       await testDbClient(Tables.Plan).insert(plan);
@@ -217,14 +210,12 @@ describe('AuthResolver (e2e)', () => {
         email: 'johndoe@example.com',
         password: 'password123',
       };
-      const createdUser = await userManagementService.create(
-        UserModel.create({
-          firstName: 'John',
-          lastName: 'Doe',
-          email: signInInput.email,
-          password: signInInput.password,
-        })
-      );
+      const createdUser = await userManagementService.create({
+        firstName: 'John',
+        lastName: 'Doe',
+        email: signInInput.email,
+        password: signInInput.password,
+      });
       nock('https://localhost:3000', {
         encodedQueryParams: true,
         reqheaders: {

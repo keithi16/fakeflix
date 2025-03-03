@@ -1,8 +1,8 @@
 import { HttpStatus, INestApplication } from '@nestjs/common';
 import { TestingModule } from '@nestjs/testing';
 import { CONTENT_TEST_FIXTURES } from '@src/module/content/__test__/e2e/contants';
+import { ContentModule } from '@src/module/content/content.module';
 
-import { Tables } from '@testInfra/enum/tables.enum';
 import { testDbClient } from '@testInfra/knex.database';
 import { createNestApp } from '@testInfra/test-e2e.setup';
 import nock, { cleanAll } from 'nock';
@@ -13,20 +13,33 @@ describe('AdminMovieController (e2e)', () => {
   let app: INestApplication;
 
   beforeAll(async () => {
-    const nestTestSetup = await createNestApp();
+    const nestTestSetup = await createNestApp([ContentModule]);
     app = nestTestSetup.app;
     module = nestTestSetup.module;
   });
 
   beforeEach(async () => {
     jest.useFakeTimers({ advanceTimers: true }).setSystemTime(new Date('2023-01-01'));
+    await testDbClient('Video').del();
+    await testDbClient('Episode').del();
+    await testDbClient('Movie').del();
+    await testDbClient('TvShow').del();
+
+    await testDbClient('Content').del();
+    await testDbClient('Thumbnail').del();
   });
 
   afterEach(async () => {
-    await testDbClient(Tables.Video).del();
-    await testDbClient(Tables.Movie).del();
-    await testDbClient(Tables.Thumbnail).del();
-    await testDbClient(Tables.Content).del();
+    // First, clean up tables with foreign keys referring to other tables
+    await testDbClient('Video').del();
+    await testDbClient('Episode').del();
+    await testDbClient('Movie').del();
+    await testDbClient('TvShow').del();
+
+    // Then clean up content and other supporting tables
+    await testDbClient('Content').del();
+    await testDbClient('Thumbnail').del();
+
     cleanAll();
   });
 
