@@ -1,0 +1,53 @@
+import { Injectable } from '@nestjs/common';
+import { EventEmitter2 } from '@nestjs/event-emitter';
+import { MovieContentModel } from '@tlc/content/core/model/movie-content.model';
+import { VideoMetadataService } from '@tlc/content/core/service/video-metadata.service';
+import { VideoProfanityFilterService } from '@tlc/content/core/service/video-profanity-filter.service';
+import { Video } from '@tlc/content/persistence/entity/video.entity';
+import { ContentProcessingEvent } from '@tlc/shared-lib/event/content/content-processing.event';
+import { EntityChangedEvent } from '@tlc/shared-lib/event/entity-changed.event';
+import { instanceToInstance } from 'class-transformer';
+
+@Injectable()
+export class VideoProcessingService {
+  constructor(
+    private readonly eventEmitter: EventEmitter2,
+    private readonly videoMetadataProvider: VideoMetadataService,
+    private readonly videoProfanityFilterService: VideoProfanityFilterService
+  ) {}
+
+  async processMetadataAndSecurity(video: Video) {
+    await this.videoMetadataProvider.setVideoDuration(video);
+
+    //assume it's async and will update the video later
+    //TODO: implement the video profanity filter save non transactional
+    await this.videoProfanityFilterService.filterProfanity(video);
+  }
+
+  //use for event handler example
+  processVideo(content: MovieContentModel) {
+    /**
+     * Clones the content instance
+     */
+    const newContent = instanceToInstance(content);
+    /**
+     * Updates the duration of the video
+     */
+
+    newContent.movie.video.duration = 100;
+    /**
+     * Atenção NUNCA USE EVENT EMITTER EM PRODUÇÃO PARA COMUNICAÇÃO
+     * Utilize um Event Broker como SNS ou Kafka pois EventEmitter não persiste eventos.
+     * Esse é somente um experimento que no futuro vai virar uma comunicação utilizando um broker de verdade
+     * Saiba mais sobre isso aqui https://youtu.be/7D-EB_VpLRQ?si=X04R8FTchSr0_WuV
+     */
+    this.eventEmitter.emit(
+      ContentProcessingEvent.CONTENT_PROCESSED,
+      new EntityChangedEvent(
+        ContentProcessingEvent.CONTENT_PROCESSED,
+        newContent.id,
+        newContent
+      )
+    );
+  }
+}

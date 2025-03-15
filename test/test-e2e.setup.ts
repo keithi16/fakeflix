@@ -1,8 +1,7 @@
 import { ValidationPipe } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
-import { AppModule } from '@src/app.module';
 
-export const createNestApp = async (modules: any[] = [AppModule]) => {
+export const createNestApp = async (modules: any[]) => {
   const module = await Test.createTestingModule({
     imports: modules,
   }).compile();

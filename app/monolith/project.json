@@ -1,0 +1,59 @@
+{
+  "name": "monolith",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "app/monolith",
+  "projectType": "application",
+  "tags": [],
+  "targets": {
+    "start:dev": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "nest start",
+        "args": ["--watch"],
+        "cwd": "app/monolith"
+      }
+    },
+    "start:debug": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "nest start",
+        "args": ["--watch --debug"],
+        "cwd": "app/monolith"
+      }
+    },
+    "build": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "nest build",
+        "cwd": "app/monolith"
+      }
+    },
+    "start": {
+      "executor": "nx:run-commands",
+      "dependsOn": [
+        {
+          "target": "build",
+          "projects": "self"
+        }
+      ],
+      "options": {
+        "command": "node dist/app/monolith/main.js"
+      }
+    },
+    "lint:check": {
+      "executor": "@nx/eslint:lint",
+      "outputs": ["{options.outputFile}"],
+      "options": {
+        "lintFilePatterns": ["app/monolith/**/*.ts"]
+      }
+    },
+    "lint:fix": {
+      "executor": "@nx/eslint:lint",
+      "outputs": ["{options.outputFile}"],
+      "options": {
+        "lintFilePatterns": ["app/monolith/**/*.ts"],
+        "fix": true
+      }
+    }
+  }
+}

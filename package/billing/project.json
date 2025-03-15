@@ -1,0 +1,55 @@
+{
+  "name": "billing",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "package/billing",
+  "projectType": "library",
+  "tags": [],
+  "// targets": "to see all targets run: nx show project subscription --web",
+  "targets": {
+    "lint:check": {
+      "executor": "@nx/eslint:lint",
+      "outputs": ["{options.outputFile}"],
+      "options": {
+        "lintFilePatterns": ["package/billing/**/*.ts"]
+      }
+    },
+    "lint:fix": {
+      "executor": "@nx/eslint:lint",
+      "outputs": ["{options.outputFile}"],
+      "options": {
+        "lintFilePatterns": ["package/billing/**/*.ts"],
+        "fix": true
+      }
+    },
+    "test:e2e": {
+      "executor": "@nx/jest:jest",
+      "outputs": ["{workspaceRoot}/coverage/{projectRoot}"],
+      "options": {
+        "jestConfig": "package/billing/jest.config.ts",
+        "passWithNoTests": true,
+        "runInBand": true
+      }
+    },
+    "db:generate": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "ts-node -r tsconfig-paths/register ./node_modules/typeorm/cli.js migration:generate {projectRoot}/persistence/migration/migration",
+        "args": ["-d {projectRoot}/persistence/typeorm-datasource.ts"]
+      }
+    },
+    "db:migrate": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "ts-node -r tsconfig-paths/register ./node_modules/typeorm/cli.js migration:run",
+        "args": ["-d {projectRoot}/persistence/typeorm-datasource.ts"]
+      }
+    },
+    "db:drop": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "ts-node -r tsconfig-paths/register ./node_modules/typeorm/cli.js schema:drop",
+        "args": ["-d {projectRoot}/persistence/typeorm-datasource.ts"]
+      }
+    }
+  }
+}

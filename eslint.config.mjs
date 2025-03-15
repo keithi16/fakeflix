@@ -5,11 +5,13 @@ import typescriptEslint from '@typescript-eslint/eslint-plugin';
 import tsParser from '@typescript-eslint/parser';
 import _import from 'eslint-plugin-import';
 import noRelativeImportPaths from 'eslint-plugin-no-relative-import-paths';
+import eslintPluginPrettierRecommended from 'eslint-plugin-prettier/recommended';
 import { projectStructurePlugin } from 'eslint-plugin-project-structure';
+
+// import { folderStructureConfig } from 'folderStructure.mjs';
 import globals from 'globals';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { folderStructureConfig } from './folderStructure.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -27,7 +29,6 @@ export default [
     compat.extends(
       'eslint:recommended',
       'plugin:@typescript-eslint/recommended',
-      // "plugin:prettier/recommended",
       'plugin:import/recommended',
       'plugin:import/typescript'
     )
@@ -38,6 +39,7 @@ export default [
       'no-relative-import-paths': noRelativeImportPaths,
       import: fixupPluginRules(_import),
       'project-structure': projectStructurePlugin,
+      eslintPluginPrettierRecommended,
     },
 
     languageOptions: {
@@ -51,7 +53,8 @@ export default [
       sourceType: 'module',
 
       parserOptions: {
-        project: 'tsconfig.json',
+        project: './tsconfig.json',
+        tsconfigRootDir: __dirname,
       },
     },
 
@@ -64,20 +67,12 @@ export default [
     },
 
     rules: {
-      'project-structure/folder-structure': ['off', folderStructureConfig],
+      // 'project-structure/folder-structure': ['off', folderStructureConfig],
       '@typescript-eslint/interface-name-prefix': 'off',
       '@typescript-eslint/explicit-function-return-type': 'off',
       '@typescript-eslint/explicit-module-boundary-types': 'off',
       '@typescript-eslint/no-explicit-any': 'off',
       '@typescript-eslint/no-unused-vars': 'error',
-      'no-relative-import-paths/no-relative-import-paths': [
-        'warn',
-        {
-          allowSameFolder: true,
-          prefix: '@src',
-          rootDir: 'src',
-        },
-      ],
 
       'no-restricted-imports': [
         'error',

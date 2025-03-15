@@ -2,6 +2,10 @@ name: CI
 
 on: push
 
+permissions:
+  contents: read
+  actions: read
+
 jobs:
   build-and-test:
     name: Build and test
@@ -33,9 +37,11 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@master
+        with:
+          fetch-depth: 0
 
       - name: Install Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: '20.11.0'
 
@@ -49,6 +55,9 @@ jobs:
           aws configure set region us-east-1
           aws configure set output json
 
+      - name: Derive appropriate SHAs for base and head for `nx affected` commands
+        uses: nrwl/nx-set-shas@v4
+
       - name: Copy test environment variables
         run: |
           cp .env.test .env
@@ -59,8 +68,7 @@ jobs:
       - name: Code format
         shell: bash
         run: |
-          yarn lint:check
-          yarn format:check
+          yarn lint:all
 
       - name: Wait for PostgreSQL to be ready
         run: |
@@ -76,7 +84,7 @@ jobs:
       - name: Setup modules databases
         shell: bash
         run: |
-          yarn test:db:setup
+          yarn db:migrate:all
 
       - name: Test types
         shell: bash
@@ -84,9 +92,9 @@ jobs:
 
       - name: Test unit
         shell: bash
-        run: yarn test:unit
+        run: yarn test:unit:affected
 
       - name: Test E2E
         shell: bash
         run: |
-          yarn test:e2e
+          yarn test:e2e:affected

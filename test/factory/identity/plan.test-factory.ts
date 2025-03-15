@@ -1,6 +1,7 @@
 import { faker } from '@faker-js/faker/.';
-import { PlanInterval } from '@src/module/billing/core/enum/plan-interval.enum';
-import { Plan } from '@src/module/billing/persistence/entity/plan.entity';
+import { PlanInterval } from '@tlc/billing/core/enum/plan-interval.enum';
+import { Plan } from '@tlc/billing/persistence/entity/plan.entity';
+
 import * as Factory from 'factory.ts';
 
 export const planFactory = Factory.Sync.makeFactory<Partial<Plan>>({

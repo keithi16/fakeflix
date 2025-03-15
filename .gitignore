@@ -46,3 +46,8 @@ lerna-debug.log*
 !.vscode/launch.json
 !.vscode/extensions.json
 
+
+
+
+.nx/cache
+.nx/workspace-data
