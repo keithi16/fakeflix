@@ -1,3 +1,3 @@
 # Billing API
 
-Incializa somente o módulo de Billing separadamente.
+Incializa módulo de Billing separadamente.
