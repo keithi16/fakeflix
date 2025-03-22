@@ -32,6 +32,8 @@ jobs:
       - name: Create tags
         if: env.APPS != ''
         env:
+          # Github actions uses the GITHUB_TOKEN to authenticate with the repository, by default
+          # When you push tags from within a GitHub Action, by default those pushes won't trigger other workflows due to GitHub's security measures to prevent recursive workflow runs. To overcome this limitation, you need to use a Personal Access Token (PAT) with the appropriate permissions.
           GH_TOKEN: ${{ secrets.WORKFLOW_TAG_PUSH_TOKEN }}
         run: |
           for app in $APPS; do
