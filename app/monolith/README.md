@@ -1,6 +1,6 @@
 # Monólito
 
-O Monólito inicia vários módulos juntos como o Content e o Identity.
+O Monólito inicia vários módulos juntos como o Content e Identity.
 
 ## Banco de dados
 
