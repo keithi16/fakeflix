@@ -1,0 +1,32 @@
+name: Deploy Monolith API
+
+on:
+  push:
+    tags:
+      - 'monolith-*' # Essa action só executa quando uma tag com prefixo 'monolith-' for criada
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'yarn'
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Build application
+        run: npx nx build monolith
+
+      - name: Build Docker Image
+        run: |
+          docker build -t monolith:latest . --build-arg APP_COMMAND="node dist/app/monolith/main.js --build-arg APP_NAME=monolith"
+          echo "GITHUB_REF: $GITHUB_REF"
+          echo "Extracted tag: ${GITHUB_REF#refs/tags/}"
+          docker tag monolith:latest monolith:${GITHUB_REF#refs/tags/}

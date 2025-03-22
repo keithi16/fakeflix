@@ -1,0 +1,43 @@
+name: Create Deployment Tags for Modified Apps
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+  actions: read
+
+jobs:
+  tag-modified-apps:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Derive appropriate SHAs for base and head for `nx affected` commands
+        uses: nrwl/nx-set-shas@v4
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Get affected apps
+        id: affected_apps
+        run: |
+          echo "APPS=$(npx nx show projects --affected --type=app | tr '\n' ' ')" >> $GITHUB_ENV
+
+      - name: Create tags
+        if: env.APPS != ''
+        run: |
+          for app in $APPS; do
+            TAG_NAME="$app-$(date +%Y%m%d%H%M%S)"
+            if git rev-parse "$TAG_NAME" >/dev/null 2>&1; then
+              echo "Tag $TAG_NAME already exists. Skipping creation."
+            else
+              git tag $TAG_NAME
+              git push origin $TAG_NAME || { echo "Error sending tag $TAG_NAME"; exit 1; }
+            fi
+          done

@@ -1,10 +1,31 @@
 {
   "$schema": "https://json.schemastore.org/nest-cli",
   "collection": "@nestjs/schematics",
-  "sourceRoot": "app/monolith",
+  "sourceRoot": ".",
   "entryFile": "main",
-  "outDir": "../../dist/app/monolith",
   "compilerOptions": {
-    "deleteOutDir": true
+    "deleteOutDir": true,
+    "tsConfigPath": "tsconfig.json",
+    "assets": [
+      {
+        "include": "**/*.graphql",
+        "outDir": "dist/app/monolith"
+      }
+    ],
+    "watchAssets": true
+  },
+  "generateOptions": {
+    "spec": true
+  },
+  "projects": {
+    "monolith": {
+      "type": "application",
+      "root": "app/monolith",
+      "entryFile": "main",
+      "sourceRoot": ".",
+      "compilerOptions": {
+        "tsConfigPath": "tsconfig.json"
+      }
+    }
   }
 }
