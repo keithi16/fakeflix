@@ -4,6 +4,11 @@ on:
   push:
     tags:
       - 'billing-*' # Essa action só executa quando uma tag com prefixo 'billing-' for criada
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag to deploy'
+        required: true
 
 jobs:
   build-and-deploy:
