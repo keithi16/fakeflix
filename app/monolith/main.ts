@@ -7,7 +7,7 @@ import { LoggerFactory } from '@tlc/shared-module/logger/util/logger.factory';
 
 async function bootstrap() {
   const logger = LoggerFactory('monolith-api');
-  const app = await NestFactory.create(MonolithModule);
+  const app = await NestFactory.create(MonolithModule, { bufferLogs: true });
   const configService = app.get<ConfigService<MonolithApiConfig>>(ConfigService);
   const port = configService.get('monolithApi.port');
 
