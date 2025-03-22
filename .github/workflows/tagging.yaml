@@ -42,6 +42,6 @@ jobs:
               echo "Tag $TAG_NAME already exists. Skipping creation."
             else
               git tag $TAG_NAME
-              git push origin $TAG_NAME || { echo "Error sending tag $TAG_NAME"; exit 1; }
+              git push https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.git $TAG_NAME || { echo "Error sending tag $TAG_NAME"; exit 1; }
             fi
           done
