@@ -31,6 +31,8 @@ jobs:
 
       - name: Create tags
         if: env.APPS != ''
+        env:
+          GH_TOKEN: ${{ secrets.WORKFLOW_TAG_PUSH_TOKEN }}
         run: |
           for app in $APPS; do
             TAG_NAME="$app-$(date +%Y%m%d%H%M%S)"
