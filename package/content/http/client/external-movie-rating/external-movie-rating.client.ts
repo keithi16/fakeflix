@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { ContentConfig } from '@tlc/content/config';
 import { ConfigService } from '@tlc/shared-module/config/service/config.service';
 import { HttpClient } from '@tlc/shared-module/http-client//client/http.client';
 import { HttpClientInternalException } from '@tlc/shared-module/http-client/exception/http-client.exception';
@@ -10,7 +11,7 @@ interface ApiResponse<T extends Record<string, any>> {
 @Injectable()
 export class ExternalMovieRatingClient {
   constructor(
-    private readonly configService: ConfigService,
+    private readonly configService: ConfigService<ContentConfig>,
     private readonly httpClient: HttpClient
   ) {}
 
@@ -40,8 +41,8 @@ export class ExternalMovieRatingClient {
   private async fetch<T extends Record<string, any>>(
     path: string
   ): Promise<ApiResponse<T>> {
-    const movieDbApiToken = this.configService.get('movieDb').apiToken;
-    const movieDbApiUrl = this.configService.get('movieDb').url;
+    const movieDbApiToken = this.configService.get('content.movieDb').apiToken;
+    const movieDbApiUrl = this.configService.get('content.movieDb').url;
     const url = `${movieDbApiUrl}${path}`;
     const options = {
       method: 'GET',

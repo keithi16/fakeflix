@@ -2,22 +2,37 @@ import { HttpStatus, INestApplication } from '@nestjs/common';
 import { TestingModule } from '@nestjs/testing';
 import { Tables } from '@test/infra/enum/tables.enum';
 import { planFactory } from '@test/infra/factory/identity/plan.test-factory';
-import { testDbClient } from '@test/infra/knex.database';
 import { createNestApp } from '@test/infra/test-e2e.setup';
-import { BillingModule } from '@tlc/billing/billing.module';
+import { billingConfigFactory, BillingModule } from '@tlc/billing/billing.module';
+import { BillingConfig } from '@tlc/billing/config';
 import { PlanInterval } from '@tlc/billing/core/enum/plan-interval.enum';
 import { SubscriptionStatus } from '@tlc/billing/core/enum/subscription-status.enum';
+import { ConfigModule } from '@tlc/shared-module/config/config.module';
+import { ConfigService } from '@tlc/shared-module/config/service/config.service';
 import { randomUUID } from 'crypto';
+import knex, { Knex } from 'knex';
 import request from 'supertest';
 
 describe('Subscription e2e test', () => {
   let app: INestApplication;
   let module: TestingModule;
+  let testDbClient: Knex;
 
   beforeAll(async () => {
-    const nestTestSetup = await createNestApp([BillingModule]);
+    const nestTestSetup = await createNestApp([
+      ConfigModule.forRoot({
+        load: [billingConfigFactory],
+      }),
+      BillingModule,
+    ]);
     app = nestTestSetup.app;
     module = nestTestSetup.module;
+    const configService = module.get<ConfigService<BillingConfig>>(ConfigService);
+    testDbClient = knex({
+      client: 'pg',
+      connection: `${configService.get('billing.database.url')}`,
+      searchPath: ['public'],
+    });
   });
 
   beforeEach(async () => {

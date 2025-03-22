@@ -1,21 +1,36 @@
 import { HttpStatus, INestApplication } from '@nestjs/common';
 import { TestingModule } from '@nestjs/testing';
 
-import { testDbClient } from '@test/infra/knex.database';
 import { createNestApp } from '@test/infra/test-e2e.setup';
 import { CONTENT_TEST_FIXTURES } from '@tlc/content/__test__/e2e/contants';
+import { ContentConfig, contentConfigFactory } from '@tlc/content/config';
 import { ContentModule } from '@tlc/content/content.module';
+import { ConfigModule } from '@tlc/shared-module/config/config.module';
+import { ConfigService } from '@tlc/shared-module/config/service/config.service';
+import { knex, type Knex } from 'knex';
 import nock, { cleanAll } from 'nock';
 import request from 'supertest';
 
 describe('AdminMovieController (e2e)', () => {
   let module: TestingModule;
   let app: INestApplication;
+  let testDbClient: Knex;
 
   beforeAll(async () => {
-    const nestTestSetup = await createNestApp([ContentModule]);
+    const nestTestSetup = await createNestApp([
+      ConfigModule.forRoot({
+        load: [contentConfigFactory],
+      }),
+      ContentModule,
+    ]);
     app = nestTestSetup.app;
     module = nestTestSetup.module;
+    const configService = module.get<ConfigService<ContentConfig>>(ConfigService);
+    testDbClient = knex({
+      client: 'pg',
+      connection: `${configService.get('content.database.url')}`,
+      searchPath: ['public'],
+    });
   });
 
   beforeEach(async () => {

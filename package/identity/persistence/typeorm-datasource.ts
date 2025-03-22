@@ -1,33 +1,20 @@
 import { NestFactory } from '@nestjs/core';
+import { IdentityConfig, identityConfigFactory } from '@tlc/identity/config';
+import { dataSourceOptionsFactory } from '@tlc/identity/persistence/typeorm-datasource.factory';
 import { ConfigModule } from '@tlc/shared-module/config/config.module';
 import { ConfigService } from '@tlc/shared-module/config/service/config.service';
 import { config } from 'dotenv';
 import { DataSource } from 'typeorm';
-import { PostgresConnectionOptions } from 'typeorm/driver/postgres/PostgresConnectionOptions';
 config();
 
 const getDataSource = async () => {
-  const configModule = await NestFactory.createApplicationContext(ConfigModule.forRoot());
-  const configService = configModule.get<ConfigService>(ConfigService);
+  const configModule = await NestFactory.createApplicationContext(
+    ConfigModule.forRoot({
+      load: [identityConfigFactory],
+    })
+  );
+  const configService = configModule.get<ConfigService<IdentityConfig>>(ConfigService);
   return new DataSource(dataSourceOptionsFactory(configService));
 };
-
-export const dataSourceOptionsFactory = (
-  configService: ConfigService
-): PostgresConnectionOptions => ({
-  type: 'postgres',
-  name: 'identity',
-  host: configService.get('database.host'),
-  port: 5432,
-  username: configService.get('database.username'),
-  password: configService.get('database.password'),
-  database: configService.get('database.database'),
-  synchronize: false,
-  entities: ['package/identity/**/*.entity.ts'],
-  migrations: ['package/identity/persistence/migration/*-migration.ts'],
-  migrationsRun: false,
-  migrationsTableName: 'identity_migrations',
-  logging: false,
-});
 
 export default getDataSource();

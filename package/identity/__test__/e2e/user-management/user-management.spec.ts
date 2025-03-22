@@ -1,21 +1,35 @@
 import { INestApplication } from '@nestjs/common';
-import { Test, TestingModule } from '@nestjs/testing';
+import { TestingModule } from '@nestjs/testing';
 import { Tables } from '@test/infra/enum/tables.enum';
-import { testDbClient } from '@test/infra/knex.database';
+import { createNestApp } from '@test/infra/test-e2e.setup';
+import { IdentityConfig, identityConfigFactory } from '@tlc/identity/config';
 import { IdentityModule } from '@tlc/identity/identity.module';
+import { ConfigModule } from '@tlc/shared-module/config/config.module';
+import { ConfigService } from '@tlc/shared-module/config/service/config.service';
+import knex, { Knex } from 'knex';
 import request from 'supertest';
 
 describe('UserResolver (e2e)', () => {
   let app: INestApplication;
   let module: TestingModule;
+  let testDbClient: Knex;
 
   beforeAll(async () => {
-    module = await Test.createTestingModule({
-      imports: [IdentityModule],
-    }).compile();
+    const createdApp = await createNestApp([
+      ConfigModule.forRoot({
+        load: [identityConfigFactory],
+      }),
+      IdentityModule,
+    ]);
 
-    app = module.createNestApplication();
-    await app.init();
+    app = createdApp.app;
+    module = createdApp.module;
+    const configService = module.get<ConfigService<IdentityConfig>>(ConfigService);
+    testDbClient = knex({
+      client: 'pg',
+      connection: `${configService.get('identity.database.url')}`,
+      searchPath: ['public'],
+    });
   });
 
   beforeEach(async () => {
@@ -90,8 +104,9 @@ describe('UserResolver (e2e)', () => {
           `,
         })
         .expect(200);
-      expect(response.body.errors[0].message).toBe(
-        `Invalid email: ${createUserInput.email}`
+      expect(response.body.errors[0].message).toBe(`Bad Request Exception`);
+      expect(response.body.errors[0].extensions.originalError.message[0]).toBe(
+        `email must be an email`
       );
     });
   });

@@ -11,3 +11,5 @@ import { BillingPersistenceModule } from '@tlc/billing/persistence/billing-persi
   exports: [BillingPublicApiProvider],
 })
 export class BillingModule {}
+
+export { factory as billingConfigFactory } from './config';

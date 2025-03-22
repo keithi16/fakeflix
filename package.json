@@ -18,8 +18,7 @@
     "test:affected": "yarn test:unit:affected && yarn test:e2e:affected",
     "test:unit:all": "nx run-many --target=test:unit --all",
     "test:unit:affected": "nx affected --target=test:unit",
-    "test:db:setup": "dotenv -e .env.test -- yarn db:setup",
-    "test:e2e:all": "nx run-many --target=test:e2e --all --parallel=1",
+    "test:e2e:all": "nx run-many --target=test:e2e --all --parallel=3",
     "test:e2e:affected": "nx affected --target=test:e2e --parallel=false",
     "test:type": "tsc --noEmit"
   },

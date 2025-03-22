@@ -1,20 +1,35 @@
 import { HttpStatus, INestApplication } from '@nestjs/common';
 import { TestingModule } from '@nestjs/testing';
-import { testDbClient } from '@test/infra/knex.database';
 import { CONTENT_TEST_FIXTURES } from '@tlc/content/__test__/e2e/contants';
 import { ContentModule } from '@tlc/content/content.module';
 
 import { createNestApp } from '@test/infra/test-e2e.setup';
+import { ContentConfig, contentConfigFactory } from '@tlc/content/config';
+import { ConfigModule } from '@tlc/shared-module/config/config.module';
+import { ConfigService } from '@tlc/shared-module/config/service/config.service';
+import knex, { Knex } from 'knex';
 import request from 'supertest';
 
 describe('AdminTvShowController (e2e)', () => {
   let module: TestingModule;
   let app: INestApplication;
+  let testDbClient: Knex;
 
   beforeAll(async () => {
-    const nestTestSetup = await createNestApp([ContentModule]);
+    const nestTestSetup = await createNestApp([
+      ConfigModule.forRoot({
+        load: [contentConfigFactory],
+      }),
+      ContentModule,
+    ]);
     app = nestTestSetup.app;
     module = nestTestSetup.module;
+    const configService = module.get<ConfigService<ContentConfig>>(ConfigService);
+    testDbClient = knex({
+      client: 'pg',
+      connection: `${configService.get('content.database.url')}`,
+      searchPath: ['public'],
+    });
   });
 
   beforeEach(async () => {

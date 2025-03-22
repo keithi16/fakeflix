@@ -1,10 +1,13 @@
 import { faker } from '@faker-js/faker';
 import { HttpStatus, INestApplication } from '@nestjs/common';
-import { Test, TestingModule } from '@nestjs/testing';
+import { TestingModule } from '@nestjs/testing';
+import { createNestApp } from '@test/infra/test-e2e.setup';
 import { CONTENT_TEST_FIXTURES } from '@tlc/content/__test__/e2e/contants';
+import { contentConfigFactory } from '@tlc/content/config';
 import { ContentModule } from '@tlc/content/content.module';
 import { ContentMedia } from '@tlc/content/persistence/entity/content-media.entity';
 import { ContentMediaRepository } from '@tlc/content/persistence/repository/content-media.repository';
+import { ConfigModule } from '@tlc/shared-module/config/config.module';
 import request from 'supertest';
 
 describe('Media Player - Test (e2e)', () => {
@@ -13,13 +16,15 @@ describe('Media Player - Test (e2e)', () => {
   let contentRepository: ContentMediaRepository;
 
   beforeAll(async () => {
-    module = await Test.createTestingModule({
-      imports: [ContentModule],
-    }).compile();
-
-    app = module.createNestApplication();
+    const nestTestSetup = await createNestApp([
+      ConfigModule.forRoot({
+        load: [contentConfigFactory],
+      }),
+      ContentModule,
+    ]);
+    app = nestTestSetup.app;
+    module = nestTestSetup.module;
     contentRepository = module.get<ContentMediaRepository>(ContentMediaRepository);
-    await app.init();
   });
 
   beforeEach(async () => {

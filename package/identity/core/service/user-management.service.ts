@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { User } from '@tlc/identity/persistence/entity/user.entity';
 import { UserRepository } from '@tlc/identity/persistence/repository/user.repository';
-import { DomainException } from '@tlc/shared-lib/core/exeption/domain.exception';
 import { hash } from 'bcrypt';
 
 export interface CreateUserDto {
@@ -18,9 +17,6 @@ export const PASSWORD_HASH_SALT = 10;
 export class UserManagementService {
   constructor(private readonly userRepository: UserRepository) {}
   async create(user: CreateUserDto) {
-    if (!this.validateEmail(user.email)) {
-      throw new DomainException(`Invalid email: ${user.email}`);
-    }
     const newUser = new User({
       ...user,
       password: await hash(user.password, PASSWORD_HASH_SALT),
@@ -28,11 +24,6 @@ export class UserManagementService {
 
     await this.userRepository.save(newUser);
     return newUser;
-  }
-
-  private validateEmail(email: string): boolean {
-    const regexPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return regexPattern.test(email);
   }
 
   async getUserById(id: string) {

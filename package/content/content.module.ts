@@ -18,7 +18,6 @@ import { ExternalMovieRatingClient } from '@tlc/content/http/client/external-mov
 import { AdminMovieController } from '@tlc/content/http/rest/controller/admin-movie.controller';
 import { AdminTvShowController } from '@tlc/content/http/rest/controller/admin-tv-show.controller';
 import { MediaPlayerController } from '@tlc/content/http/rest/controller/media-player.controller';
-import { ConfigModule } from '@tlc/shared-module/config/config.module';
 import { EventEmitterModule } from '@tlc/shared-module/event/event-emitter.module';
 import { HttpClientModule } from '@tlc/shared-module/http-client/http-client.module';
 import { LoggerModule } from '@tlc/shared-module/logger/logger.module';
@@ -26,13 +25,7 @@ import { VideoResolver } from './http/graphql/resolver/video.resolver';
 import { PersistenceModule } from './persistence/persistence.module';
 
 @Module({
-  imports: [
-    ConfigModule.forRoot(),
-    PersistenceModule,
-    EventEmitterModule,
-    LoggerModule,
-    HttpClientModule,
-  ],
+  imports: [PersistenceModule, EventEmitterModule, LoggerModule, HttpClientModule],
   providers: [
     VideoResolver,
     ExternalMovieRatingClient,

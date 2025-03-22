@@ -1,11 +1,15 @@
 import { INestApplication } from '@nestjs/common';
-import { Test, TestingModule } from '@nestjs/testing';
+import { TestingModule } from '@nestjs/testing';
 import { Tables } from '@test/infra/enum/tables.enum';
 import { planFactory } from '@test/infra/factory/identity/plan.test-factory';
 import { subscriptionFactory } from '@test/infra/factory/identity/subscription.test-factory';
-import { testDbClient } from '@test/infra/knex.database';
+import { createNestApp } from '@test/infra/test-e2e.setup';
+import { IdentityConfig, identityConfigFactory } from '@tlc/identity/config';
 import { UserManagementService } from '@tlc/identity/core/service/user-management.service';
 import { IdentityModule } from '@tlc/identity/identity.module';
+import { ConfigModule } from '@tlc/shared-module/config/config.module';
+import { ConfigService } from '@tlc/shared-module/config/service/config.service';
+import knex, { Knex } from 'knex';
 import nock from 'nock';
 import request from 'supertest';
 
@@ -13,26 +17,32 @@ describe('AuthResolver (e2e)', () => {
   let app: INestApplication;
   let userManagementService: UserManagementService;
   let module: TestingModule;
+  let testDbClient: Knex;
 
   beforeAll(async () => {
-    module = await Test.createTestingModule({
-      imports: [IdentityModule],
-    }).compile();
+    const createdApp = await createNestApp([
+      ConfigModule.forRoot({
+        load: [identityConfigFactory],
+      }),
+      IdentityModule,
+    ]);
 
-    app = module.createNestApplication();
-    await app.init();
+    app = createdApp.app;
+    module = createdApp.module;
     userManagementService = module.get<UserManagementService>(UserManagementService);
+    const configService = module.get<ConfigService<IdentityConfig>>(ConfigService);
+    testDbClient = knex({
+      client: 'pg',
+      connection: `${configService.get('identity.database.url')}`,
+      searchPath: ['public'],
+    });
   });
 
   beforeEach(async () => {
     await testDbClient(Tables.User).del();
-    await testDbClient(Tables.Subscription).del();
-    await testDbClient(Tables.Plan).del();
   });
   afterAll(async () => {
     await testDbClient(Tables.User).del();
-    await testDbClient(Tables.Subscription).del();
-    await testDbClient(Tables.Plan).del();
     await module.close();
   });
 
@@ -56,6 +66,17 @@ describe('AuthResolver (e2e)', () => {
       });
       await testDbClient(Tables.Plan).insert(plan);
       await testDbClient(Tables.Subscription).insert(subscription);
+      nock('https://localhost:3000', {
+        encodedQueryParams: true,
+        reqheaders: {
+          Authorization: (): boolean => true,
+        },
+      })
+        .defaultReplyHeaders({ 'access-control-allow-origin': '*' })
+        .get(`/subscription/user/${createdUser.id}/active`)
+        .reply(200, {
+          isActive: true,
+        });
 
       const response = await request(app.getHttpServer())
         .post('/graphql')
@@ -106,12 +127,23 @@ describe('AuthResolver (e2e)', () => {
         password: 'password123',
       };
 
-      await userManagementService.create({
+      const createdUser = await userManagementService.create({
         firstName: 'John',
         lastName: 'Doe',
         email: signInInput.email,
         password: signInInput.password,
       });
+      nock('https://localhost:3000', {
+        encodedQueryParams: true,
+        reqheaders: {
+          Authorization: (): boolean => true,
+        },
+      })
+        .defaultReplyHeaders({ 'access-control-allow-origin': '*' })
+        .get(`/subscription/user/${createdUser.id}/active`)
+        .reply(200, {
+          isActive: false,
+        });
 
       const response = await request(app.getHttpServer())
         .post('/graphql')
@@ -134,7 +166,7 @@ describe('AuthResolver (e2e)', () => {
     });
   });
   describe('getProfile query', () => {
-    it('returns the authenticated user', async () => {
+    it.skip('returns the authenticated user - requires direct importing the BillingModule', async () => {
       const signInInput = {
         email: 'johndoe@example.com',
         password: 'password123',
@@ -205,7 +237,7 @@ describe('AuthResolver (e2e)', () => {
       expect(email).toEqual(signInInput.email);
     });
     //Used in examples about module to module calls, its skiped because the default is to use local calls
-    it.skip('returns the authenticated user - USING HTTP for module to module calls', async () => {
+    it('returns the authenticated user - USING HTTP for module to module calls', async () => {
       const signInInput = {
         email: 'johndoe@example.com',
         password: 'password123',
@@ -223,9 +255,9 @@ describe('AuthResolver (e2e)', () => {
         },
       })
         .defaultReplyHeaders({ 'access-control-allow-origin': '*' })
-        .get(`/subscription/user/${createdUser.id}`)
+        .get(`/subscription/user/${createdUser.id}/active`)
         .reply(200, {
-          status: 'ACTIVE',
+          isActive: true,
         });
 
       const acessTokenResponse = await request(app.getHttpServer())

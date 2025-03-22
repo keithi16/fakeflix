@@ -1,33 +1,20 @@
 import { NestFactory } from '@nestjs/core';
+import { billingConfigFactory } from '@tlc/billing/billing.module';
+import { BillingConfig } from '@tlc/billing/config';
+import { dataSourceOptionsFactory } from '@tlc/billing/persistence/typeorm-datasource.factory';
 import { ConfigModule } from '@tlc/shared-module/config/config.module';
 import { ConfigService } from '@tlc/shared-module/config/service/config.service';
-import { config } from 'dotenv';
 import { DataSource } from 'typeorm';
-import { PostgresConnectionOptions } from 'typeorm/driver/postgres/PostgresConnectionOptions';
-config();
 
 const getDataSource = async () => {
-  const configModule = await NestFactory.createApplicationContext(ConfigModule.forRoot());
-  const configService = configModule.get<ConfigService>(ConfigService);
+  const configModule = await NestFactory.createApplicationContext(
+    ConfigModule.forRoot({
+      load: [billingConfigFactory],
+    })
+  );
+  const configService = configModule.get<ConfigService<BillingConfig>>(ConfigService);
+
   return new DataSource(dataSourceOptionsFactory(configService));
 };
-
-export const dataSourceOptionsFactory = (
-  configService: ConfigService
-): PostgresConnectionOptions => ({
-  type: 'postgres',
-  name: 'billing',
-  host: configService.get('database.host'),
-  port: 5432,
-  username: configService.get('database.username'),
-  password: configService.get('database.password'),
-  database: configService.get('database.database'),
-  synchronize: false,
-  entities: ['package/billing/**/*.entity.ts'],
-  migrations: ['package/billing/persistence/migration/*-migration.ts'],
-  migrationsRun: false,
-  migrationsTableName: 'billing_migrations',
-  logging: false,
-});
 
 export default getDataSource();
