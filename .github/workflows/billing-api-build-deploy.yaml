@@ -14,12 +14,39 @@ jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
     steps:
+      - name: Get tag name
+        id: get-tag
+        run: |
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            echo "TAG_NAME=${{ github.event.inputs.tag }}" >> $GITHUB_OUTPUT
+            echo "Using tag from dispatch input: ${{ github.event.inputs.tag }}"
+          else
+            echo "TAG_NAME=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+            echo "Using tag from push event: ${GITHUB_REF#refs/tags/}"
+          fi
+
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.get-tag.outputs.TAG_NAME }}
+          fetch-depth: 0
 
       - name: Build Docker Image
         run: |
-          docker build -t billing-api:latest --build-arg APP_COMMAND="node dist/app/monolith/main.js" --build-arg APP_NAME=billing-api .
-          echo "GITHUB_REF: $GITHUB_REF"
-          echo "Extracted tag: ${GITHUB_REF#refs/tags/}"
-          docker tag billing-api:latest billing-api:${GITHUB_REF#refs/tags/}
+          # Use the correct main.js path for billing-api
+          docker build -t billing-api:latest \
+            --build-arg APP_COMMAND="node dist/app/billing-api/main.js" \
+            --build-arg APP_NAME=billing-api \
+            .
+
+          # Tag with the correct tag name from earlier step
+          docker tag billing-api:latest billing-api:${{ steps.get-tag.outputs.TAG_NAME }}
+
+          # List images to verify
+          docker images | grep billing-api
+
+      # Add deployment steps here
+      - name: Deploy to staging
+        run: |
+          echo "Deploying billing-api:${{ steps.get-tag.outputs.TAG_NAME }} to staging environment"
+          # Add actual deployment commands here
