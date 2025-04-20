@@ -1,8 +1,6 @@
 import { INestApplication } from '@nestjs/common';
 import { TestingModule } from '@nestjs/testing';
 import { Tables } from '@test/infra/enum/tables.enum';
-import { planFactory } from '@test/infra/factory/identity/plan.test-factory';
-import { subscriptionFactory } from '@test/infra/factory/identity/subscription.test-factory';
 import { createNestApp } from '@test/infra/test-e2e.setup';
 import { IdentityConfig, identityConfigFactory } from '@tlc/identity/config';
 import { UserManagementService } from '@tlc/identity/core/service/user-management.service';
@@ -58,14 +56,6 @@ describe('AuthResolver (e2e)', () => {
         email: signInInput.email,
         password: signInInput.password,
       });
-      const plan = planFactory.build();
-      const subscription = subscriptionFactory.build({
-        planId: plan.id,
-        status: 'Active' as any,
-        userId: createdUser.id,
-      });
-      await testDbClient(Tables.Plan).insert(plan);
-      await testDbClient(Tables.Subscription).insert(subscription);
       nock('https://localhost:3000', {
         encodedQueryParams: true,
         reqheaders: {
@@ -166,76 +156,6 @@ describe('AuthResolver (e2e)', () => {
     });
   });
   describe('getProfile query', () => {
-    it.skip('returns the authenticated user - requires direct importing the BillingModule', async () => {
-      const signInInput = {
-        email: 'johndoe@example.com',
-        password: 'password123',
-      };
-      const createdUser = await userManagementService.create({
-        firstName: 'John',
-        lastName: 'Doe',
-        email: signInInput.email,
-        password: signInInput.password,
-      });
-      const plan = planFactory.build();
-      const subscription = subscriptionFactory.build({
-        planId: plan.id,
-        status: 'Active' as any,
-        userId: createdUser.id,
-      });
-      await testDbClient(Tables.Plan).insert(plan);
-      await testDbClient(Tables.Subscription).insert(subscription);
-      nock('https://api.themoviedb.org/3', {
-        encodedQueryParams: true,
-        reqheaders: {
-          Authorization: (): boolean => true,
-        },
-      })
-        .defaultReplyHeaders({ 'access-control-allow-origin': '*' })
-        .get(`/search/keyword`)
-        .query({
-          query: 'Test Video',
-          page: '1',
-        })
-        .reply(200, {
-          results: [
-            {
-              id: '1',
-            },
-          ],
-        });
-
-      const acessTokenResponse = await request(app.getHttpServer())
-        .post('/graphql')
-        .send({
-          query: `
-            mutation {
-              signIn(SignInInput: {
-                email: "${signInInput.email}",
-                password: "${signInInput.password}"
-              }) {
-                accessToken
-              }
-            }
-          `,
-        });
-      const response = await request(app.getHttpServer())
-        .post('/graphql')
-        .set('Authorization', `Bearer ${acessTokenResponse.body.data.signIn.accessToken}`)
-        .send({
-          query: `
-            query {
-              getProfile {
-                email
-              }
-            }
-          `,
-        });
-
-      const { email } = response.body.data.getProfile;
-
-      expect(email).toEqual(signInInput.email);
-    });
     //Used in examples about module to module calls, its skiped because the default is to use local calls
     it('returns the authenticated user - USING HTTP for module to module calls', async () => {
       const signInInput = {

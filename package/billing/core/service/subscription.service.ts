@@ -5,12 +5,14 @@ import { Subscription } from '@tlc/billing/persistence/entity/subscription.entit
 import { PlanRepository } from '@tlc/billing/persistence/repository/plan.repository';
 import { SubscriptionRepository } from '@tlc/billing/persistence/repository/subscription.repository';
 import { NotFoundDomainException } from '@tlc/shared-lib/core/exeption/not-found-domain.exception';
+import { ClsService } from 'nestjs-cls';
 
 @Injectable()
 export class SubscriptionService {
   constructor(
     private readonly planRepository: PlanRepository,
-    private readonly subscriptionRepository: SubscriptionRepository
+    private readonly subscriptionRepository: SubscriptionRepository,
+    private readonly clsService: ClsService
   ) {}
 
   async createSubscription({ planId }: { planId: string }): Promise<Subscription> {
@@ -20,8 +22,7 @@ export class SubscriptionService {
     }
     const subscription = new Subscription({
       plan,
-      //TODO replace with user id from the JWT
-      userId: 'user-id',
+      userId: this.clsService.get('userId'),
       status: SubscriptionStatus.Active,
       startDate: new Date(),
       autoRenew: true,

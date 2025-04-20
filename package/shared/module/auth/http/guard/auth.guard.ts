@@ -7,19 +7,18 @@ import {
 } from '@nestjs/common';
 import { GqlExecutionContext } from '@nestjs/graphql';
 import { JwtService } from '@nestjs/jwt';
-import { jwtConstants } from '@tlc/identity/core/service/authentication.service';
-import { UserManagementService } from '@tlc/identity/core/service/user-management.service';
-import { User } from '@tlc/identity/persistence/entity/user.entity';
+import { jwtConstants } from '@tlc/shared-module/auth/auth.module';
 import { Request } from 'express';
+import { ClsService } from 'nestjs-cls';
 
 export interface AuthenticatedRequest extends Request {
-  user: User;
+  userId: string;
 }
 @Injectable()
 export class AuthGuard implements CanActivate {
   constructor(
     private readonly jwtService: JwtService,
-    private readonly userManagementService: UserManagementService
+    private readonly clsService: ClsService
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -29,15 +28,10 @@ export class AuthGuard implements CanActivate {
       throw new UnauthorizedException();
     }
     try {
-      const payload = await this.jwtService.verifyAsync(token, {
+      const payload = await this.jwtService.verifyAsync<{ sub: string }>(token, {
         secret: jwtConstants.secret,
       });
-
-      const user = await this.userManagementService.getUserById(payload.sub);
-      if (!user) {
-        throw new UnauthorizedException();
-      }
-      request.user = user;
+      this.clsService.set('userId', payload.sub);
     } catch {
       throw new UnauthorizedException();
     }

@@ -9224,6 +9224,11 @@ nest-winston@^1.10.0:
   dependencies:
     fast-safe-stringify "^2.1.1"
 
+nestjs-cls@^5.4.3:
+  version "5.4.3"
+  resolved "https://registry.yarnpkg.com/nestjs-cls/-/nestjs-cls-5.4.3.tgz#5a949525a5506f66e4c3d29fffe5c4f929bb9f04"
+  integrity sha512-yHEHyVoe6rsvj3XRPFonBKPXPjDREyHfKZ9PTStSLJTZAV3wey1Q89TquSj6QciqXB5387GiHv9DG+ja6iAUHw==
+
 no-case@^3.0.4:
   version "3.0.4"
   resolved "https://registry.yarnpkg.com/no-case/-/no-case-3.0.4.tgz#d361fd5c9800f558551a8369fc0dcd4662b6124d"

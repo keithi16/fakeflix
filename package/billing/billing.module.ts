@@ -3,9 +3,17 @@ import { SubscriptionService } from '@tlc/billing/core/service/subscription.serv
 import { SubscriptionController } from '@tlc/billing/http/rest/controller/subscription.controller';
 import { BillingPublicApiProvider } from '@tlc/billing/integration/provider/public-api.provider';
 import { BillingPersistenceModule } from '@tlc/billing/persistence/billing-persistence.module';
-
+import { AuthModule } from '@tlc/shared-module/auth/auth.module';
+import { ClsModule } from 'nestjs-cls';
 @Module({
-  imports: [BillingPersistenceModule],
+  imports: [
+    ClsModule.forRoot({
+      global: true,
+      middleware: { mount: true },
+    }),
+    BillingPersistenceModule,
+    AuthModule,
+  ],
   providers: [SubscriptionService, BillingPublicApiProvider],
   controllers: [SubscriptionController],
   exports: [BillingPublicApiProvider],

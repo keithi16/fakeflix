@@ -1,3 +1,4 @@
+import { faker } from '@faker-js/faker/.';
 import { HttpStatus, INestApplication } from '@nestjs/common';
 import { TestingModule } from '@nestjs/testing';
 import { Tables } from '@test/infra/enum/tables.enum';
@@ -12,6 +13,13 @@ import { ConfigService } from '@tlc/shared-module/config/service/config.service'
 import { randomUUID } from 'crypto';
 import knex, { Knex } from 'knex';
 import request from 'supertest';
+
+const fakeUserId = faker.string.uuid();
+jest.mock('jsonwebtoken', () => ({
+  verify: jest.fn((_token: string, _secret: string, _options: any, callback: any) => {
+    callback(null, { sub: fakeUserId });
+  }),
+}));
 
 describe('Subscription e2e test', () => {
   let app: INestApplication;
@@ -62,7 +70,9 @@ describe('Subscription e2e test', () => {
     await testDbClient(Tables.Plan).insert(plan);
     const res = await request(app.getHttpServer())
       .post('/subscription')
+      .set('Authorization', `Bearer fake-token`)
       .send({ planId: plan.id });
+
     expect(res.status).toBe(HttpStatus.CREATED);
     expect(res.body).toEqual({
       id: expect.any(String),
@@ -70,7 +80,7 @@ describe('Subscription e2e test', () => {
       updatedAt: expect.any(String),
       deletedAt: null,
       endDate: null,
-      userId: 'user-id',
+      userId: fakeUserId,
       planId: plan.id,
       status: SubscriptionStatus.Active,
       startDate: expect.any(String),
@@ -81,6 +91,7 @@ describe('Subscription e2e test', () => {
   it('throws error if the plan does not exist', async () => {
     const res = await request(app.getHttpServer())
       .post('/subscription')
+      .set('Authorization', `Bearer fake-token`)
       .send({ planId: randomUUID() });
     expect(res.status).toBe(HttpStatus.NOT_FOUND);
   });
