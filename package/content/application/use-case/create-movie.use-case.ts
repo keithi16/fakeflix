@@ -7,9 +7,6 @@ import { Movie } from '@tlc/content/persistence/entity/movie.entity';
 import { Thumbnail } from '@tlc/content/persistence/entity/thumbnail.entity';
 import { Video } from '@tlc/content/persistence/entity/video.entity';
 import { ContentRepository } from '@tlc/content/persistence/repository/content.repository';
-import { ContentManagementOperationType } from '@tlc/shared-lib/event/content/content-management.event';
-import { EntityChangedEvent } from '@tlc/shared-lib/event/entity-changed.event';
-import { EventEmitterService } from '@tlc/shared-module/event/service/event-emitter.service';
 import { AppLogger } from '@tlc/shared-module/logger/service/app-logger.service';
 
 export interface ExternalMovieRating {
@@ -20,11 +17,6 @@ export interface ExternalMovieRating {
 export class CreateMovieUseCase {
   constructor(
     private readonly contentRepository: ContentRepository,
-    /**
-     * TODO wrap the event emitter into our own service
-     * To allow easy swapping of the event emitter library
-     */
-    private readonly eventEmitter: EventEmitterService,
     private readonly videoProcessorService: VideoProcessorService,
     private readonly ageRecommendationService: AgeRecommendationService,
     private readonly externalMovieRatingClient: ExternalMovieRatingClient,
@@ -33,7 +25,6 @@ export class CreateMovieUseCase {
   ) {}
 
   async execute(video: {
-    //TODO add userId
     title: string;
     description: string;
     videoUrl: string;
@@ -62,26 +53,16 @@ export class CreateMovieUseCase {
     }
 
     Promise.all([
-      await this.videoProcessorService.processMetadataAndSecurity(
+      await this.videoProcessorService.processMetadataAndModeration(
         contentModel.movie.video
       ),
-      await this.ageRecommendationService.setAgeRecommendationForContent(contentModel),
+      await this.ageRecommendationService.setAgeRecommendationForContent(
+        contentModel,
+        contentModel.movie.video.metadata
+      ),
     ]);
     const content = await this.contentRepository.saveMovie(contentModel);
-    /**
-     * Atenção NUNCA USE EVENT EMITTER EM PRODUÇÃO PARA COMUNICAÇÃO
-     * Utilize um Event Broker como SNS ou Kafka pois EventEmitter não persiste eventos.
-     * Esse é somente um experimento que no futuro vai virar uma comunicação utilizando um broker de verdade
-     * Saiba mais sobre isso aqui https://youtu.be/7D-EB_VpLRQ?si=X04R8FTchSr0_WuV
-     */
-    this.eventEmitter.emit(
-      ContentManagementOperationType.CONTENT_CREATED,
-      new EntityChangedEvent(
-        ContentManagementOperationType.CONTENT_CREATED,
-        content.id,
-        content
-      )
-    );
+
     this.appLogger.log(`Created movie with id ${content.id}`, {
       contentBody: content,
     });

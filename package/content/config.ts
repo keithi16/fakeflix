@@ -17,6 +17,9 @@ const content = z.object({
     apiToken: z.string(),
     url: z.string(),
   }),
+  geminiApi: z.object({
+    apiToken: z.string(),
+  }),
 });
 
 export const configSchema = z.object({
@@ -43,6 +46,9 @@ export const contentConfigFactory = (): Config => {
       movieDb: {
         apiToken: process.env.CONTENT_MOVIEDB_API_TOKEN,
         url: process.env.CONTENT_MOVIEDB_BASE_URL,
+      },
+      geminiApi: {
+        apiToken: process.env.CONTENT_GEMINI_API_TOKEN,
       },
     },
   });

@@ -30,12 +30,6 @@
         "runInBand": true
       }
     },
-    "dynamodb:setup": {
-      "executor": "nx:run-commands",
-      "options": {
-        "command": "ts-node {projectRoot}/persistence/dynamodb-setup/dynamodb.setup.ts"
-      }
-    },
     "db:generate": {
       "executor": "nx:run-commands",
       "options": {
@@ -48,13 +42,7 @@
       "options": {
         "command": "ts-node -r tsconfig-paths/register ./node_modules/typeorm/cli.js migration:run",
         "args": ["-d {projectRoot}/persistence/typeorm-datasource.ts"]
-      },
-      "dependsOn": [
-        {
-          "target": "dynamodb:setup",
-          "projects": "self"
-        }
-      ]
+      }
     },
     "db:drop": {
       "executor": "nx:run-commands",

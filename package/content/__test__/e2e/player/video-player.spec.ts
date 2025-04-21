@@ -1,19 +1,20 @@
-import { faker } from '@faker-js/faker';
 import { HttpStatus, INestApplication } from '@nestjs/common';
 import { TestingModule } from '@nestjs/testing';
+import { Tables } from '@test/infra/enum/tables.enum';
 import { createNestApp } from '@test/infra/test-e2e.setup';
 import { CONTENT_TEST_FIXTURES } from '@tlc/content/__test__/e2e/contants';
-import { contentConfigFactory } from '@tlc/content/config';
+import { videoFactory } from '@tlc/content/__test__/e2e/factory/video.factory';
+import { ContentConfig, contentConfigFactory } from '@tlc/content/config';
 import { ContentModule } from '@tlc/content/content.module';
-import { ContentMedia } from '@tlc/content/persistence/entity/content-media.entity';
-import { ContentMediaRepository } from '@tlc/content/persistence/repository/content-media.repository';
 import { ConfigModule } from '@tlc/shared-module/config/config.module';
+import { ConfigService } from '@tlc/shared-module/config/service/config.service';
+import knex, { Knex } from 'knex';
 import request from 'supertest';
 
 describe('Media Player - Test (e2e)', () => {
   let app: INestApplication;
   let module: TestingModule;
-  let contentRepository: ContentMediaRepository;
+  let testDbClient: Knex;
 
   beforeAll(async () => {
     const nestTestSetup = await createNestApp([
@@ -24,40 +25,32 @@ describe('Media Player - Test (e2e)', () => {
     ]);
     app = nestTestSetup.app;
     module = nestTestSetup.module;
-    contentRepository = module.get<ContentMediaRepository>(ContentMediaRepository);
+    const configService = module.get<ConfigService<ContentConfig>>(ConfigService);
+
+    testDbClient = knex({
+      client: 'pg',
+      connection: `${configService.get('content.database.url')}`,
+      searchPath: ['public'],
+    });
   });
 
   beforeEach(async () => {
-    await contentRepository.deleteAll();
+    await testDbClient(Tables.Video).del();
   });
   afterAll(async () => await module.close());
 
   describe('/player/stream/:videoId', () => {
     it('streams a video', async () => {
-      const contentMedia = new ContentMedia({
-        contentId: faker.string.uuid(),
-        title: 'Test Video',
-        description: 'This is a test video',
-        type: 'video',
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        movieId: faker.string.uuid(),
-        metadata: {
-          url: `${CONTENT_TEST_FIXTURES}/sample.mp4`,
-          duration: 100,
-          sizeInKb: 1150,
-          videoId: faker.string.uuid(),
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        },
+      const fakeVideo = videoFactory.build({
+        url: `${CONTENT_TEST_FIXTURES}/sample.mp4`,
       });
-      await contentRepository.save(contentMedia);
+      await testDbClient(Tables.Video).insert(fakeVideo);
 
       const fileSize = 1430145;
       const range = `bytes=0-${fileSize - 1}`;
 
       const response = await request(app.getHttpServer())
-        .get(`/player/stream/${contentMedia.metadata.videoId}`)
+        .get(`/player/stream/${fakeVideo.id}`)
         .set('Range', range)
         .expect(HttpStatus.PARTIAL_CONTENT);
 

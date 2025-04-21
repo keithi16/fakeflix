@@ -8,6 +8,7 @@ import { ContentConfig, contentConfigFactory } from '@tlc/content/config';
 import { ConfigModule } from '@tlc/shared-module/config/config.module';
 import { ConfigService } from '@tlc/shared-module/config/service/config.service';
 import knex, { Knex } from 'knex';
+import nock from 'nock';
 import request from 'supertest';
 
 describe('AdminTvShowController (e2e)', () => {
@@ -85,6 +86,71 @@ describe('AdminTvShowController (e2e)', () => {
     });
 
     it('adds an episode to a tv show', async () => {
+      nock('https://generativelanguage.googleapis.com')
+        .post('/v1beta/models/gemini-2.0-flash:generateContent')
+        .query(true) // Match any query parameters
+        .reply(200, {
+          candidates: [
+            {
+              content: {
+                parts: [
+                  {
+                    text: JSON.stringify({
+                      responseText: 'This is a test video summary.',
+                    }),
+                  },
+                ],
+              },
+              finishReason: 'STOP',
+              index: 0,
+            },
+          ],
+        });
+
+      nock('https://generativelanguage.googleapis.com')
+        .post('/v1beta/models/gemini-2.0-flash:generateContent')
+        .query(true) // Match any query parameters
+        .reply(200, {
+          candidates: [
+            {
+              content: {
+                parts: [
+                  {
+                    text: JSON.stringify({
+                      responseText: 'This is a test video transcript.',
+                    }),
+                  },
+                ],
+              },
+              finishReason: 'STOP',
+              index: 0,
+            },
+          ],
+        });
+
+      nock('https://generativelanguage.googleapis.com')
+        .post('/v1beta/models/gemini-2.0-flash:generateContent')
+        .query(true) // Match any query parameters
+        .reply(200, {
+          candidates: [
+            {
+              content: {
+                parts: [
+                  {
+                    text: JSON.stringify({
+                      ageRating: 12,
+                      explanation:
+                        'The video contains mild language and thematic elements appropriate for viewers 12 and above.',
+                      categories: ['language', 'thematic elements'],
+                    }),
+                  },
+                ],
+              },
+              finishReason: 'STOP',
+              index: 0,
+            },
+          ],
+        });
       const tvShow = {
         title: 'Test TvShow',
         description: 'This is a test video',
@@ -128,6 +194,71 @@ describe('AdminTvShowController (e2e)', () => {
     });
 
     it('do not allow creating episode with an existing season and number', async () => {
+      nock('https://generativelanguage.googleapis.com')
+        .post('/v1beta/models/gemini-2.0-flash:generateContent')
+        .query(true) // Match any query parameters
+        .reply(200, {
+          candidates: [
+            {
+              content: {
+                parts: [
+                  {
+                    text: JSON.stringify({
+                      responseText: 'This is a test video summary.',
+                    }),
+                  },
+                ],
+              },
+              finishReason: 'STOP',
+              index: 0,
+            },
+          ],
+        });
+
+      nock('https://generativelanguage.googleapis.com')
+        .post('/v1beta/models/gemini-2.0-flash:generateContent')
+        .query(true) // Match any query parameters
+        .reply(200, {
+          candidates: [
+            {
+              content: {
+                parts: [
+                  {
+                    text: JSON.stringify({
+                      responseText: 'This is a test video transcript.',
+                    }),
+                  },
+                ],
+              },
+              finishReason: 'STOP',
+              index: 0,
+            },
+          ],
+        });
+
+      nock('https://generativelanguage.googleapis.com')
+        .post('/v1beta/models/gemini-2.0-flash:generateContent')
+        .query(true) // Match any query parameters
+        .reply(200, {
+          candidates: [
+            {
+              content: {
+                parts: [
+                  {
+                    text: JSON.stringify({
+                      ageRating: 12,
+                      explanation:
+                        'The video contains mild language and thematic elements appropriate for viewers 12 and above.',
+                      categories: ['language', 'thematic elements'],
+                    }),
+                  },
+                ],
+              },
+              finishReason: 'STOP',
+              index: 0,
+            },
+          ],
+        });
       const tvShow = {
         title: 'Test TvShow',
         description: 'This is a test video',

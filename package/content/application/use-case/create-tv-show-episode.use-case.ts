@@ -47,20 +47,20 @@ export class CreateTvShowEpisodeUseCase {
 
     await this.episodeLifecycleService.checkEpisodeConstraintsOrThrow(episode);
 
-    //TODO add status to the video
     const video = new Video({
       url: episodeData.videoUrl,
       sizeInKb: episodeData.videoSizeInKb,
     });
 
-    Promise.all([
-      await this.videoProcessorService.processMetadataAndSecurity(video),
-      await this.ageRecommendationService.setAgeRecommendationForContent(content),
-    ]);
+    await this.videoProcessorService.processMetadataAndModeration(video);
 
     episode.video = video;
     content.tvShow.episodes = [];
     content.tvShow.episodes.push(episode);
+    await this.ageRecommendationService.setAgeRecommendationForContent(
+      content,
+      video.metadata
+    );
 
     await this.contentRepository.saveTvShow(content);
     await this.contendDistributionService.distributeContent(content.id);

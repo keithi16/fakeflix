@@ -1,3 +1,4 @@
+import { VideoMetadata } from '@tlc/content/persistence/entity/video-metadata.entity';
 import { DefaultEntity } from '@tlc/shared-module/typeorm/entity/default.entity';
 import { Column, Entity, JoinColumn, OneToOne } from 'typeorm';
 import { Episode } from './episode.entity';
@@ -21,4 +22,10 @@ export class Video extends DefaultEntity<Video> {
   @OneToOne(() => Episode, (episode) => episode.video)
   @JoinColumn()
   episode: Episode;
+
+  @OneToOne(() => VideoMetadata, (textMetadata) => textMetadata.video, {
+    cascade: true,
+  })
+  @JoinColumn()
+  metadata: VideoMetadata;
 }
