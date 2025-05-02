@@ -25,6 +25,6 @@ export class CreateTvShowUseCase {
         url: tvShow.thumbnailUrl,
       });
     }
-    return await this.contentRepository.saveTvShow(content);
+    return await this.contentRepository.saveMovieOrTvShow(content);
   }
 }

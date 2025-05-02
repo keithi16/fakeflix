@@ -11,12 +11,18 @@ const databaseSchema = z.object({
   username: z.string(),
 });
 
+const redisSchema = z.object({
+  host: z.string(),
+  port: z.coerce.number(),
+});
+
 const content = z.object({
   database: databaseSchema,
   movieDb: z.object({
     apiToken: z.string(),
     url: z.string(),
   }),
+  redis: redisSchema,
   geminiApi: z.object({
     apiToken: z.string(),
   }),
@@ -42,6 +48,10 @@ export const contentConfigFactory = (): Config => {
         port: process.env.CONTENT_DATABASE_PORT,
         url: `postgresql://${process.env.CONTENT_DATABASE_USERNAME}:${process.env.CONTENT_DATABASE_PASSWORD}@${process.env.CONTENT_DATABASE_HOST}:${process.env.CONTENT_DATABASE_PORT}/${process.env.CONTENT_DATABASE_NAME}`,
         username: process.env.CONTENT_DATABASE_USERNAME,
+      },
+      redis: {
+        host: process.env.CONTENT_REDIS_HOST,
+        port: process.env.CONTENT_REDIS_PORT,
       },
       movieDb: {
         apiToken: process.env.CONTENT_MOVIEDB_API_TOKEN,

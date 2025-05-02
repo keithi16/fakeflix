@@ -1,6 +1,5 @@
 import { Injectable } from '@nestjs/common';
 import { MovieContentModel } from '@tlc/content/core/model/movie-content.model';
-import { AgeRecommendationService } from '@tlc/content/core/service/age-recommendation.service';
 import { VideoProcessorService } from '@tlc/content/core/service/video-processor.service';
 import { ExternalMovieRatingClient } from '@tlc/content/http/client/external-movie-rating/external-movie-rating.client';
 import { Movie } from '@tlc/content/persistence/entity/movie.entity';
@@ -8,6 +7,7 @@ import { Thumbnail } from '@tlc/content/persistence/entity/thumbnail.entity';
 import { Video } from '@tlc/content/persistence/entity/video.entity';
 import { ContentRepository } from '@tlc/content/persistence/repository/content.repository';
 import { AppLogger } from '@tlc/shared-module/logger/service/app-logger.service';
+import { runInTransaction } from 'typeorm-transactional';
 
 export interface ExternalMovieRating {
   rating: number;
@@ -18,7 +18,6 @@ export class CreateMovieUseCase {
   constructor(
     private readonly contentRepository: ContentRepository,
     private readonly videoProcessorService: VideoProcessorService,
-    private readonly ageRecommendationService: AgeRecommendationService,
     private readonly externalMovieRatingClient: ExternalMovieRatingClient,
 
     private readonly appLogger: AppLogger
@@ -52,20 +51,20 @@ export class CreateMovieUseCase {
       });
     }
 
-    Promise.all([
-      await this.videoProcessorService.processMetadataAndModeration(
-        contentModel.movie.video
-      ),
-      await this.ageRecommendationService.setAgeRecommendationForContent(
-        contentModel,
-        contentModel.movie.video.metadata
-      ),
-    ]);
-    const content = await this.contentRepository.saveMovie(contentModel);
-
-    this.appLogger.log(`Created movie with id ${content.id}`, {
-      contentBody: content,
-    });
-    return content;
+    return await runInTransaction(
+      async () => {
+        const content = await this.contentRepository.saveMovieOrTvShow(contentModel);
+        await this.videoProcessorService.processMetadataAndModeration(
+          contentModel.movie.video
+        );
+        this.appLogger.log(`Created movie with id ${content.id}`, {
+          contentBody: content,
+        });
+        return content;
+      },
+      {
+        connectionName: 'content',
+      }
+    );
   }
 }

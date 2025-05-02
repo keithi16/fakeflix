@@ -3,6 +3,7 @@
 /node_modules
 #temporary folder for uploads
 /uploads
+/app/monolith/uploads
 
 .env
 

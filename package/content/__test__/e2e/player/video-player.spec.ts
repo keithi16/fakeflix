@@ -3,7 +3,7 @@ import { TestingModule } from '@nestjs/testing';
 import { Tables } from '@test/infra/enum/tables.enum';
 import { createNestApp } from '@test/infra/test-e2e.setup';
 import { CONTENT_TEST_FIXTURES } from '@tlc/content/__test__/e2e/contants';
-import { videoFactory } from '@tlc/content/__test__/e2e/factory/video.factory';
+import { videoFactory } from '@tlc/content/__test__/factory/video.factory';
 import { ContentConfig, contentConfigFactory } from '@tlc/content/config';
 import { ContentModule } from '@tlc/content/content.module';
 import { ConfigModule } from '@tlc/shared-module/config/config.module';

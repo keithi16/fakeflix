@@ -15,10 +15,10 @@ export class CreateMovieResponseDto {
   readonly videoUrl: string;
   @IsString()
   readonly thumbnailUrl?: string;
+
   @IsNumber()
-  @IsNotEmpty()
-  readonly sizeInKb: number;
-  @IsNotEmpty()
+  readonly sizeInKb: number | null;
+
   @IsNumber()
-  readonly duration: number;
+  readonly duration: number | null;
 }

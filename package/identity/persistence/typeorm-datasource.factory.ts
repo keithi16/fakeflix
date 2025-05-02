@@ -1,5 +1,6 @@
 import { IdentityConfig } from '@tlc/identity/config';
 import { ConfigService } from '@tlc/shared-module/config/service/config.service';
+import { join } from 'path';
 import { PostgresConnectionOptions } from 'typeorm/driver/postgres/PostgresConnectionOptions';
 
 export const dataSourceOptionsFactory = (
@@ -13,8 +14,8 @@ export const dataSourceOptionsFactory = (
   password: configService.get('identity.database.password'),
   database: configService.get('identity.database.database'),
   synchronize: false,
-  entities: ['package/identity/**/*.entity.ts'],
-  migrations: ['package/identity/persistence/migration/*-migration.ts'],
+  entities: [join(__dirname, 'entity', '*.entity.{ts,js}')],
+  migrations: [join(__dirname, 'migration', '*-migration.{ts,js}')],
   migrationsRun: false,
   migrationsTableName: 'identity_migrations',
   logging: false,

@@ -19,6 +19,9 @@ export class Movie extends DefaultEntity<Movie> {
   @JoinColumn()
   content: Content;
 
+  @Column({ type: 'uuid', nullable: false })
+  contentId: string;
+
   @OneToOne(() => Thumbnail, {
     cascade: true,
     nullable: true,

@@ -1,5 +1,6 @@
 import { BillingConfig } from '@tlc/billing/config';
 import { ConfigService } from '@tlc/shared-module/config/service/config.service';
+import { join } from 'path';
 import { PostgresConnectionOptions } from 'typeorm/driver/postgres/PostgresConnectionOptions';
 
 export const dataSourceOptionsFactory = (
@@ -13,8 +14,8 @@ export const dataSourceOptionsFactory = (
   password: configService.get('billing.database.password'),
   database: configService.get('billing.database.database'),
   synchronize: false,
-  entities: ['package/billing/**/*.entity.ts'],
-  migrations: ['package/billing/persistence/migration/*-migration.ts'],
+  entities: [join(__dirname, 'entity', '*.entity.{ts,js}')],
+  migrations: [join(__dirname, 'migration', '*-migration.{ts,js}')],
   migrationsRun: false,
   migrationsTableName: 'billing_migrations',
   logging: false,

@@ -15,9 +15,8 @@ export class CreateEpisodeResponseDto {
   readonly videoUrl: string;
 
   @IsNumber()
-  @IsNotEmpty()
-  readonly sizeInKb: number;
-  @IsNotEmpty()
+  readonly sizeInKb: number | null;
+
   @IsNumber()
-  readonly duration: number;
+  readonly duration: number | null;
 }

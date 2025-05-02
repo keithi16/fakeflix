@@ -9,15 +9,18 @@ export class Video extends DefaultEntity<Video> {
   @Column()
   url: string;
 
-  @Column()
-  sizeInKb: number;
+  @Column({ type: 'bigint', nullable: true })
+  sizeInKb: number | null;
 
-  @Column()
-  duration: number;
+  @Column({ type: 'bigint', nullable: true })
+  duration: number | null;
 
   @OneToOne(() => Movie, (movie) => movie.video)
   @JoinColumn()
   movie: Movie;
+
+  @Column({ type: 'uuid', nullable: false })
+  movieId: string;
 
   @OneToOne(() => Episode, (episode) => episode.video)
   @JoinColumn()
@@ -26,6 +29,5 @@ export class Video extends DefaultEntity<Video> {
   @OneToOne(() => VideoMetadata, (textMetadata) => textMetadata.video, {
     cascade: true,
   })
-  @JoinColumn()
   metadata: VideoMetadata;
 }

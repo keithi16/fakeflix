@@ -4,11 +4,11 @@ import { CONTENT_TEST_FIXTURES } from '@tlc/content/__test__/e2e/contants';
 import { ContentModule } from '@tlc/content/content.module';
 
 import { createNestApp } from '@test/infra/test-e2e.setup';
+import { cleanUpContentDatabase } from '@tlc/content/__test__/helper/content-db.test-helper';
 import { ContentConfig, contentConfigFactory } from '@tlc/content/config';
 import { ConfigModule } from '@tlc/shared-module/config/config.module';
 import { ConfigService } from '@tlc/shared-module/config/service/config.service';
 import knex, { Knex } from 'knex';
-import nock from 'nock';
 import request from 'supertest';
 
 describe('AdminTvShowController (e2e)', () => {
@@ -35,24 +35,11 @@ describe('AdminTvShowController (e2e)', () => {
 
   beforeEach(async () => {
     jest.useFakeTimers({ advanceTimers: true }).setSystemTime(new Date('2023-01-01'));
-    await testDbClient('Content').del();
-
-    await testDbClient('Video').del();
-    await testDbClient('Episode').del();
-    await testDbClient('Movie').del();
-    await testDbClient('TvShow').del();
-
-    await testDbClient('Thumbnail').del();
+    await cleanUpContentDatabase(testDbClient);
   });
 
   afterEach(async () => {
-    await testDbClient('Video').del();
-    await testDbClient('Episode').del();
-    await testDbClient('Movie').del();
-    await testDbClient('TvShow').del();
-    await testDbClient('Content').del();
-
-    await testDbClient('Thumbnail').del();
+    await cleanUpContentDatabase(testDbClient);
   });
 
   afterAll(async () => {
@@ -86,71 +73,6 @@ describe('AdminTvShowController (e2e)', () => {
     });
 
     it('adds an episode to a tv show', async () => {
-      nock('https://generativelanguage.googleapis.com')
-        .post('/v1beta/models/gemini-2.0-flash:generateContent')
-        .query(true) // Match any query parameters
-        .reply(200, {
-          candidates: [
-            {
-              content: {
-                parts: [
-                  {
-                    text: JSON.stringify({
-                      responseText: 'This is a test video summary.',
-                    }),
-                  },
-                ],
-              },
-              finishReason: 'STOP',
-              index: 0,
-            },
-          ],
-        });
-
-      nock('https://generativelanguage.googleapis.com')
-        .post('/v1beta/models/gemini-2.0-flash:generateContent')
-        .query(true) // Match any query parameters
-        .reply(200, {
-          candidates: [
-            {
-              content: {
-                parts: [
-                  {
-                    text: JSON.stringify({
-                      responseText: 'This is a test video transcript.',
-                    }),
-                  },
-                ],
-              },
-              finishReason: 'STOP',
-              index: 0,
-            },
-          ],
-        });
-
-      nock('https://generativelanguage.googleapis.com')
-        .post('/v1beta/models/gemini-2.0-flash:generateContent')
-        .query(true) // Match any query parameters
-        .reply(200, {
-          candidates: [
-            {
-              content: {
-                parts: [
-                  {
-                    text: JSON.stringify({
-                      ageRating: 12,
-                      explanation:
-                        'The video contains mild language and thematic elements appropriate for viewers 12 and above.',
-                      categories: ['language', 'thematic elements'],
-                    }),
-                  },
-                ],
-              },
-              finishReason: 'STOP',
-              index: 0,
-            },
-          ],
-        });
       const tvShow = {
         title: 'Test TvShow',
         description: 'This is a test video',
@@ -194,71 +116,6 @@ describe('AdminTvShowController (e2e)', () => {
     });
 
     it('do not allow creating episode with an existing season and number', async () => {
-      nock('https://generativelanguage.googleapis.com')
-        .post('/v1beta/models/gemini-2.0-flash:generateContent')
-        .query(true) // Match any query parameters
-        .reply(200, {
-          candidates: [
-            {
-              content: {
-                parts: [
-                  {
-                    text: JSON.stringify({
-                      responseText: 'This is a test video summary.',
-                    }),
-                  },
-                ],
-              },
-              finishReason: 'STOP',
-              index: 0,
-            },
-          ],
-        });
-
-      nock('https://generativelanguage.googleapis.com')
-        .post('/v1beta/models/gemini-2.0-flash:generateContent')
-        .query(true) // Match any query parameters
-        .reply(200, {
-          candidates: [
-            {
-              content: {
-                parts: [
-                  {
-                    text: JSON.stringify({
-                      responseText: 'This is a test video transcript.',
-                    }),
-                  },
-                ],
-              },
-              finishReason: 'STOP',
-              index: 0,
-            },
-          ],
-        });
-
-      nock('https://generativelanguage.googleapis.com')
-        .post('/v1beta/models/gemini-2.0-flash:generateContent')
-        .query(true) // Match any query parameters
-        .reply(200, {
-          candidates: [
-            {
-              content: {
-                parts: [
-                  {
-                    text: JSON.stringify({
-                      ageRating: 12,
-                      explanation:
-                        'The video contains mild language and thematic elements appropriate for viewers 12 and above.',
-                      categories: ['language', 'thematic elements'],
-                    }),
-                  },
-                ],
-              },
-              finishReason: 'STOP',
-              index: 0,
-            },
-          ],
-        });
       const tvShow = {
         title: 'Test TvShow',
         description: 'This is a test video',

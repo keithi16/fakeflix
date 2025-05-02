@@ -4,16 +4,20 @@ import { TvShowContentModel } from '@tlc/content/core/model/tv-show-content.mode
 import { VideoMetadata } from '@tlc/content/persistence/entity/video-metadata.entity';
 
 @Injectable()
-export class AgeRecommendationService {
-  async setAgeRecommendationForContent(
+export class ContentAgeRecommendationService {
+  setAgeRecommendationForContent(
     content: TvShowContentModel | MovieContentModel,
     latestVideoMetadata: VideoMetadata
-  ): Promise<void> {
+  ): void {
     /**
      * Age recommendation for the whole content is based on the highest
      * age recommendation of the videos
      * If the content has an age recommendation, it will be replaced
      */
+    if (!content.ageRecommendation && latestVideoMetadata.ageRating) {
+      content.ageRecommendation = latestVideoMetadata.ageRating;
+      return;
+    }
     if (
       content.ageRecommendation &&
       latestVideoMetadata.ageRating &&

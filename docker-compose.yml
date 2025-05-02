@@ -10,13 +10,20 @@ services:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
       - PGDATA=/tmp
+      - POSTGRES_DB=fakeflix_test
     ports:
       - '5432:5432'
     volumes:
       - .data:/var/lib/postgresql/data
-  dynamodb:
-    image: localstack/localstack
+
+  redis:
+    image: redis:7-alpine
+    container_name: fakeflix-redis
     ports:
-      - '4566:4566' # Use port 4566 for both DynamoDB and S3
-    environment:
-      - SERVICES=dynamodb
+      - '6379:6379'
+    volumes:
+      - redis-data:/data
+    command: redis-server --save 60 1 --loglevel warning
+
+volumes:
+  redis-data:

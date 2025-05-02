@@ -1,5 +1,4 @@
 import { Injectable } from '@nestjs/common';
-import { AgeRecommendationService } from '@tlc/content/core/service/age-recommendation.service';
 import { ContentDistributionService } from '@tlc/content/core/service/content-distribution.service';
 import { EpisodeLifecycleService } from '@tlc/content/core/service/episode-lifecycle.service';
 import { VideoProcessorService } from '@tlc/content/core/service/video-processor.service';
@@ -8,15 +7,17 @@ import { Episode } from '@tlc/content/persistence/entity/episode.entity';
 import { Video } from '@tlc/content/persistence/entity/video.entity';
 import { ContentRepository } from '@tlc/content/persistence/repository/content.repository';
 import { NotFoundDomainException } from '@tlc/shared-lib/core/exeption/not-found-domain.exception';
+import { AppLogger } from '@tlc/shared-module/logger/service/app-logger.service';
+import { runInTransaction } from 'typeorm-transactional';
 
 @Injectable()
 export class CreateTvShowEpisodeUseCase {
   constructor(
     private readonly contentRepository: ContentRepository,
-    private readonly ageRecommendationService: AgeRecommendationService,
     private readonly contendDistributionService: ContentDistributionService,
     private readonly videoProcessorService: VideoProcessorService,
-    private readonly episodeLifecycleService: EpisodeLifecycleService
+    private readonly episodeLifecycleService: EpisodeLifecycleService,
+    private readonly logger: AppLogger
   ) {}
   async execute(
     episodeData: CreateEpisodeRequestDto & {
@@ -52,19 +53,29 @@ export class CreateTvShowEpisodeUseCase {
       sizeInKb: episodeData.videoSizeInKb,
     });
 
-    await this.videoProcessorService.processMetadataAndModeration(video);
-
     episode.video = video;
     content.tvShow.episodes = [];
     content.tvShow.episodes.push(episode);
-    await this.ageRecommendationService.setAgeRecommendationForContent(
-      content,
-      video.metadata
+
+    await this.contentRepository.saveMovieOrTvShow(content);
+    await this.videoProcessorService.processMetadataAndModeration(video);
+
+    return await runInTransaction(
+      async () => {
+        await this.contentRepository.saveMovieOrTvShow(content);
+        await this.videoProcessorService.processMetadataAndModeration(video);
+        await this.contendDistributionService.distributeContent(content.id);
+        this.logger.log(
+          `Added episode with id ${episode.id} to tvShow ${content.tvShow.id}`,
+          {
+            contentBody: content,
+          }
+        );
+        return episode;
+      },
+      {
+        connectionName: 'content',
+      }
     );
-
-    await this.contentRepository.saveTvShow(content);
-    await this.contendDistributionService.distributeContent(content.id);
-
-    return episode;
   }
 }
