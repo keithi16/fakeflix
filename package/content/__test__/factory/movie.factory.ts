@@ -1,5 +1,5 @@
 import { faker } from '@faker-js/faker/.';
-import { Movie } from '@tlc/content/persistence/entity/movie.entity';
+import { Movie } from '@tlc/content/shared/persistence/entity/movie.entity';
 
 import * as Factory from 'factory.ts';
 

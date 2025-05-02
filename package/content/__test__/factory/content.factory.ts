@@ -1,6 +1,6 @@
 import { faker } from '@faker-js/faker/.';
-import { ContentType } from '@tlc/content/core/enum/content-type.enum';
-import { Content } from '@tlc/content/persistence/entity/content.entity';
+import { ContentType } from '@tlc/content/shared/core/enum/content-type.enum';
+import { Content } from '@tlc/content/shared/persistence/entity/content.entity';
 
 import * as Factory from 'factory.ts';
 
