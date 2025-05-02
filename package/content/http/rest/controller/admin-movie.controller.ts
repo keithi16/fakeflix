@@ -10,7 +10,7 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
-import { CreateMovieUseCase } from '@tlc/content/application/use-case/create-movie.use-case';
+import { CreateMovieUseCase } from '@tlc/content/core/use-case/create-movie.use-case';
 import { CreateMovieInputDto } from '@tlc/content/http/rest/dto/request/create-movie.dto';
 import { CreateMovieResponseDto } from '@tlc/content/http/rest/dto/response/create-movie.dto';
 

@@ -12,8 +12,8 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { CreateTvShowEpisodeUseCase } from '@tlc/content/application/use-case/create-tv-show-episode.use-case';
-import { CreateTvShowUseCase } from '@tlc/content/application/use-case/create-tv-show.use-case';
+import { CreateTvShowEpisodeUseCase } from '@tlc/content/core/use-case/create-tv-show-episode.use-case';
+import { CreateTvShowUseCase } from '@tlc/content/core/use-case/create-tv-show.use-case';
 import { CreateEpisodeRequestDto } from '@tlc/content/http/rest/dto/request/create-episode.dto';
 import { CreateTvShowRequestDto } from '@tlc/content/http/rest/dto/request/create-tv-show.dto';
 import { CreateEpisodeResponseDto } from '@tlc/content/http/rest/dto/response/create-episode.dto';

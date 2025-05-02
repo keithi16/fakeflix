@@ -1,6 +1,6 @@
 import { OnWorkerEvent, Processor, WorkerHost } from '@nestjs/bullmq';
-import { SetAgeRecommendationUseCase } from '@tlc/content/application/use-case/set-age-recommendation.use-case';
 import { VideoNotFoundException } from '@tlc/content/core/exception/video-not-found.exception';
+import { SetAgeRecommendationUseCase } from '@tlc/content/core/use-case/set-age-recommendation.use-case';
 import { VideoRepository } from '@tlc/content/persistence/repository/video.repository';
 import { QUEUES } from '@tlc/content/queue/queue-constants';
 import { AppLogger } from '@tlc/shared-module/logger/service/app-logger.service';

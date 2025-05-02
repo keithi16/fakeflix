@@ -1,5 +1,5 @@
 import { Query, Resolver } from '@nestjs/graphql';
-import { ListContentUseCase } from '@tlc/content/application/use-case/list-content.use-case';
+import { ListContentUseCase } from '@tlc/content/core/use-case/list-content.use-case';
 
 import { Content } from '@tlc/content/http/graphql/type/content.type';
 
