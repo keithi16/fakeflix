@@ -12,12 +12,12 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { CreateTvShowEpisodeUseCase } from '@tlc/content/admin/core/use-case/create-tv-show-episode.use-case';
-import { CreateTvShowUseCase } from '@tlc/content/admin/core/use-case/create-tv-show.use-case';
-import { CreateEpisodeRequestDto } from '@tlc/content/admin/http/rest/dto/request/create-episode.dto';
-import { CreateTvShowRequestDto } from '@tlc/content/admin/http/rest/dto/request/create-tv-show.dto';
-import { CreateEpisodeResponseDto } from '@tlc/content/admin/http/rest/dto/response/create-episode.dto';
-import { CreateTvShowResponseDto } from '@tlc/content/admin/http/rest/dto/response/create-tv-show.dto';
+import { CreateTvShowEpisodeUseCase } from '../../../core/use-case/create-tv-show-episode.use-case';
+import { CreateTvShowUseCase } from '../../../core/use-case/create-tv-show.use-case';
+import { CreateEpisodeRequestDto } from '../dto/request/create-episode.dto';
+import { CreateTvShowRequestDto } from '../dto/request/create-tv-show.dto';
+import { CreateEpisodeResponseDto } from '../dto/response/create-episode.dto';
+import { CreateTvShowResponseDto } from '../dto/response/create-tv-show.dto';
 
 import { Request } from 'express';
 import { diskStorage } from 'multer';

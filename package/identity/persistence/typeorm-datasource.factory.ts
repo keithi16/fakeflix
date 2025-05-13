@@ -1,4 +1,4 @@
-import { IdentityConfig } from '@tlc/identity/config';
+import { IdentityConfig } from '../config';
 import { ConfigService } from '@tlc/shared-module/config/service/config.service';
 import { join } from 'path';
 import { PostgresConnectionOptions } from 'typeorm/driver/postgres/PostgresConnectionOptions';

@@ -1,4 +1,4 @@
-import { ContentConfig } from '@tlc/content/config';
+import { ContentConfig } from '../../config';
 import { ConfigService } from '@tlc/shared-module/config/service/config.service';
 import { join } from 'path';
 import { PostgresConnectionOptions } from 'typeorm/driver/postgres/PostgresConnectionOptions';

@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { ContentConfig } from '@tlc/content/config';
+import { ContentConfig } from '../../../../config';
 import { ConfigService } from '@tlc/shared-module/config/service/config.service';
 import { HttpClient } from '@tlc/shared-module/http-client//client/http.client';
 import { HttpClientInternalException } from '@tlc/shared-module/http-client/exception/http-client.exception';

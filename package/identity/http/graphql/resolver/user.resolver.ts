@@ -1,8 +1,8 @@
 import { NotFoundException, UseGuards } from '@nestjs/common';
 import { Args, Context, Mutation, Query, Resolver } from '@nestjs/graphql';
-import { UserManagementService } from '@tlc/identity/core/service/user-management.service';
-import { CreateUserInput } from '@tlc/identity/http/graphql/type/create-user-input.type';
-import { User } from '@tlc/identity/http/graphql/type/user.type';
+import { UserManagementService } from '../../../core/service/user-management.service';
+import { CreateUserInput } from '../type/create-user-input.type';
+import { User } from '../type/user.type';
 import {
   AuthenticatedRequest,
   AuthGuard,

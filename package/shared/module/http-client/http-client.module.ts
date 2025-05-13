@@ -1,6 +1,6 @@
 import { HttpModule } from '@nestjs/axios';
 import { Module } from '@nestjs/common';
-import { HttpClient } from '@tlc/shared-module/http-client/client/http.client';
+import { HttpClient } from './client/http.client';
 
 @Module({
   imports: [HttpModule],

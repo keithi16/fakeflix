@@ -1,7 +1,7 @@
 import { Query, Resolver } from '@nestjs/graphql';
-import { ListContentUseCase } from '@tlc/content/catalog/core/use-case/list-content.use-case';
+import { ListContentUseCase } from '../../../core/use-case/list-content.use-case';
 
-import { Content } from '@tlc/content/catalog/http/graphql/type/content.type';
+import { Content } from '../type/content.type';
 
 @Resolver(() => Content)
 export class ContentResolver {

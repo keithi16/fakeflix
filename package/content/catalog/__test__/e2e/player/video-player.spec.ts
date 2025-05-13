@@ -1,15 +1,15 @@
 import { HttpStatus, INestApplication } from '@nestjs/common';
 import { TestingModule } from '@nestjs/testing';
-import { Tables } from '@test/infra/enum/tables.enum';
-import { createNestApp } from '@test/infra/test-e2e.setup';
-import { videoFactory } from '@tlc/content/__test__/factory/video.factory';
-import { CONTENT_TEST_FIXTURES } from '@tlc/content/admin/__test__/e2e/contants';
-import { ContentCatalogModule } from '@tlc/content/catalog/content-catalog.module';
-import { ContentConfig, contentConfigFactory } from '@tlc/content/config';
+import { Tables } from '@tlc/shared-lib/test/enum/tables.enum';
+import { createNestApp } from '@tlc/shared-lib/test/test-e2e.setup';
 import { ConfigModule } from '@tlc/shared-module/config/config.module';
 import { ConfigService } from '@tlc/shared-module/config/service/config.service';
 import knex, { Knex } from 'knex';
 import request from 'supertest';
+import { videoFactory } from '../../../../__test__/factory/video.factory';
+import { CONTENT_TEST_FIXTURES } from '../../../../admin/__test__/e2e/contants';
+import { ContentConfig, contentConfigFactory } from '../../../../config';
+import { ContentCatalogModule } from '../../../content-catalog.module';
 
 describe('Media Player - Test (e2e)', () => {
   let app: INestApplication;

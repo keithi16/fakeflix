@@ -1,10 +1,10 @@
 import { Module } from '@nestjs/common';
-import { SubscriptionService } from '@tlc/billing/core/service/subscription.service';
-import { SubscriptionController } from '@tlc/billing/http/rest/controller/subscription.controller';
-import { BillingPublicApiProvider } from '@tlc/billing/integration/provider/public-api.provider';
-import { BillingPersistenceModule } from '@tlc/billing/persistence/billing-persistence.module';
 import { AuthModule } from '@tlc/shared-module/auth/auth.module';
 import { ClsModule } from 'nestjs-cls';
+import { SubscriptionService } from './core/service/subscription.service';
+import { SubscriptionController } from './http/rest/controller/subscription.controller';
+import { BillingPublicApiProvider } from './integration/provider/public-api.provider';
+import { BillingPersistenceModule } from './persistence/billing-persistence.module';
 @Module({
   imports: [
     ClsModule.forRoot({

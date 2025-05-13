@@ -1,5 +1,5 @@
-import { SubscriptionStatus } from '@tlc/billing/core/enum/subscription-status.enum';
-import { DefaultResponseDto } from '@tlc/billing/http/rest/dto/response/default-response.dto';
+import { SubscriptionStatus } from '../../../../core/enum/subscription-status.enum';
+import { DefaultResponseDto } from './default-response.dto';
 import { Expose } from 'class-transformer';
 import {
   IsBoolean,

@@ -1,6 +1,6 @@
 import { Query, Resolver } from '@nestjs/graphql';
 
-import { Video } from '@tlc/content/catalog/http/graphql/type/video.type';
+import { Video } from '../type/video.type';
 
 @Resolver(() => Video)
 export class VideoResolver {

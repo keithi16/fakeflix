@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
-import { ConfigService } from '@tlc/shared-module/config/service/config.service';
-import { HttpClient } from '@tlc/shared-module/http-client/client/http.client';
-import { BillingApiUserSubscriptionActiveResponseDto } from '@tlc/shared-module/integration/http/dto/response/billing-api-subscription-status-response.dto';
-import { BillingSubscriptionStatusApi } from '@tlc/shared-module/integration/interface/billing-integration.interface';
+import { ConfigService } from '../../../config/service/config.service';
+import { HttpClient } from '../../../http-client/client/http.client';
+import { BillingApiUserSubscriptionActiveResponseDto } from '../dto/response/billing-api-subscription-status-response.dto';
+import { BillingSubscriptionStatusApi } from '../../interface/billing-integration.interface';
 
 @Injectable()
 export class BillingSubscriptionHttpClient implements BillingSubscriptionStatusApi {

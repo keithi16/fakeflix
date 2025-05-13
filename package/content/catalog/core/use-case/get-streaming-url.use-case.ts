@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { VideoNotFoundException } from '@tlc/content/shared/core/exception/video-not-found.exception';
-import { VideoRepository } from '@tlc/content/video-processor/persistence/repository/video.repository';
+import { VideoNotFoundException } from '../../../shared/core/exception/video-not-found.exception';
+import { VideoRepository } from '../../../video-processor/persistence/repository/video.repository';
 
 @Injectable()
 export class GetStreamingURLUseCase {

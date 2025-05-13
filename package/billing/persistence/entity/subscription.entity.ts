@@ -1,4 +1,4 @@
-import { SubscriptionStatus } from '@tlc/billing/core/enum/subscription-status.enum';
+import { SubscriptionStatus } from '../../core/enum/subscription-status.enum';
 import { DefaultEntity } from '@tlc/shared-module/typeorm/entity/default.entity';
 import { Column, Entity, JoinColumn, ManyToOne } from 'typeorm';
 import { Plan } from './plan.entity';

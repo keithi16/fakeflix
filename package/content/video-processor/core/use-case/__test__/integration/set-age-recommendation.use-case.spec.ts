@@ -1,20 +1,20 @@
 import { INestApplication } from '@nestjs/common';
 import { TestingModule } from '@nestjs/testing';
-import { createNestApp } from '@test/infra/test-e2e.setup';
-import { contentFactory } from '@tlc/content/__test__/factory/content.factory';
-import { movieFactory } from '@tlc/content/__test__/factory/movie.factory';
-import { videoMetadataFactory } from '@tlc/content/__test__/factory/video-metadata.factory';
-import { videoFactory } from '@tlc/content/__test__/factory/video.factory';
-import { cleanUpContentDatabase } from '@tlc/content/__test__/helper/content-db.test-helper';
-import { CONTENT_TEST_FIXTURES } from '@tlc/content/admin/__test__/e2e/contants';
-import { ContentConfig, contentConfigFactory } from '@tlc/content/config';
-import { Video } from '@tlc/content/shared/persistence/entity/video.entity';
-import { ContentVideoProcessorModule } from '@tlc/content/video-processor/content-video-processor.module';
-import { SetAgeRecommendationUseCase } from '@tlc/content/video-processor/core/use-case/set-age-recommendation.use-case';
+import { createNestApp } from '@tlc/shared-lib/test/test-e2e.setup';
 import { ConfigModule } from '@tlc/shared-module/config/config.module';
 import { ConfigService } from '@tlc/shared-module/config/service/config.service';
 import knex, { Knex } from 'knex';
 import nock, { cleanAll } from 'nock';
+import { contentFactory } from '../../../../../__test__/factory/content.factory';
+import { movieFactory } from '../../../../../__test__/factory/movie.factory';
+import { videoMetadataFactory } from '../../../../../__test__/factory/video-metadata.factory';
+import { videoFactory } from '../../../../../__test__/factory/video.factory';
+import { cleanUpContentDatabase } from '../../../../../__test__/helper/content-db.test-helper';
+import { CONTENT_TEST_FIXTURES } from '../../../../../admin/__test__/e2e/contants';
+import { ContentConfig, contentConfigFactory } from '../../../../../config';
+import { Video } from '../../../../../shared/persistence/entity/video.entity';
+import { ContentVideoProcessorModule } from '../../../../content-video-processor.module';
+import { SetAgeRecommendationUseCase } from '../../set-age-recommendation.use-case';
 
 describe('SetAgeRecommendationUseCase', () => {
   let module: TestingModule;

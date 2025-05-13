@@ -1,10 +1,10 @@
 import { NestFactory } from '@nestjs/core';
-import { billingConfigFactory } from '@tlc/billing/billing.module';
-import { BillingConfig } from '@tlc/billing/config';
-import { dataSourceOptionsFactory } from '@tlc/billing/persistence/typeorm-datasource.factory';
 import { ConfigModule } from '@tlc/shared-module/config/config.module';
 import { ConfigService } from '@tlc/shared-module/config/service/config.service';
 import { DataSource } from 'typeorm';
+import { billingConfigFactory } from '../billing.module';
+import { BillingConfig } from '../config';
+import { dataSourceOptionsFactory } from './typeorm-datasource.factory';
 
 const getDataSource = async () => {
   const configModule = await NestFactory.createApplicationContext(

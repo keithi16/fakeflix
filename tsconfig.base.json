@@ -4,6 +4,7 @@
     "allowSyntheticDefaultImports": true,
     "alwaysStrict": true,
     "baseUrl": ".",
+    "rootDir": ".",
     "checkJs": false,
     "declaration": true,
     "declarationMap": true,
@@ -21,7 +22,6 @@
     "noUnusedParameters": true,
     "outDir": "./dist",
     "paths": {
-      "@test/infra/*": ["test/*"],
       "@tlc/billing/*": ["package/billing/*"],
       "@tlc/content/*": ["package/content/*"],
       "@tlc/identity/*": ["package/identity/*"],
@@ -39,6 +39,5 @@
     "strictFunctionTypes": true,
     "strictNullChecks": true,
     "target": "es2020"
-  },
-  "include": ["src/**/*", "test/**/*", "database/**/*", "package/**/*", "app/**/*"]
+  }
 }

@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { UserManagementService } from '@tlc/identity/core/service/user-management.service';
-import { UserRepository } from '@tlc/identity/persistence/repository/user.repository';
+import { UserManagementService } from '../../user-management.service';
+import { UserRepository } from '../../../../persistence/repository/user.repository';
 import { ConfigModule } from '@tlc/shared-module/config/config.module';
 
 describe('UserManagementService', () => {

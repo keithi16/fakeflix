@@ -10,9 +10,9 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
-import { CreateMovieUseCase } from '@tlc/content/admin/core/use-case/create-movie.use-case';
-import { CreateMovieInputDto } from '@tlc/content/admin/http/rest/dto/request/create-movie.dto';
-import { CreateMovieResponseDto } from '@tlc/content/admin/http/rest/dto/response/create-movie.dto';
+import { CreateMovieUseCase } from '../../../core/use-case/create-movie.use-case';
+import { CreateMovieInputDto } from '../dto/request/create-movie.dto';
+import { CreateMovieResponseDto } from '../dto/response/create-movie.dto';
 
 import { randomUUID } from 'crypto';
 import { Request } from 'express';

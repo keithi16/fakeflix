@@ -1,9 +1,9 @@
 import { JwtService } from '@nestjs/jwt';
 import { Test, TestingModule } from '@nestjs/testing';
-import { UserUnauthorizedException } from '@tlc/identity/core/exception/user-unauthorized.exception';
-import { AuthService } from '@tlc/identity/core/service/authentication.service';
-import { User } from '@tlc/identity/persistence/entity/user.entity';
-import { UserRepository } from '@tlc/identity/persistence/repository/user.repository';
+import { UserUnauthorizedException } from '../../../exception/user-unauthorized.exception';
+import { AuthService } from '../../authentication.service';
+import { User } from '../../../../persistence/entity/user.entity';
+import { UserRepository } from '../../../../persistence/repository/user.repository';
 import { BillingSubscriptionStatusApi } from '@tlc/shared-module/integration/interface/billing-integration.interface';
 import { hashSync } from 'bcrypt';
 

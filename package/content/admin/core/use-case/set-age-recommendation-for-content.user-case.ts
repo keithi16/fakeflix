@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { ContentAgeRecommendationService } from '@tlc/content/admin/core/service/content-age-recommendation.service';
-import { ContentRepository } from '@tlc/content/admin/persistence/repository/content.repository';
+import { ContentAgeRecommendationService } from '../service/content-age-recommendation.service';
+import { ContentRepository } from '../../persistence/repository/content.repository';
 import { NotFoundDomainException } from '@tlc/shared-lib/core/exeption/not-found-domain.exception';
 import { AppLogger } from '@tlc/shared-module/logger/service/app-logger.service';
 

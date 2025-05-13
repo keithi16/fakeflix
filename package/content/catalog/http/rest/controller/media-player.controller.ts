@@ -1,5 +1,5 @@
 import { Controller, Get, Header, HttpStatus, Param, Req, Res } from '@nestjs/common';
-import { GetStreamingURLUseCase } from '@tlc/content/catalog/core/use-case/get-streaming-url.use-case';
+import { GetStreamingURLUseCase } from '../../../core/use-case/get-streaming-url.use-case';
 import { Request, Response } from 'express';
 import * as fs from 'fs';
 import * as path from 'path';

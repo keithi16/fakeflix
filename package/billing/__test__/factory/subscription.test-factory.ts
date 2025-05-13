@@ -1,9 +1,9 @@
 import { faker } from '@faker-js/faker/.';
 
-import { planFactory } from '@test/infra/factory/identity/plan.test-factory';
-import { SubscriptionStatus } from '@tlc/billing/core/enum/subscription-status.enum';
-import { Subscription } from '@tlc/billing/persistence/entity/subscription.entity';
+import { SubscriptionStatus } from '../../core/enum/subscription-status.enum';
+import { Subscription } from '../../persistence/entity/subscription.entity';
 import * as Factory from 'factory.ts';
+import { planFactory } from './plan.test-factory';
 
 export const subscriptionFactory = Factory.Sync.makeFactory<Partial<Subscription>>({
   id: faker.string.uuid(),

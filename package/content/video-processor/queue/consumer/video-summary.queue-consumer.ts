@@ -1,8 +1,8 @@
 import { Processor, WorkerHost } from '@nestjs/bullmq';
-import { VideoNotFoundException } from '@tlc/content/shared/core/exception/video-not-found.exception';
-import { QUEUES } from '@tlc/content/shared/queue/queue-constants';
-import { GenerateSummaryForVideoUseCase } from '@tlc/content/video-processor/core/use-case/generate-summary-for-video.use-case';
-import { VideoRepository } from '@tlc/content/video-processor/persistence/repository/video.repository';
+import { VideoNotFoundException } from '../../../shared/core/exception/video-not-found.exception';
+import { QUEUES } from '../../../shared/queue/queue-constants';
+import { GenerateSummaryForVideoUseCase } from '../../core/use-case/generate-summary-for-video.use-case';
+import { VideoRepository } from '../../persistence/repository/video.repository';
 import { AppLogger } from '@tlc/shared-module/logger/service/app-logger.service';
 import { Job } from 'bullmq';
 

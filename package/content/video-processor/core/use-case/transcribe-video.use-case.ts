@@ -1,8 +1,8 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { VideoMetadata } from '@tlc/content/shared/persistence/entity/video-metadata.entity';
-import { Video } from '@tlc/content/shared/persistence/entity/video.entity';
-import { VideoTranscriptGenerationAdapter } from '@tlc/content/video-processor/core/adapter/video-transcript-generator.adapter.interface';
-import { VideoMetadataRepository } from '@tlc/content/video-processor/persistence/repository/video-metadata.repository';
+import { VideoMetadata } from '../../../shared/persistence/entity/video-metadata.entity';
+import { Video } from '../../../shared/persistence/entity/video.entity';
+import { VideoTranscriptGenerationAdapter } from '../adapter/video-transcript-generator.adapter.interface';
+import { VideoMetadataRepository } from '../../persistence/repository/video-metadata.repository';
 import { AppLogger } from '@tlc/shared-module/logger/service/app-logger.service';
 
 @Injectable()

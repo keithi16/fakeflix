@@ -1,12 +1,9 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { VideoMetadata } from '@tlc/content/shared/persistence/entity/video-metadata.entity';
-import { Video } from '@tlc/content/shared/persistence/entity/video.entity';
-import {
-  AgeRecommendationSchema,
-  VideoAgeRecommendationAdapter,
-} from '@tlc/content/video-processor/core/adapter/video-recommendation.adapter.interface';
-import { VideoMetadataRepository } from '@tlc/content/video-processor/persistence/repository/video-metadata.repository';
-import { ContentAgeRecommendationQueueProducer } from '@tlc/content/video-processor/queue/producer/content-age-recommendation.queue-producer';
+import { VideoMetadata } from '../../../shared/persistence/entity/video-metadata.entity';
+import { Video } from '../../../shared/persistence/entity/video.entity';
+import { AgeRecommendationSchema, VideoAgeRecommendationAdapter } from '../adapter/video-recommendation.adapter.interface';
+import { VideoMetadataRepository } from '../../persistence/repository/video-metadata.repository';
+import { ContentAgeRecommendationQueueProducer } from '../../queue/producer/content-age-recommendation.queue-producer';
 import { AppLogger } from '@tlc/shared-module/logger/service/app-logger.service';
 import { runInTransaction } from 'typeorm-transactional';
 

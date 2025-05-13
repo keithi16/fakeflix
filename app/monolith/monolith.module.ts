@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { monolithApiConfigFactory } from '@tlc/app/monolith/config';
+import { monolithApiConfigFactory } from './config';
 import { contentConfigFactory } from '@tlc/content/config';
 import { ContentModule } from '@tlc/content/content.module';
 import { identityConfigFactory } from '@tlc/identity/config';

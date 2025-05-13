@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { VideoProcessingJobProducer } from '@tlc/content/admin/queue/producer/video-processing-job.queue-producer';
-import { Video } from '@tlc/content/shared/persistence/entity/video.entity';
+import { VideoProcessingJobProducer } from '../../queue/producer/video-processing-job.queue-producer';
+import { Video } from '../../../shared/persistence/entity/video.entity';
 
 @Injectable()
 export class VideoProcessorService {

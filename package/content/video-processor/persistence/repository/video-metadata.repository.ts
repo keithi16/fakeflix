@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectDataSource } from '@nestjs/typeorm';
-import { VideoMetadata } from '@tlc/content/shared/persistence/entity/video-metadata.entity';
+import { VideoMetadata } from '../../../shared/persistence/entity/video-metadata.entity';
 import { DefaultTypeOrmRepository } from '@tlc/shared-module/typeorm/repository/default-typeorm.repository';
 import { DataSource } from 'typeorm';
 

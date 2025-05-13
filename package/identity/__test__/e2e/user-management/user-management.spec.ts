@@ -1,13 +1,13 @@
 import { INestApplication } from '@nestjs/common';
 import { TestingModule } from '@nestjs/testing';
-import { Tables } from '@test/infra/enum/tables.enum';
-import { createNestApp } from '@test/infra/test-e2e.setup';
-import { IdentityConfig, identityConfigFactory } from '@tlc/identity/config';
-import { IdentityModule } from '@tlc/identity/identity.module';
+import { Tables } from '@tlc/shared-lib/test/enum/tables.enum';
+import { createNestApp } from '@tlc/shared-lib/test/test-e2e.setup';
 import { ConfigModule } from '@tlc/shared-module/config/config.module';
 import { ConfigService } from '@tlc/shared-module/config/service/config.service';
 import knex, { Knex } from 'knex';
 import request from 'supertest';
+import { IdentityConfig, identityConfigFactory } from '../../../config';
+import { IdentityModule } from '../../../identity.module';
 
 describe('UserResolver (e2e)', () => {
   let app: INestApplication;

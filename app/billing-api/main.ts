@@ -1,7 +1,7 @@
 import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
-import { BillingApiModule } from '@tlc/app/billing-api/billing-api.module';
-import { BillingApiConfig } from '@tlc/app/billing-api/config';
+import { BillingApiModule } from './billing-api.module';
+import { BillingApiConfig } from './config';
 import { ConfigService } from '@tlc/shared-module/config/service/config.service';
 import { LoggerFactory } from '@tlc/shared-module/logger/util/logger.factory';
 

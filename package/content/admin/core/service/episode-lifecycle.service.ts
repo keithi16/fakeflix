@@ -1,6 +1,6 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
-import { EpisodeRepository } from '@tlc/content/admin/persistence/repository/episode.repository';
-import { Episode } from '@tlc/content/shared/persistence/entity/episode.entity';
+import { EpisodeRepository } from '../../persistence/repository/episode.repository';
+import { Episode } from '../../../shared/persistence/entity/episode.entity';
 
 @Injectable()
 export class EpisodeLifecycleService {

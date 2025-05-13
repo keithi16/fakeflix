@@ -1,11 +1,11 @@
 import { Injectable } from '@nestjs/common';
-import { MovieContentModel } from '@tlc/content/admin/core/model/movie-content.model';
-import { VideoProcessorService } from '@tlc/content/admin/core/service/video-processor.service';
-import { ExternalMovieRatingClient } from '@tlc/content/admin/http/client/external-movie-rating/external-movie-rating.client';
-import { ContentRepository } from '@tlc/content/admin/persistence/repository/content.repository';
-import { Movie } from '@tlc/content/shared/persistence/entity/movie.entity';
-import { Thumbnail } from '@tlc/content/shared/persistence/entity/thumbnail.entity';
-import { Video } from '@tlc/content/shared/persistence/entity/video.entity';
+import { MovieContentModel } from '../model/movie-content.model';
+import { VideoProcessorService } from '../service/video-processor.service';
+import { ExternalMovieRatingClient } from '../../http/client/external-movie-rating/external-movie-rating.client';
+import { ContentRepository } from '../../persistence/repository/content.repository';
+import { Movie } from '../../../shared/persistence/entity/movie.entity';
+import { Thumbnail } from '../../../shared/persistence/entity/thumbnail.entity';
+import { Video } from '../../../shared/persistence/entity/video.entity';
 import { AppLogger } from '@tlc/shared-module/logger/service/app-logger.service';
 import { runInTransaction } from 'typeorm-transactional';
 

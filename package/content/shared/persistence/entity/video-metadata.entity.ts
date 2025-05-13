@@ -1,4 +1,4 @@
-import { Video } from '@tlc/content/shared/persistence/entity/video.entity';
+import { Video } from './video.entity';
 import { DefaultEntity } from '@tlc/shared-module/typeorm/entity/default.entity';
 import { Column, Entity, JoinColumn, OneToOne, VersionColumn } from 'typeorm';
 

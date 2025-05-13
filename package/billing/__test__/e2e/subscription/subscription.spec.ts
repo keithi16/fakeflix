@@ -1,18 +1,18 @@
 import { faker } from '@faker-js/faker/.';
 import { HttpStatus, INestApplication } from '@nestjs/common';
 import { TestingModule } from '@nestjs/testing';
-import { Tables } from '@test/infra/enum/tables.enum';
-import { planFactory } from '@test/infra/factory/identity/plan.test-factory';
-import { createNestApp } from '@test/infra/test-e2e.setup';
-import { billingConfigFactory, BillingModule } from '@tlc/billing/billing.module';
-import { BillingConfig } from '@tlc/billing/config';
-import { PlanInterval } from '@tlc/billing/core/enum/plan-interval.enum';
-import { SubscriptionStatus } from '@tlc/billing/core/enum/subscription-status.enum';
+import { Tables } from '@tlc/shared-lib/test/enum/tables.enum';
+import { createNestApp } from '@tlc/shared-lib/test/test-e2e.setup';
 import { ConfigModule } from '@tlc/shared-module/config/config.module';
 import { ConfigService } from '@tlc/shared-module/config/service/config.service';
 import { randomUUID } from 'crypto';
 import knex, { Knex } from 'knex';
 import request from 'supertest';
+import { billingConfigFactory, BillingModule } from '../../../billing.module';
+import { BillingConfig } from '../../../config';
+import { PlanInterval } from '../../../core/enum/plan-interval.enum';
+import { SubscriptionStatus } from '../../../core/enum/subscription-status.enum';
+import { planFactory } from '../../factory/plan.test-factory';
 
 const fakeUserId = faker.string.uuid();
 jest.mock('jsonwebtoken', () => ({

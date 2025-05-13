@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { ExternalMovieRatingClient } from '@tlc/content/admin/http/client/external-movie-rating/external-movie-rating.client';
+import { ExternalMovieRatingClient } from '../../external-movie-rating.client';
 import { ConfigService } from '@tlc/shared-module/config/service/config.service';
 import { HttpClient } from '@tlc/shared-module/http-client/client/http.client';
 

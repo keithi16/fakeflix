@@ -1,4 +1,4 @@
-import { VideoMetadata } from '@tlc/content/shared/persistence/entity/video-metadata.entity';
+import { VideoMetadata } from './video-metadata.entity';
 import { DefaultEntity } from '@tlc/shared-module/typeorm/entity/default.entity';
 import { Column, Entity, JoinColumn, OneToOne } from 'typeorm';
 import { Episode } from './episode.entity';

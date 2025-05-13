@@ -15,6 +15,9 @@
       "cache": true
     }
   },
+  "sync": {
+    "applyChanges": false
+  },
   "workspaceLayout": {
     "libsDir": "package",
     "appsDir": "app"

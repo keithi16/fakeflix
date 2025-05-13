@@ -1,6 +1,6 @@
 import { NestFactory } from '@nestjs/core';
-import { ContentConfig, contentConfigFactory } from '@tlc/content/config';
-import { dataSourceOptionsFactory } from '@tlc/content/shared/persistence/typeorm-datasource.factory';
+import { ContentConfig, contentConfigFactory } from '../../config';
+import { dataSourceOptionsFactory } from './typeorm-datasource.factory';
 import { ConfigModule } from '@tlc/shared-module/config/config.module';
 import { ConfigService } from '@tlc/shared-module/config/service/config.service';
 import { config } from 'dotenv';

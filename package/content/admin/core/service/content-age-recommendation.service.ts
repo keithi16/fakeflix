@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { MovieContentModel } from '@tlc/content/admin/core/model/movie-content.model';
-import { TvShowContentModel } from '@tlc/content/admin/core/model/tv-show-content.model';
+import { MovieContentModel } from '../model/movie-content.model';
+import { TvShowContentModel } from '../model/tv-show-content.model';
 
 @Injectable()
 export class ContentAgeRecommendationService {

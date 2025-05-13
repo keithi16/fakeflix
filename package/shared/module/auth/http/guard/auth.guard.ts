@@ -7,7 +7,7 @@ import {
 } from '@nestjs/common';
 import { GqlExecutionContext } from '@nestjs/graphql';
 import { JwtService } from '@nestjs/jwt';
-import { jwtConstants } from '@tlc/shared-module/auth/auth.module';
+import { jwtConstants } from '../../auth.module';
 import { Request } from 'express';
 import { ClsService } from 'nestjs-cls';
 

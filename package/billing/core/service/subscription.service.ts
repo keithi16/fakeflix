@@ -1,11 +1,11 @@
 import { Injectable } from '@nestjs/common';
-import { SubscriptionStatus } from '@tlc/billing/core/enum/subscription-status.enum';
-import { Subscription } from '@tlc/billing/persistence/entity/subscription.entity';
+import { Subscription } from '../../persistence/entity/subscription.entity';
+import { SubscriptionStatus } from '../enum/subscription-status.enum';
 
-import { PlanRepository } from '@tlc/billing/persistence/repository/plan.repository';
-import { SubscriptionRepository } from '@tlc/billing/persistence/repository/subscription.repository';
 import { NotFoundDomainException } from '@tlc/shared-lib/core/exeption/not-found-domain.exception';
 import { ClsService } from 'nestjs-cls';
+import { PlanRepository } from '../../persistence/repository/plan.repository';
+import { SubscriptionRepository } from '../../persistence/repository/subscription.repository';
 
 @Injectable()
 export class SubscriptionService {

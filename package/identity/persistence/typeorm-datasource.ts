@@ -1,6 +1,6 @@
 import { NestFactory } from '@nestjs/core';
-import { IdentityConfig, identityConfigFactory } from '@tlc/identity/config';
-import { dataSourceOptionsFactory } from '@tlc/identity/persistence/typeorm-datasource.factory';
+import { IdentityConfig, identityConfigFactory } from '../config';
+import { dataSourceOptionsFactory } from './typeorm-datasource.factory';
 import { ConfigModule } from '@tlc/shared-module/config/config.module';
 import { ConfigService } from '@tlc/shared-module/config/service/config.service';
 import { config } from 'dotenv';

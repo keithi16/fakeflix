@@ -1,5 +1,5 @@
-import { ContentType } from '@tlc/content/shared/core/enum/content-type.enum';
-import { TvShow } from '@tlc/content/shared/persistence/entity/tv-show.entity';
+import { ContentType } from '../../../shared/core/enum/content-type.enum';
+import { TvShow } from '../../../shared/persistence/entity/tv-show.entity';
 import { WithOptional } from '@tlc/shared-lib/core/model/default.model';
 import { randomUUID } from 'crypto';
 

@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
-import { IdentityConfig } from '@tlc/identity/config';
-import { UserRepository } from '@tlc/identity/persistence/repository/user.repository';
-import { dataSourceOptionsFactory } from '@tlc/identity/persistence/typeorm-datasource.factory';
+import { IdentityConfig } from '../config';
+import { UserRepository } from './repository/user.repository';
+import { dataSourceOptionsFactory } from './typeorm-datasource.factory';
 import { ConfigModule } from '@tlc/shared-module/config/config.module';
 import { ConfigService } from '@tlc/shared-module/config/service/config.service';
 import { TypeOrmPersistenceModule } from '@tlc/shared-module/typeorm/typeorm-persistence.module';

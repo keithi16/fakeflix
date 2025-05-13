@@ -1,8 +1,8 @@
 import { HttpService } from '@nestjs/axios';
 import { Injectable } from '@nestjs/common';
-import { HttpClientException } from '@tlc/shared-module/http-client/exception/http-client.exception';
 import { AxiosError } from 'axios';
 import { catchError, firstValueFrom } from 'rxjs';
+import { HttpClientException } from '../exception/http-client.exception';
 
 @Injectable()
 export class HttpClient {

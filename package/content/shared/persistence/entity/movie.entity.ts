@@ -1,4 +1,4 @@
-import { Thumbnail } from '@tlc/content/shared/persistence/entity/thumbnail.entity';
+import { Thumbnail } from './thumbnail.entity';
 import { DefaultEntity } from '@tlc/shared-module/typeorm/entity/default.entity';
 import { Column, Entity, JoinColumn, OneToOne } from 'typeorm';
 import { Content } from './content.entity';

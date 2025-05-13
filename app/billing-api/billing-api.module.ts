@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
-import { billingApiFactory } from '@tlc/app/billing-api/config';
-import { billingConfigFactory, BillingModule } from '@tlc/billing/billing.module';
+import { billingConfigFactory, BillingModule } from '@tlc/billing';
 import { ConfigModule } from '@tlc/shared-module/config/config.module';
+import { billingApiFactory } from './config';
 
 @Module({
   imports: [

@@ -1,12 +1,12 @@
-/* eslint-disable no-restricted-imports */
+ 
 import { DynamicModule, Global } from '@nestjs/common';
 import {
   ConfigModule as NestConfigModule,
   ConfigModuleOptions as NestConfigModuleOptions,
 } from '@nestjs/config';
 
-import { ConfigService } from '@tlc/shared-module/config/service/config.service';
-import { sharedConfigFactory } from '@tlc/shared-module/config/util/shared.config';
+import { ConfigService } from './service/config.service';
+import { sharedConfigFactory } from './util/shared.config';
 @Global()
 export class ConfigModule {
   static forRoot(options?: NestConfigModuleOptions): DynamicModule {

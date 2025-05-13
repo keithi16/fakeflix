@@ -1,7 +1,7 @@
 import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
-import { MonolithApiConfig } from '@tlc/app/monolith/config';
-import { MonolithModule } from '@tlc/app/monolith/monolith.module';
+import { MonolithApiConfig } from './config';
+import { MonolithModule } from './monolith.module';
 import { ConfigService } from '@tlc/shared-module/config/service/config.service';
 import { LoggerFactory } from '@tlc/shared-module/logger/util/logger.factory';
 import { initializeTransactionalContext } from 'typeorm-transactional';

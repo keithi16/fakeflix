@@ -1,15 +1,15 @@
 import { HttpStatus, INestApplication } from '@nestjs/common';
 import { TestingModule } from '@nestjs/testing';
-import { CONTENT_TEST_FIXTURES } from '@tlc/content/admin/__test__/e2e/contants';
+import { CONTENT_TEST_FIXTURES } from '../contants';
 
-import { createNestApp } from '@test/infra/test-e2e.setup';
-import { cleanUpContentDatabase } from '@tlc/content/__test__/helper/content-db.test-helper';
-import { ContentAdminModule } from '@tlc/content/admin/content-admin.module';
-import { ContentConfig, contentConfigFactory } from '@tlc/content/config';
+import { createNestApp } from '@tlc/shared-lib/test/test-e2e.setup';
 import { ConfigModule } from '@tlc/shared-module/config/config.module';
 import { ConfigService } from '@tlc/shared-module/config/service/config.service';
 import knex, { Knex } from 'knex';
 import request from 'supertest';
+import { cleanUpContentDatabase } from '../../../../__test__/helper/content-db.test-helper';
+import { ContentConfig, contentConfigFactory } from '../../../../config';
+import { ContentAdminModule } from '../../../content-admin.module';
 
 describe('AdminTvShowController (e2e)', () => {
   let module: TestingModule;

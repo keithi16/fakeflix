@@ -1,5 +1,5 @@
-import { PlanInterval } from '@tlc/billing/core/enum/plan-interval.enum';
-import { Subscription } from '@tlc/billing/persistence/entity/subscription.entity';
+import { PlanInterval } from '../../core/enum/plan-interval.enum';
+import { Subscription } from './subscription.entity';
 import { DefaultEntity } from '@tlc/shared-module/typeorm/entity/default.entity';
 import { Column, Entity, OneToMany } from 'typeorm';
 

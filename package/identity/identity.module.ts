@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
 import { GraphQLModule } from '@nestjs/graphql';
-import { IdentityPersistenceModule } from '@tlc/identity/persistence/identity-persistence.module';
+import { IdentityPersistenceModule } from './persistence/identity-persistence.module';
 import { AuthModule } from '@tlc/shared-module/auth/auth.module';
 import { DomainModuleIntegrationModule } from '@tlc/shared-module/integration/domain-module-integration.module';
 import { BillingSubscriptionHttpClient } from '@tlc/shared-module/integration/http/client/billing-subscription-http.client';

@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { User } from '@tlc/identity/persistence/entity/user.entity';
-import { UserRepository } from '@tlc/identity/persistence/repository/user.repository';
+import { User } from '../../persistence/entity/user.entity';
+import { UserRepository } from '../../persistence/repository/user.repository';
 import { hash } from 'bcrypt';
 
 export interface CreateUserDto {

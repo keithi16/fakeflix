@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
-import { TvShowContentModel } from '@tlc/content/admin/core/model/tv-show-content.model';
-import { ContentRepository } from '@tlc/content/admin/persistence/repository/content.repository';
-import { Thumbnail } from '@tlc/content/shared/persistence/entity/thumbnail.entity';
-import { TvShow } from '@tlc/content/shared/persistence/entity/tv-show.entity';
+import { TvShowContentModel } from '../model/tv-show-content.model';
+import { ContentRepository } from '../../persistence/repository/content.repository';
+import { Thumbnail } from '../../../shared/persistence/entity/thumbnail.entity';
+import { TvShow } from '../../../shared/persistence/entity/tv-show.entity';
 
 @Injectable()
 export class CreateTvShowUseCase {

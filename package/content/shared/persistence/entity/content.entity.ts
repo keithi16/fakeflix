@@ -1,4 +1,4 @@
-import { ContentType } from '@tlc/content/shared/core/enum/content-type.enum';
+import { ContentType } from '../../core/enum/content-type.enum';
 import { DefaultEntity } from '@tlc/shared-module/typeorm/entity/default.entity';
 import { Column, Entity, OneToOne } from 'typeorm';
 import { Movie } from './movie.entity';

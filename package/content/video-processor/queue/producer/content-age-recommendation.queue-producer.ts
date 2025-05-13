@@ -1,7 +1,7 @@
 import { InjectQueue } from '@nestjs/bullmq';
 import { Injectable } from '@nestjs/common';
-import { VideoMetadata } from '@tlc/content/shared/persistence/entity/video-metadata.entity';
-import { QUEUES } from '@tlc/content/shared/queue/queue-constants';
+import { VideoMetadata } from '../../../shared/persistence/entity/video-metadata.entity';
+import { QUEUES } from '../../../shared/queue/queue-constants';
 import { AppLogger } from '@tlc/shared-module/logger/service/app-logger.service';
 import { Queue } from 'bullmq';
 

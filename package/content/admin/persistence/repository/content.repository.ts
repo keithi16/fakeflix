@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { InjectDataSource } from '@nestjs/typeorm';
-import { MovieContentModel } from '@tlc/content/admin/core/model/movie-content.model';
-import { TvShowContentModel } from '@tlc/content/admin/core/model/tv-show-content.model';
-import { ContentType } from '@tlc/content/shared/core/enum/content-type.enum';
-import { Content } from '@tlc/content/shared/persistence/entity/content.entity';
+import { MovieContentModel } from '../../core/model/movie-content.model';
+import { TvShowContentModel } from '../../core/model/tv-show-content.model';
+import { ContentType } from '../../../shared/core/enum/content-type.enum';
+import { Content } from '../../../shared/persistence/entity/content.entity';
 import { NotFoundDomainException } from '@tlc/shared-lib/core/exeption/not-found-domain.exception';
 import { DefaultTypeOrmRepository } from '@tlc/shared-module/typeorm/repository/default-typeorm.repository';
 import { DataSource } from 'typeorm';

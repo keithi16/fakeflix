@@ -1,4 +1,4 @@
-import { ConfigException } from '@tlc/shared-module/config/util/config.exception';
+import { ConfigException } from './config.exception';
 import { z } from 'zod';
 
 export const environmentSchema = z.enum(['test', 'development', 'production']);

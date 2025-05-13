@@ -1,4 +1,4 @@
-import { DefaultEntity } from '@tlc/shared-module/typeorm/entity/default.entity';
+import { DefaultEntity } from '../entity/default.entity';
 import {
   EntityManager,
   EntityTarget,

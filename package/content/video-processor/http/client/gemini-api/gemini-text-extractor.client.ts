@@ -1,12 +1,9 @@
 import { GoogleGenAI, Type } from '@google/genai';
 import { Injectable } from '@nestjs/common';
-import { ContentConfig } from '@tlc/content/config';
-import {
-  AgeRecommendationSchema,
-  VideoAgeRecommendationAdapter,
-} from '@tlc/content/video-processor/core/adapter/video-recommendation.adapter.interface';
-import { VideoSummaryGenerationAdapter } from '@tlc/content/video-processor/core/adapter/video-summary-generator.adapter.interface';
-import { VideoTranscriptGenerationAdapter } from '@tlc/content/video-processor/core/adapter/video-transcript-generator.adapter.interface';
+import { ContentConfig } from '../../../../config';
+import { AgeRecommendationSchema, VideoAgeRecommendationAdapter } from '../../../core/adapter/video-recommendation.adapter.interface';
+import { VideoSummaryGenerationAdapter } from '../../../core/adapter/video-summary-generator.adapter.interface';
+import { VideoTranscriptGenerationAdapter } from '../../../core/adapter/video-transcript-generator.adapter.interface';
 import { ConfigService } from '@tlc/shared-module/config/service/config.service';
 import * as fs from 'node:fs';
 

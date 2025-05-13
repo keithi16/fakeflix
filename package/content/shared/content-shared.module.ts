@@ -1,8 +1,8 @@
 import { BullModule } from '@nestjs/bullmq';
 import { Module } from '@nestjs/common';
-import { ContentConfig } from '@tlc/content/config';
-import { ContentSharedPersistenceModule } from '@tlc/content/shared/persistence/persistence.module';
-import { QUEUES } from '@tlc/content/shared/queue/queue-constants';
+import { ContentConfig } from '../config';
+import { ContentSharedPersistenceModule } from './persistence/persistence.module';
+import { QUEUES } from './queue/queue-constants';
 import { ConfigModule } from '@tlc/shared-module/config/config.module';
 import { ConfigService } from '@tlc/shared-module/config/service/config.service';
 
