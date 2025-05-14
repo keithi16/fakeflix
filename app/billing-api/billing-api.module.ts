@@ -11,5 +11,4 @@ import { billingApiFactory } from './config';
     BillingModule,
   ],
 })
-//test tag
 export class BillingApiModule {}
