@@ -18,7 +18,7 @@
 
   "release": {
     "projectsRelationship": "independent",
-    "projects": ["app/*"],
+    "projects": ["app/*", "package/*"],
     "version": {
       "conventionalCommits": true
     },
