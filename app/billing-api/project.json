@@ -3,7 +3,7 @@
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
   "sourceRoot": "app/billing-api",
   "projectType": "application",
-  "tags": [],
+  "tags": ["app:billing-api"],
   "targets": {
     "start:dev": {
       "executor": "nx:run-commands",

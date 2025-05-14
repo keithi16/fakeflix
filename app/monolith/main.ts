@@ -6,6 +6,7 @@ import { initializeTransactionalContext } from 'typeorm-transactional';
 import { MonolithApiConfig } from './config';
 import { MonolithModule } from './monolith.module';
 
+//testing release
 async function bootstrap() {
   const logger = LoggerFactory('monolith-api');
   initializeTransactionalContext();
