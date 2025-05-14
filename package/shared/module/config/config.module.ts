@@ -1,4 +1,3 @@
- 
 import { DynamicModule, Global } from '@nestjs/common';
 import {
   ConfigModule as NestConfigModule,
@@ -8,6 +7,7 @@ import {
 import { ConfigService } from './service/config.service';
 import { sharedConfigFactory } from './util/shared.config';
 @Global()
+//testing config
 export class ConfigModule {
   static forRoot(options?: NestConfigModuleOptions): DynamicModule {
     return {
