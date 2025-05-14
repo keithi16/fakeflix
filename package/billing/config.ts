@@ -1,6 +1,7 @@
 import { ConfigException, environmentSchema } from '@tlc/shared-module/config';
 import { z } from 'zod';
 
+//testing
 const databaseSchema = z.object({
   host: z.string(),
   database: z.string(),
