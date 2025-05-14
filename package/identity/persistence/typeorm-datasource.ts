@@ -1,10 +1,9 @@
 import { NestFactory } from '@nestjs/core';
-import { IdentityConfig, identityConfigFactory } from '../config';
-import { dataSourceOptionsFactory } from './typeorm-datasource.factory';
-import { ConfigModule } from '@tlc/shared-module/config/config.module';
-import { ConfigService } from '@tlc/shared-module/config/service/config.service';
+import { ConfigModule, ConfigService } from '@tlc/shared-module/config';
 import { config } from 'dotenv';
 import { DataSource } from 'typeorm';
+import { IdentityConfig, identityConfigFactory } from '../config';
+import { dataSourceOptionsFactory } from './typeorm-datasource.factory';
 config();
 
 const getDataSource = async () => {

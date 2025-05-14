@@ -1,13 +1,13 @@
 import { Injectable } from '@nestjs/common';
-import { MovieContentModel } from '../model/movie-content.model';
-import { VideoProcessorService } from '../service/video-processor.service';
-import { ExternalMovieRatingClient } from '../../http/client/external-movie-rating/external-movie-rating.client';
-import { ContentRepository } from '../../persistence/repository/content.repository';
+import { AppLogger } from '@tlc/shared-module/logger';
+import { runInTransaction } from 'typeorm-transactional';
 import { Movie } from '../../../shared/persistence/entity/movie.entity';
 import { Thumbnail } from '../../../shared/persistence/entity/thumbnail.entity';
 import { Video } from '../../../shared/persistence/entity/video.entity';
-import { AppLogger } from '@tlc/shared-module/logger/service/app-logger.service';
-import { runInTransaction } from 'typeorm-transactional';
+import { ExternalMovieRatingClient } from '../../http/client/external-movie-rating/external-movie-rating.client';
+import { ContentRepository } from '../../persistence/repository/content.repository';
+import { MovieContentModel } from '../model/movie-content.model';
+import { VideoProcessorService } from '../service/video-processor.service';
 
 export interface ExternalMovieRating {
   rating: number;

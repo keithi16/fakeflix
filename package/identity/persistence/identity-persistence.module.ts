@@ -1,10 +1,9 @@
 import { Module } from '@nestjs/common';
+import { ConfigModule, ConfigService } from '@tlc/shared-module/config';
+import { TypeOrmPersistenceModule } from '@tlc/shared-module/typeorm';
 import { IdentityConfig } from '../config';
 import { UserRepository } from './repository/user.repository';
 import { dataSourceOptionsFactory } from './typeorm-datasource.factory';
-import { ConfigModule } from '@tlc/shared-module/config/config.module';
-import { ConfigService } from '@tlc/shared-module/config/service/config.service';
-import { TypeOrmPersistenceModule } from '@tlc/shared-module/typeorm/typeorm-persistence.module';
 
 @Module({
   imports: [

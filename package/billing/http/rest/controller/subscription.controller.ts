@@ -7,13 +7,13 @@ import {
   Post,
   UseGuards,
 } from '@nestjs/common';
+import { NotFoundDomainException } from '@tlc/shared-lib/common';
+import { AuthGuard } from '@tlc/shared-module/auth';
+import { plainToInstance } from 'class-transformer';
 import { SubscriptionService } from '../../../core/service/subscription.service';
 import { CreateSubscriptionRequestDto } from '../dto/request/create-subscription.dto';
 import { SubscriptionResponseDto } from '../dto/response/subscription-response.dto';
 import { UserSubscriptionActiveResponseDto } from '../dto/response/user-subscription-active.dto';
-import { NotFoundDomainException } from '@tlc/shared-lib/core/exeption/not-found-domain.exception';
-import { AuthGuard } from '@tlc/shared-module/auth/http/guard/auth.guard';
-import { plainToInstance } from 'class-transformer';
 
 @Controller('subscription')
 export class SubscriptionController {

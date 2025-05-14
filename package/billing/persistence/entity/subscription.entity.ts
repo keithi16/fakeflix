@@ -1,6 +1,6 @@
-import { SubscriptionStatus } from '../../core/enum/subscription-status.enum';
-import { DefaultEntity } from '@tlc/shared-module/typeorm/entity/default.entity';
+import { DefaultEntity } from '@tlc/shared-module/typeorm';
 import { Column, Entity, JoinColumn, ManyToOne } from 'typeorm';
+import { SubscriptionStatus } from '../../core/enum/subscription-status.enum';
 import { Plan } from './plan.entity';
 
 @Entity({ name: 'Subscription' })

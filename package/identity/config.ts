@@ -1,5 +1,4 @@
-import { ConfigException } from '@tlc/shared-module/config/util/config.exception';
-import { environmentSchema } from '@tlc/shared-module/config/util/shared.config';
+import { ConfigException, environmentSchema } from '@tlc/shared-module/config';
 import { z } from 'zod';
 
 const databaseSchema = z.object({

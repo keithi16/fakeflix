@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { InjectDataSource } from '@nestjs/typeorm';
-import { User } from '../entity/user.entity';
-import { DefaultTypeOrmRepository } from '@tlc/shared-module/typeorm/repository/default-typeorm.repository';
+import { DefaultTypeOrmRepository } from '@tlc/shared-module/typeorm';
 import { DataSource } from 'typeorm';
+import { User } from '../entity/user.entity';
 
 @Injectable()
 export class UserRepository extends DefaultTypeOrmRepository<User> {

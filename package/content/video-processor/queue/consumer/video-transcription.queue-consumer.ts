@@ -1,10 +1,10 @@
 import { Processor, WorkerHost } from '@nestjs/bullmq';
+import { AppLogger } from '@tlc/shared-module/logger';
+import { Job } from 'bullmq';
 import { VideoNotFoundException } from '../../../shared/core/exception/video-not-found.exception';
 import { QUEUES } from '../../../shared/queue/queue-constants';
 import { TranscribeVideoUseCase } from '../../core/use-case/transcribe-video.use-case';
 import { VideoRepository } from '../../persistence/repository/video.repository';
-import { AppLogger } from '@tlc/shared-module/logger/service/app-logger.service';
-import { Job } from 'bullmq';
 
 @Processor(QUEUES.VIDEO_TRANSCRIPT)
 export class VideoTranscriptionConsumer extends WorkerHost {

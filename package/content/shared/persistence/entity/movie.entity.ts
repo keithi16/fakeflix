@@ -1,7 +1,7 @@
-import { Thumbnail } from './thumbnail.entity';
-import { DefaultEntity } from '@tlc/shared-module/typeorm/entity/default.entity';
+import { DefaultEntity } from '@tlc/shared-module/typeorm';
 import { Column, Entity, JoinColumn, OneToOne } from 'typeorm';
 import { Content } from './content.entity';
+import { Thumbnail } from './thumbnail.entity';
 import { Video } from './video.entity';
 
 @Entity({ name: 'Movie' })

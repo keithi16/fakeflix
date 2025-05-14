@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { AuthModule } from '@tlc/shared-module/auth/auth.module';
+import { AuthModule } from '@tlc/shared-module/auth';
 import { ClsModule } from 'nestjs-cls';
 import { SubscriptionService } from './core/service/subscription.service';
 import { SubscriptionController } from './http/rest/controller/subscription.controller';

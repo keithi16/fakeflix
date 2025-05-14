@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { InjectDataSource } from '@nestjs/typeorm';
-import { Subscription } from '../entity/subscription.entity';
-import { DefaultTypeOrmRepository } from '@tlc/shared-module/typeorm/repository/default-typeorm.repository';
+import { DefaultTypeOrmRepository } from '@tlc/shared-module/typeorm';
 import { DataSource } from 'typeorm';
+import { Subscription } from '../entity/subscription.entity';
 
 @Injectable()
 export class SubscriptionRepository extends DefaultTypeOrmRepository<Subscription> {

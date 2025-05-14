@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
-import { ContentAgeRecommendationService } from '../service/content-age-recommendation.service';
+import { NotFoundDomainException } from '@tlc/shared-lib/common';
+import { AppLogger } from '@tlc/shared-module/logger';
 import { ContentRepository } from '../../persistence/repository/content.repository';
-import { NotFoundDomainException } from '@tlc/shared-lib/core/exeption/not-found-domain.exception';
-import { AppLogger } from '@tlc/shared-module/logger/service/app-logger.service';
+import { ContentAgeRecommendationService } from '../service/content-age-recommendation.service';
 
 @Injectable()
 export class SetAgeRecommendationForContentUseCase {

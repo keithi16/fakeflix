@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
-import { ConfigService } from '@tlc/shared-module/config/service/config.service';
-import { TypeOrmPersistenceModule } from '@tlc/shared-module/typeorm/typeorm-persistence.module';
+import { ConfigService } from '@tlc/shared-module/config';
+import { TypeOrmPersistenceModule } from '@tlc/shared-module/typeorm';
 import { BillingConfig } from '../config';
 import { PlanRepository } from './repository/plan.repository';
 import { SubscriptionRepository } from './repository/subscription.repository';

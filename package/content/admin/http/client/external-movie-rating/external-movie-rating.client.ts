@@ -1,8 +1,7 @@
 import { Injectable } from '@nestjs/common';
+import { ConfigService } from '@tlc/shared-module/config';
+import { HttpClient, HttpClientInternalException } from '@tlc/shared-module/http-client';
 import { ContentConfig } from '../../../../config';
-import { ConfigService } from '@tlc/shared-module/config/service/config.service';
-import { HttpClient } from '@tlc/shared-module/http-client//client/http.client';
-import { HttpClientInternalException } from '@tlc/shared-module/http-client/exception/http-client.exception';
 
 interface ApiResponse<T extends Record<string, any>> {
   results: Array<T>;

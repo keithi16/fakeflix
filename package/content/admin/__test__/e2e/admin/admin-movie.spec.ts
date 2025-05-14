@@ -1,9 +1,8 @@
 import { HttpStatus, INestApplication } from '@nestjs/common';
 import { TestingModule } from '@nestjs/testing';
 
-import { createNestApp } from '@tlc/shared-lib/test/test-e2e.setup';
-import { ConfigModule } from '@tlc/shared-module/config/config.module';
-import { ConfigService } from '@tlc/shared-module/config/service/config.service';
+import { createNestApp } from '@tlc/shared-lib/test';
+import { ConfigModule, ConfigService } from '@tlc/shared-module/config';
 import { knex, type Knex } from 'knex';
 import nock, { cleanAll } from 'nock';
 import request from 'supertest';

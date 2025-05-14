@@ -1,15 +1,15 @@
 import { Module } from '@nestjs/common';
 import { EventEmitterModule } from '@nestjs/event-emitter';
-import { EpisodeRepository } from '../../admin/persistence/repository/episode.repository';
-import { ContentConfig } from '../../config';
-import { dataSourceOptionsFactory } from './typeorm-datasource.factory';
-import { VideoMetadataRepository } from '../../video-processor/persistence/repository/video-metadata.repository';
-import { VideoRepository } from '../../video-processor/persistence/repository/video.repository';
-import { ConfigService } from '@tlc/shared-module/config/service/config.service';
-import { TypeOrmPersistenceModule } from '@tlc/shared-module/typeorm/typeorm-persistence.module';
+import { ConfigService } from '@tlc/shared-module/config';
+import { TypeOrmPersistenceModule } from '@tlc/shared-module/typeorm';
 import { DataSource } from 'typeorm';
 import { addTransactionalDataSource } from 'typeorm-transactional';
 import { ContentRepository } from '../../admin/persistence/repository/content.repository';
+import { EpisodeRepository } from '../../admin/persistence/repository/episode.repository';
+import { ContentConfig } from '../../config';
+import { VideoMetadataRepository } from '../../video-processor/persistence/repository/video-metadata.repository';
+import { VideoRepository } from '../../video-processor/persistence/repository/video.repository';
+import { dataSourceOptionsFactory } from './typeorm-datasource.factory';
 
 @Module({
   imports: [

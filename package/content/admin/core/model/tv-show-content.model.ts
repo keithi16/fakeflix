@@ -1,7 +1,7 @@
+import { WithOptional } from '@tlc/shared-lib/common';
+import { randomUUID } from 'crypto';
 import { ContentType } from '../../../shared/core/enum/content-type.enum';
 import { TvShow } from '../../../shared/persistence/entity/tv-show.entity';
-import { WithOptional } from '@tlc/shared-lib/core/model/default.model';
-import { randomUUID } from 'crypto';
 
 export class TvShowContentModel {
   id: string;

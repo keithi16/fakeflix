@@ -1,9 +1,9 @@
 import { InjectQueue } from '@nestjs/bullmq';
 import { Injectable } from '@nestjs/common';
+import { AppLogger } from '@tlc/shared-module/logger';
+import { Queue } from 'bullmq';
 import { VideoMetadata } from '../../../shared/persistence/entity/video-metadata.entity';
 import { QUEUES } from '../../../shared/queue/queue-constants';
-import { AppLogger } from '@tlc/shared-module/logger/service/app-logger.service';
-import { Queue } from 'bullmq';
 
 @Injectable()
 export class ContentAgeRecommendationQueueProducer {

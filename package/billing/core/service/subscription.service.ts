@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { Subscription } from '../../persistence/entity/subscription.entity';
 import { SubscriptionStatus } from '../enum/subscription-status.enum';
 
-import { NotFoundDomainException } from '@tlc/shared-lib/core/exeption/not-found-domain.exception';
+import { NotFoundDomainException } from '@tlc/shared-lib/common';
 import { ClsService } from 'nestjs-cls';
 import { PlanRepository } from '../../persistence/repository/plan.repository';
 import { SubscriptionRepository } from '../../persistence/repository/subscription.repository';

@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { UserManagementService } from '../../user-management.service';
+import { ConfigModule } from '@tlc/shared-module/config';
 import { UserRepository } from '../../../../persistence/repository/user.repository';
-import { ConfigModule } from '@tlc/shared-module/config/config.module';
+import { UserManagementService } from '../../user-management.service';
 
 describe('UserManagementService', () => {
   let service: UserManagementService;

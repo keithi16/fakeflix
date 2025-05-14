@@ -1,6 +1,6 @@
-import { Video } from './video.entity';
-import { DefaultEntity } from '@tlc/shared-module/typeorm/entity/default.entity';
+import { DefaultEntity } from '@tlc/shared-module/typeorm';
 import { Column, Entity, JoinColumn, OneToOne, VersionColumn } from 'typeorm';
+import { Video } from './video.entity';
 
 @Entity({ name: 'VideoMetadata' })
 export class VideoMetadata extends DefaultEntity<VideoMetadata> {

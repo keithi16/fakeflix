@@ -1,8 +1,8 @@
 import { OnWorkerEvent, Processor, WorkerHost } from '@nestjs/bullmq';
-import { SetAgeRecommendationForContentUseCase } from '../../core/use-case/set-age-recommendation-for-content.user-case';
-import { QUEUES } from '../../../shared/queue/queue-constants';
-import { AppLogger } from '@tlc/shared-module/logger/service/app-logger.service';
+import { AppLogger } from '@tlc/shared-module/logger';
 import { Job } from 'bullmq';
+import { QUEUES } from '../../../shared/queue/queue-constants';
+import { SetAgeRecommendationForContentUseCase } from '../../core/use-case/set-age-recommendation-for-content.user-case';
 
 @Processor(QUEUES.CONTENT_AGE_RECOMMENDATION)
 export class ContentAgeRecommendationConsumer extends WorkerHost {

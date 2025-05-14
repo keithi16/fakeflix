@@ -1,7 +1,7 @@
-import { IdentityConfig } from '../config';
-import { ConfigService } from '@tlc/shared-module/config/service/config.service';
+import { ConfigService } from '@tlc/shared-module/config';
 import { join } from 'path';
 import { PostgresConnectionOptions } from 'typeorm/driver/postgres/PostgresConnectionOptions';
+import { IdentityConfig } from '../config';
 
 export const dataSourceOptionsFactory = (
   configService: ConfigService<IdentityConfig>

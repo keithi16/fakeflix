@@ -1,6 +1,6 @@
-import { ContentType } from '../../core/enum/content-type.enum';
-import { DefaultEntity } from '@tlc/shared-module/typeorm/entity/default.entity';
+import { DefaultEntity } from '@tlc/shared-module/typeorm';
 import { Column, Entity, OneToOne } from 'typeorm';
+import { ContentType } from '../../core/enum/content-type.enum';
 import { Movie } from './movie.entity';
 import { TvShow } from './tv-show.entity';
 

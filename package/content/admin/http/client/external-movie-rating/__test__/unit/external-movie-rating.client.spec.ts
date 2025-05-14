@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
+import { ConfigService } from '@tlc/shared-module/config';
+import { HttpClient } from '@tlc/shared-module/http-client';
 import { ExternalMovieRatingClient } from '../../external-movie-rating.client';
-import { ConfigService } from '@tlc/shared-module/config/service/config.service';
-import { HttpClient } from '@tlc/shared-module/http-client/client/http.client';
 
 describe('ExternalMovieRatingClient', () => {
   let service: ExternalMovieRatingClient;

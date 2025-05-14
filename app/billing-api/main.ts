@@ -1,9 +1,9 @@
 import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
+import { ConfigService } from '@tlc/shared-module/config';
+import { LoggerFactory } from '@tlc/shared-module/logger';
 import { BillingApiModule } from './billing-api.module';
 import { BillingApiConfig } from './config';
-import { ConfigService } from '@tlc/shared-module/config/service/config.service';
-import { LoggerFactory } from '@tlc/shared-module/logger/util/logger.factory';
 
 async function bootstrap() {
   const logger = LoggerFactory('billing-api');

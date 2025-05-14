@@ -1,8 +1,8 @@
-import { Thumbnail } from './thumbnail.entity';
-import { DefaultEntity } from '@tlc/shared-module/typeorm/entity/default.entity';
+import { DefaultEntity } from '@tlc/shared-module/typeorm';
 import { Column, Entity, JoinColumn, OneToMany, OneToOne } from 'typeorm';
 import { Content } from './content.entity';
 import { Episode } from './episode.entity';
+import { Thumbnail } from './thumbnail.entity';
 
 @Entity({ name: 'TvShow' })
 export class TvShow extends DefaultEntity<TvShow> {

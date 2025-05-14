@@ -1,4 +1,4 @@
-import { ConfigException } from '@tlc/shared-module/config/util/config.exception';
+import { ConfigException } from '@tlc/shared-module/config';
 import { z } from 'zod';
 
 export const configSchema = z.object({

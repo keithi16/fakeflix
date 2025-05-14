@@ -1,10 +1,10 @@
 import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
+import { ConfigService } from '@tlc/shared-module/config';
+import { LoggerFactory } from '@tlc/shared-module/logger';
+import { initializeTransactionalContext } from 'typeorm-transactional';
 import { MonolithApiConfig } from './config';
 import { MonolithModule } from './monolith.module';
-import { ConfigService } from '@tlc/shared-module/config/service/config.service';
-import { LoggerFactory } from '@tlc/shared-module/logger/util/logger.factory';
-import { initializeTransactionalContext } from 'typeorm-transactional';
 
 async function bootstrap() {
   const logger = LoggerFactory('monolith-api');

@@ -1,4 +1,7 @@
 import { Module } from '@nestjs/common';
+import { HttpClientModule } from '@tlc/shared-module/http-client';
+import { LoggerModule } from '@tlc/shared-module/logger';
+import { ContentSharedModule } from '../shared/content-shared.module';
 import { ContentAgeRecommendationService } from './core/service/content-age-recommendation.service';
 import { ContentDistributionService } from './core/service/content-distribution.service';
 import { EpisodeLifecycleService } from './core/service/episode-lifecycle.service';
@@ -11,9 +14,6 @@ import { ExternalMovieRatingClient } from './http/client/external-movie-rating/e
 import { AdminMovieController } from './http/rest/controller/admin-movie.controller';
 import { AdminTvShowController } from './http/rest/controller/admin-tv-show.controller';
 import { VideoProcessingJobProducer } from './queue/producer/video-processing-job.queue-producer';
-import { ContentSharedModule } from '../shared/content-shared.module';
-import { HttpClientModule } from '@tlc/shared-module/http-client/http-client.module';
-import { LoggerModule } from '@tlc/shared-module/logger/logger.module';
 
 @Module({
   imports: [ContentSharedModule, LoggerModule, HttpClientModule],

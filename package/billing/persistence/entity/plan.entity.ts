@@ -1,7 +1,7 @@
+import { DefaultEntity } from '@tlc/shared-module/typeorm';
+import { Column, Entity, OneToMany } from 'typeorm';
 import { PlanInterval } from '../../core/enum/plan-interval.enum';
 import { Subscription } from './subscription.entity';
-import { DefaultEntity } from '@tlc/shared-module/typeorm/entity/default.entity';
-import { Column, Entity, OneToMany } from 'typeorm';
 
 export class ColumnNumericTransformer {
   to(data: number): number {

@@ -1,11 +1,14 @@
 import { GoogleGenAI, Type } from '@google/genai';
 import { Injectable } from '@nestjs/common';
+import { ConfigService } from '@tlc/shared-module/config';
+import * as fs from 'node:fs';
 import { ContentConfig } from '../../../../config';
-import { AgeRecommendationSchema, VideoAgeRecommendationAdapter } from '../../../core/adapter/video-recommendation.adapter.interface';
+import {
+  AgeRecommendationSchema,
+  VideoAgeRecommendationAdapter,
+} from '../../../core/adapter/video-recommendation.adapter.interface';
 import { VideoSummaryGenerationAdapter } from '../../../core/adapter/video-summary-generator.adapter.interface';
 import { VideoTranscriptGenerationAdapter } from '../../../core/adapter/video-transcript-generator.adapter.interface';
-import { ConfigService } from '@tlc/shared-module/config/service/config.service';
-import * as fs from 'node:fs';
 
 const defaultResponseSchema = {
   type: Type.OBJECT,

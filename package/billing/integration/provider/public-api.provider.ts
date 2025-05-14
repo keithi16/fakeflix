@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
+import { BillingSubscriptionStatusApi } from '@tlc/shared-module/integration';
 import { SubscriptionService } from '../../core/service/subscription.service';
-import { BillingSubscriptionStatusApi } from '@tlc/shared-module/integration/interface/billing-integration.interface';
 
 @Injectable()
 export class BillingPublicApiProvider implements BillingSubscriptionStatusApi {

@@ -1,12 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { InjectDataSource } from '@nestjs/typeorm';
-import { MovieContentModel } from '../../core/model/movie-content.model';
-import { TvShowContentModel } from '../../core/model/tv-show-content.model';
+import { NotFoundDomainException } from '@tlc/shared-lib/common';
+import { DefaultTypeOrmRepository } from '@tlc/shared-module/typeorm';
+import { DataSource } from 'typeorm';
 import { ContentType } from '../../../shared/core/enum/content-type.enum';
 import { Content } from '../../../shared/persistence/entity/content.entity';
-import { NotFoundDomainException } from '@tlc/shared-lib/core/exeption/not-found-domain.exception';
-import { DefaultTypeOrmRepository } from '@tlc/shared-module/typeorm/repository/default-typeorm.repository';
-import { DataSource } from 'typeorm';
+import { MovieContentModel } from '../../core/model/movie-content.model';
+import { TvShowContentModel } from '../../core/model/tv-show-content.model';
 
 @Injectable()
 export class ContentRepository extends DefaultTypeOrmRepository<Content> {

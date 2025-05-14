@@ -1,11 +1,14 @@
 import { Inject, Injectable } from '@nestjs/common';
+import { AppLogger } from '@tlc/shared-module/logger';
+import { runInTransaction } from 'typeorm-transactional';
 import { VideoMetadata } from '../../../shared/persistence/entity/video-metadata.entity';
 import { Video } from '../../../shared/persistence/entity/video.entity';
-import { AgeRecommendationSchema, VideoAgeRecommendationAdapter } from '../adapter/video-recommendation.adapter.interface';
 import { VideoMetadataRepository } from '../../persistence/repository/video-metadata.repository';
 import { ContentAgeRecommendationQueueProducer } from '../../queue/producer/content-age-recommendation.queue-producer';
-import { AppLogger } from '@tlc/shared-module/logger/service/app-logger.service';
-import { runInTransaction } from 'typeorm-transactional';
+import {
+  AgeRecommendationSchema,
+  VideoAgeRecommendationAdapter,
+} from '../adapter/video-recommendation.adapter.interface';
 
 @Injectable()
 export class SetAgeRecommendationUseCase {

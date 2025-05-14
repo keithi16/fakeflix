@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { InjectDataSource } from '@nestjs/typeorm';
-import { Video } from '../../../shared/persistence/entity/video.entity';
-import { DefaultTypeOrmRepository } from '@tlc/shared-module/typeorm/repository/default-typeorm.repository';
+import { DefaultTypeOrmRepository } from '@tlc/shared-module/typeorm';
 import { DataSource } from 'typeorm';
+import { Video } from '../../../shared/persistence/entity/video.entity';
 
 @Injectable()
 export class VideoRepository extends DefaultTypeOrmRepository<Video> {

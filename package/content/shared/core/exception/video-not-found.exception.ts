@@ -1,3 +1,3 @@
-import { DomainException } from '@tlc/shared-lib/core/exeption/domain.exception';
+import { DomainException } from '@tlc/shared-lib/common';
 
 export class VideoNotFoundException extends DomainException {}

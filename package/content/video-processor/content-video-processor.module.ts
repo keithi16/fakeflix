@@ -1,4 +1,6 @@
 import { Module } from '@nestjs/common';
+import { HttpClientModule } from '@tlc/shared-module/http-client';
+import { LoggerModule } from '@tlc/shared-module/logger';
 import { ContentSharedModule } from '../shared/content-shared.module';
 import { ContentSharedPersistenceModule } from '../shared/persistence/persistence.module';
 import { VideoAgeRecommendationAdapter } from './core/adapter/video-recommendation.adapter.interface';
@@ -12,8 +14,6 @@ import { VideoAgeRecommendationConsumer } from './queue/consumer/video-age-recom
 import { VideoSummaryConsumer } from './queue/consumer/video-summary.queue-consumer';
 import { VideoTranscriptionConsumer } from './queue/consumer/video-transcription.queue-consumer';
 import { ContentAgeRecommendationQueueProducer } from './queue/producer/content-age-recommendation.queue-producer';
-import { HttpClientModule } from '@tlc/shared-module/http-client/http-client.module';
-import { LoggerModule } from '@tlc/shared-module/logger/logger.module';
 
 @Module({
   imports: [
