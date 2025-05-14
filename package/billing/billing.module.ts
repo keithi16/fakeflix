@@ -18,6 +18,7 @@ import { BillingPersistenceModule } from './persistence/billing-persistence.modu
   controllers: [SubscriptionController],
   exports: [BillingPublicApiProvider],
 })
+//testing impacting billing
 export class BillingModule {}
 
 export { factory as billingConfigFactory } from './config';
