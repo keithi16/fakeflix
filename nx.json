@@ -15,10 +15,9 @@
       "cache": true
     }
   },
-
   "release": {
     "projectsRelationship": "independent",
-    "projects": ["app/*", "package/*"],
+    "projects": ["app/**", "package/**"],
     "version": {
       "conventionalCommits": true
     },
@@ -45,7 +44,10 @@
       }
     },
     "changelog": {
-      "projectChangelogs": true
+      "projectChangelogs": {
+        "file": "CHANGELOG.md",
+        "renderer": "test-renderer"
+      }
     }
   },
   "sync": {
