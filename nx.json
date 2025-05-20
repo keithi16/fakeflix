@@ -45,8 +45,8 @@
     },
     "changelog": {
       "projectChangelogs": {
-        "file": "CHANGELOG.md",
-        "renderer": "test-renderer"
+        "file": "{projectRoot}/CHANGELOG.md",
+        "renderer": "changelog-renderer"
       }
     }
   },
