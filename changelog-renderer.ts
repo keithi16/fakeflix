@@ -26,6 +26,10 @@ export default class MyChangelogRenderer extends DefaultChangelogRenderer {
 
     const affectedProjects = new Set<string>();
     for (const change of changes) {
+      if (change.scope === 'release') {
+        continue;
+      }
+
       if (change.affectedProjects === '*') {
         relevantProjects.forEach((project) => affectedProjects.add(project));
         continue;
@@ -40,8 +44,9 @@ export default class MyChangelogRenderer extends DefaultChangelogRenderer {
     console.log('Affected projects:', Array.from(affectedProjects));
 
     const filteredChanges = changes.filter((change) => {
-      if (change.affectedProjects === '*') return true;
+      if (change.scope === 'release') return false;
 
+      if (change.affectedProjects === '*') return true;
       return change.affectedProjects.some((project) =>
         relevantProjects.includes(project)
       );
