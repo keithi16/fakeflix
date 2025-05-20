@@ -1,3 +1,13 @@
+## 2.1.0 (2025-05-20)
+
+### Chores
+
+- testing something in billing ([b410161](https://github.com/tech-leads-club/fakeflix/commit/b410161))
+
+### ❤️ Thank You
+
+- Waldemar Neto @waldemarnt
+
 ## 1.1.0 (2025-05-20)
 
 ### Features
