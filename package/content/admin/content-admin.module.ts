@@ -14,7 +14,7 @@ import { ExternalMovieRatingClient } from './http/client/external-movie-rating/e
 import { AdminMovieController } from './http/rest/controller/admin-movie.controller';
 import { AdminTvShowController } from './http/rest/controller/admin-tv-show.controller';
 import { VideoProcessingJobProducer } from './queue/producer/video-processing-job.queue-producer';
-
+//another test in content
 @Module({
   imports: [ContentSharedModule, LoggerModule, HttpClientModule],
   providers: [
