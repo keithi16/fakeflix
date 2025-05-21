@@ -1,6 +1,6 @@
 {
   "name": "fakeflix-monorepo",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "",
   "author": "",
   "private": true,
@@ -19,7 +19,8 @@
     "test:unit:all": "nx run-many --target=test:unit --all",
     "test:unit:affected": "nx affected --target=test:unit",
     "test:e2e:all": "nx run-many --target=test:e2e --all --parallel=3",
-    "test:e2e:affected": "nx affected --target=test:e2e --parallel=false"
+    "test:e2e:affected": "nx affected --target=test:e2e --parallel=false",
+    "release": "standard-version"
   },
   "engines": {
     "npm": "please-use-npm",
@@ -113,6 +114,7 @@
     "prettier": "^2.8.8",
     "prettier-plugin-organize-imports": "^3.2.3",
     "source-map-support": "^0.5.21",
+    "standard-version": "^9.5.0",
     "supertest": "^6.3.3",
     "ts-jest": "^29.1.0",
     "ts-loader": "^9.4.3",
