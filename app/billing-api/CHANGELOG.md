@@ -1,3 +1,7 @@
+## 2.15.0 (2025-05-21)
+
+This was a version bump only for billing-api to align it with other projects, there were no code changes.
+
 ## 2.14.0 (2025-05-20)
 
 ### Features
