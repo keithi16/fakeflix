@@ -1,3 +1,7 @@
+## 3.60.0 (2025-05-21)
+
+This was a version bump only for billing-api to align it with other projects, there were no code changes.
+
 ## 3.59.0 (2025-05-21)
 
 This was a version bump only for billing-api to align it with other projects, there were no code changes.
