@@ -20,10 +20,12 @@ export default class CustomChangelogRenderer extends DefaultChangelogRenderer {
     );
     console.log('NX Graph temp file created:', output);
     const graph = fs.readFileSync(graphCacheFileName, 'utf-8');
+    const packageJson = fs.readFileSync('package.json', 'utf-8');
+    const packageJsonParsed = JSON.parse(packageJson);
     const parsedGraph = JSON.parse(graph);
-    console.log('Related projects:', Object.keys(parsedGraph.graph.dependencies));
     const relevantProjects = Object.keys(parsedGraph.graph.dependencies);
-    relevantProjects.push('fakeflix-monorepo');
+    relevantProjects.push(packageJsonParsed.name);
+    console.log('Related projects:', relevantProjects);
 
     const affectedProjects = new Set<string>();
     for (const change of changes) {
