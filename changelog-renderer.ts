@@ -3,7 +3,7 @@ import * as fs from 'fs';
 import DefaultChangelogRenderer from 'nx/release/changelog-renderer';
 import { ChangelogChange } from 'nx/src/command-line/release/changelog';
 
-export default class MyChangelogRenderer extends DefaultChangelogRenderer {
+export default class CustomChangelogRenderer extends DefaultChangelogRenderer {
   protected filterChanges(
     changes: ChangelogChange[],
     project: string | null
