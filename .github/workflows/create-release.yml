@@ -23,6 +23,8 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Fetch all git history and tags
+        run: git fetch --prune --unshallow --tags
       - name: Set up Node
         uses: actions/setup-node@v4
         with:
