@@ -23,6 +23,7 @@ export default class CustomChangelogRenderer extends DefaultChangelogRenderer {
     const parsedGraph = JSON.parse(graph);
     console.log('Related projects:', Object.keys(parsedGraph.graph.dependencies));
     const relevantProjects = Object.keys(parsedGraph.graph.dependencies);
+    relevantProjects.push('fakeflix-monorepo');
 
     const affectedProjects = new Set<string>();
     for (const change of changes) {
