@@ -1,3 +1,13 @@
+## 2.18.0 (2025-05-21)
+
+### Chores
+
+- add harded coded project ([3fc6ed2](https://github.com/tech-leads-club/fakeflix/commit/3fc6ed2))
+
+### ❤️ Thank You
+
+- Waldemar Neto @waldemarnt
+
 ## 2.17.0 (2025-05-21)
 
 ### Features
