@@ -1,12 +1,8 @@
-name: Release Nx Changelog
+name: Manual App Release
 
 on:
   workflow_dispatch:
     inputs:
-      version:
-        description: 'Version number'
-        required: true
-        type: string
       app:
         description: 'Select the app to release'
         required: true
@@ -15,17 +11,23 @@ on:
           - billing-api
           - monolith
           - another-app
+      version:
+        description: 'Semantic version (e.g., 0.3.0)'
+        required: true
+        type: string
 
 jobs:
-  changelog:
+  release:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Fetch all git history and tags
-        run: git fetch --prune --unshallow --tags
-      - name: Set up Node
+      - name: Fetch all git tags
+        run: git fetch --prune --unshallow --tags || git fetch --tags
+
+      - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
@@ -33,7 +35,81 @@ jobs:
       - name: Install dependencies
         run: yarn install --frozen-lockfile
 
-      - name: Run Nx release changelog
+      # Find latest tag for the app
+      - name: Get latest tag for app
+        id: latest_tag
         run: |
-          echo "Running: nx release changelog ${{ github.event.inputs.version }} -p ${{ github.event.inputs.app }}"
-          npx nx release changelog ${{ github.event.inputs.version }} -p ${{ github.event.inputs.app }} --dry-run=true
+          TAG_PREFIX="${{ github.event.inputs.app }}@"
+          LATEST_TAG=$(git tag --list "${TAG_PREFIX}*" | sort -V | tail -n1)
+          echo "Latest tag for app: $LATEST_TAG"
+          if [[ -z "$LATEST_TAG" ]]; then
+            echo "latest=0.0.0" >> $GITHUB_OUTPUT
+          else
+            # remove prefix
+            echo "latest=${LATEST_TAG#$TAG_PREFIX}" >> $GITHUB_OUTPUT
+          fi
+
+      # Validate version > latest
+      - name: Validate version is greater than latest
+        id: validate
+        run: |
+          npm install -g semver
+          LATEST="${{ steps.latest_tag.outputs.latest }}"
+          INPUT="${{ github.event.inputs.version }}"
+          echo "Latest: $LATEST, Input: $INPUT"
+          if ! semver "$INPUT"; then
+            echo "::error::Input version is not valid semver"
+            exit 1
+          fi
+          if semver -r ">$LATEST" "$INPUT"; then
+            echo "Valid version bump"
+          else
+            echo "::error::Input version ($INPUT) is not greater than latest ($LATEST)"
+            exit 1
+          fi
+
+      # Bump version (does not commit or tag)
+      - name: Bump version only (no git)
+        run: |
+          npx nx release version ${{ github.event.inputs.version }} -p ${{ github.event.inputs.app }} --git-commit=false --stage-changes=false --git-tag=false --git-push=false
+
+      # Generate changelog (no git)
+      - name: Generate changelog
+        run: |
+          npx nx release changelog ${{ github.event.inputs.version }} -p ${{ github.event.inputs.app }} --git-commit=false --stage-changes=false --git-tag=false --git-push=false
+
+      # Commit package.json and changelog
+      - name: Commit app package.json and changelog
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add app/${{ github.event.inputs.app }}/package.json
+          git add app/${{ github.event.inputs.app }}/CHANGELOG.md
+          git commit -m "release: bump ${{ github.event.inputs.app }} to v${{ github.event.inputs.version }}"
+          git tag ${{ github.event.inputs.app }}@${{ github.event.inputs.version }}
+
+      # Push commit and tag
+      - name: Push commit and tag
+        run: |
+          git push origin HEAD
+          git push origin ${{ github.event.inputs.app }}@${{ github.event.inputs.version }}
+
+      # Extract latest changelog entry
+      - name: Extract latest changelog entry
+        id: changelog
+        run: |
+          # Grabs the topmost changelog entry (adjust as needed for your format)
+          ENTRY=$(awk '/^## /{flag=1;print;next}/^## /&&flag{exit}flag' app/${{ github.event.inputs.app }}/CHANGELOG.md)
+          echo "RELEASE_BODY<<EOF" >> $GITHUB_ENV
+          echo "$ENTRY" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
+
+      # Create GitHub release
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.event.inputs.app }}@${{ github.event.inputs.version }}
+          name: '${{ github.event.inputs.app }} v${{ github.event.inputs.version }}'
+          body: ${{ env.RELEASE_BODY }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
