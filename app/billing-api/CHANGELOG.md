@@ -1,3 +1,17 @@
+## 3.60.1 (2025-06-17)
+
+### Chores
+
+- create release ([fd8546c](https://github.com/tech-leads-club/fakeflix/commit/fd8546c))
+- disable release ([af704c4](https://github.com/tech-leads-club/fakeflix/commit/af704c4))
+- test release flow ([8d3dd1e](https://github.com/tech-leads-club/fakeflix/commit/8d3dd1e))
+- fetch tags ([1cca93a](https://github.com/tech-leads-club/fakeflix/commit/1cca93a))
+- add release workflow ([48767ec](https://github.com/tech-leads-club/fakeflix/commit/48767ec))
+
+### ❤️ Thank You
+
+- Waldemar Neto @waldemarnt
+
 ## 3.60.0 (2025-05-21)
 
 This was a version bump only for billing-api to align it with other projects, there were no code changes.
