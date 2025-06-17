@@ -99,21 +99,19 @@ jobs:
           git push origin ${{ github.event.inputs.app }}@${{ github.event.inputs.version }}
 
       # Extract latest changelog entry
-      - name: Extract latest changelog entry
-        id: changelog
+      - name: Extract latest changelog section
+        id: extract_changelog
         run: |
-          # Grabs the topmost changelog entry (adjust as needed for your format)
-          ENTRY=$(awk '/^## /{flag=1;print;next}/^## /&&flag{exit}flag' app/${{ github.event.inputs.app }}/CHANGELOG.md)
-          echo "RELEASE_BODY<<EOF" >> $GITHUB_ENV
-          echo "$ENTRY" >> $GITHUB_ENV
-          echo "EOF" >> $GITHUB_ENV
-
-      # Create GitHub release
+          version="${{ github.event.inputs.version }}"
+          changelog_file="app/${{ github.event.inputs.app }}/CHANGELOG.md"
+          # Extract from the version heading down to the next heading (or EOF)
+          awk "/^## $version /{flag=1; print; next} /^## [0-9]+\.[0-9]+\.[0-9]+/{flag=0} flag" "$changelog_file" > latest_changelog.md
+          cat latest_changelog.md
       - name: Create GitHub Release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v1
         with:
           tag_name: ${{ github.event.inputs.app }}@${{ github.event.inputs.version }}
-          name: '${{ github.event.inputs.app }} v${{ github.event.inputs.version }}'
-          body: ${{ env.RELEASE_BODY }}
+          name: ${{ github.event.inputs.app }}@${{ github.event.inputs.version }}
+          body_path: latest_changelog.md
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
