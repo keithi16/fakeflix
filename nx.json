@@ -45,7 +45,7 @@
     },
     "changelog": {
       "projectChangelogs": {
-        "createRelease": "github",
+        "createRelease": false,
         "file": "{projectRoot}/CHANGELOG.md",
         "renderer": "changelog-renderer"
       }
