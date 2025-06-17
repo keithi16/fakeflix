@@ -1,5 +1,8 @@
 name: Manual App Release
 
+permissions:
+  contents: write
+  actions: read
 on:
   workflow_dispatch:
     inputs:
@@ -81,8 +84,8 @@ jobs:
       # Commit package.json and changelog
       - name: Commit app package.json and changelog
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
           git add app/${{ github.event.inputs.app }}/package.json
           git add app/${{ github.event.inputs.app }}/CHANGELOG.md
           git commit -m "release: bump ${{ github.event.inputs.app }} to v${{ github.event.inputs.version }}"
@@ -91,6 +94,7 @@ jobs:
       # Push commit and tag
       - name: Push commit and tag
         run: |
+          git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}
           git push origin HEAD
           git push origin ${{ github.event.inputs.app }}@${{ github.event.inputs.version }}
 
