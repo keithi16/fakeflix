@@ -1,3 +1,13 @@
+## 3.60.2 (2025-06-17)
+
+### Chores
+
+- test another create release ([031c7f9](https://github.com/tech-leads-club/fakeflix/commit/031c7f9))
+
+### ❤️ Thank You
+
+- Waldemar Neto @waldemarnt
+
 ## 3.60.1 (2025-06-17)
 
 ### Chores
