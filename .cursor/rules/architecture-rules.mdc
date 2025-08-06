@@ -4,7 +4,7 @@ globs: []
 alwaysApply: true
 ---
 
-# BuildOps Architecture Principles
+# Fakeflix Architecture Principles
 
 ## Core Rules (Full details: docs/ARCHITECTURE-GUIDELINES.md)
 
