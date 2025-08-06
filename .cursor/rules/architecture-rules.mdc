@@ -1,0 +1,36 @@
+---
+description: Core architecture principles
+globs: []
+alwaysApply: true
+---
+
+# BuildOps Architecture Principles
+
+## Core Rules (Full details: docs/ARCHITECTURE-GUIDELINES.md)
+
+**Structure:**
+
+- Apps = Bootstraps (orchestration only)
+- Packages = Business logic
+- Modules = Independent, composable domains
+
+**Module Structure:**
+
+- package/module/core/services/ (Business logic)
+- package/module/http/ (HTTP endpoints, external clients and DTOs)
+- package/module/persistence/ (TypeORM entities/repos)
+
+**10 Key Principles:**
+
+1. Well-defined boundaries
+2. Composability
+3. Independence
+4. Individual scale
+5. Explicit communication
+6. Replaceability
+7. Deployment independence
+8. State isolation
+9. Observability
+10. Fail independence
+
+For detailed guidelines, patterns, and examples: READ docs/ARCHITECTURE-GUIDELINES.md
