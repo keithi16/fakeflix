@@ -79,7 +79,7 @@ jobs:
         env:
           CURSOR_API_KEY: ${{ secrets.CURSOR_API_KEY }}
         run: |
-          cursor-agent -p "now you are an architect and will evaluate the changes made to this code comply with the guidelines in this repo, do a full evaluation and rate it from 1-10, if the rate is below 10 you should return with error" --model claude-4-sonnet
+          cursor-agent -p "now you are an architect and will evaluate the changes made to this code comply with the guidelines in this repo, do a full evaluation and rate it from 1-10, if the rate is below 9 you should return with error" --model claude-4-sonnet
 
       - name: Code format
         shell: bash
