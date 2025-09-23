@@ -71,6 +71,16 @@ jobs:
       - name: Install dependencies
         run: yarn --frozen-lockfile
 
+      - name: Install Cursor CLI
+        run: |
+          curl https://cursor.com/install -fsS | bash
+          echo "$HOME/.cursor/bin" >> $GITHUB_PATH
+      - name: Run Cursor Agent
+        env:
+          CURSOR_API_KEY: ${{ secrets.CURSOR_API_KEY }}
+        run: |
+          cursor-agent -p "now you are an architect and will evaluate the changes made to this code comply with the guidelines in this repo, do a full evaluation and rate it from 1-10, if the rate is below 10 you should return with error" --model claude-4-sonnet
+
       - name: Code format
         shell: bash
         run: |
