@@ -83,7 +83,7 @@ jobs:
           echo "🚀 Evaluating architecture compliance..."
           
           # Run cursor-agent with timeout and capture output
-          timeout 240s cursor-agent -p "Evaluate the stripe.service.ts for architecture compliance with the Fakeflix guidelines. Return only a JSON object with 'rating' (1-10 number) and 'summary' (brief text). Example: {\"rating\": 8, \"summary\": \"Good compliance but missing observability\"}" --model claude-4-sonnet --output-format json > .cursor.log 2>&1 || echo "Agent completed or timed out" 
+          timeout 240s cursor-agent -p "Evaluate the subscription.service.ts for architecture compliance with the Fakeflix guidelines. Return only a JSON object with 'rating' (1-10 number) and 'summary' (brief text). Example: {\"rating\": 8, \"summary\": \"Good compliance but missing observability\"}" --model claude-4-sonnet --output-format json > .cursor.log 2>&1 || echo "Agent completed or timed out" 
           
           # Display the full log for debugging
           echo "=== Cursor Agent Output ==="
