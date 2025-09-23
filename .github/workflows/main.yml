@@ -84,7 +84,7 @@ jobs:
           
           # Run cursor-agent and capture both output and exit code
           set +e  # Don't exit on command failure
-          timeout 240s cursor-agent -p "Evaluate the change in this pull request for architecture compliance with the Fakeflix guidelines. Return only a JSON object with 'rating' (1-10 number) and 'summary' (brief text). Example: {\"rating\": 8, \"summary\": \"Good compliance but missing observability\"}" --model claude-4-sonnet --output-format json > .cursor.log 2>&1
+          timeout 180s cursor-agent --exit-on-error -p "Evaluate ONLY the changed files in this commit for architecture compliance with Fakeflix guidelines. Focus on: module boundaries, state isolation, explicit communication. Rate 1-10. If rating < 9, return ERROR. Return JSON: {\"rating\": X, \"summary\": \"brief assessment\"}" --model claude-4-sonnet > .cursor.log 2>&1
           AGENT_EXIT_CODE=$?
           set -e  # Re-enable exit on error
           
