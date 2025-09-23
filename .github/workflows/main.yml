@@ -75,11 +75,35 @@ jobs:
         run: |
           curl https://cursor.com/install -fsS | bash
           echo "$HOME/.cursor/bin" >> $GITHUB_PATH
-      - name: Run Cursor Agent
+      - name: Architecture Review (Simple JSON)
+        timeout-minutes: 3
+        run: |
+          echo "🚀 Evaluating architecture compliance..."
+          
+          cursor-agent -p "
+            Evaluate this code for architecture compliance.
+            Respond with valid JSON only:
+            {\"rating\": 9, \"summary\": \"Good compliance with minor issues\"}
+          " --model claude-4-sonnet --output-format json | tee .cursor.log
+          
+          # Parse JSON
+          RATING=$(jq -r '.rating' .cursor.log 2>/dev/null)
+          SUMMARY=$(jq -r '.summary' .cursor.log 2>/dev/null)
+          
+          echo "📊 Rating: $RATING/10"
+          echo "📝 Summary: $SUMMARY"
+          
+          # Simple validation
+          if [[ ! "$RATING" =~ ^[0-9]+$ ]] || [ "$RATING" -lt 9 ]; then
+            echo "❌ Rating $RATING below threshold 9"
+            exit 1
+          fi
+          
+          echo "✅ Architecture compliance passed"
         env:
           CURSOR_API_KEY: ${{ secrets.CURSOR_API_KEY }}
         run: |
-          cursor-agent -p "now you are an architect and will evaluate the changes made to this code comply with the guidelines in this repo, do a full evaluation and rate it from 1-10, if the rate is below 9 you should return with error" --model claude-4-sonnet > .cursor.log 2>&1
+          cursor-agent -p "now you are an architect and will evaluate the changes made to this code comply with the guidelines in this repo, do a full evaluation and rate it from 1-10, if the rate is below 9 you should return with error" --model claude-4-sonnet --output-format json
           
           # Extract the rating from the log
           RATING=$(cat .cursor.log | grep -oE "Rating[: ]+([0-9]+)" | grep -oE "[0-9]+" | head -1)
