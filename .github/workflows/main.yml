@@ -76,55 +76,16 @@ jobs:
           curl https://cursor.com/install -fsS | bash
           echo "$HOME/.cursor/bin" >> $GITHUB_PATH
       
-      - name: Get changed files
-        id: changed-files
-        run: |
-          echo "🔍 Detecting changed files..."
-          
-          if [ "${{ github.event_name }}" = "pull_request" ]; then
-            # For PRs, get files changed compared to base branch
-            git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.sha }} > changed_files.txt
-            echo "📝 Changed files (PR vs base):"
-          else
-            # For pushes, get files changed in last commit(s)
-            if [ "${{ github.event.before }}" != "0000000000000000000000000000000000000000" ]; then
-              # Normal push with previous commit
-              git diff --name-only ${{ github.event.before }} ${{ github.sha }} > changed_files.txt
-            else
-              # First push to branch, compare with HEAD~1
-              git diff --name-only HEAD~1 HEAD > changed_files.txt 2>/dev/null || git ls-files > changed_files.txt
-            fi
-            echo "📝 Changed files (commit diff):"
-          fi
-          
-          # Filter for relevant files only (TypeScript, docs, configs)
-          grep -E '\.(ts|js|json|md|yml|yaml)$' changed_files.txt > filtered_files.txt || touch filtered_files.txt
-          
-          echo "Files to evaluate:"
-          cat filtered_files.txt
-          
-          # Set output for next step
-          if [ -s filtered_files.txt ]; then
-            echo "has_changes=true" >> $GITHUB_OUTPUT
-          else
-            echo "has_changes=false" >> $GITHUB_OUTPUT
-          fi
-
-      - name: Architecture Review (Changed Files Only)
-        if: steps.changed-files.outputs.has_changes == 'true'
+      - name: Architecture Review (Simple JSON)
         timeout-minutes: 5
         env:
           CURSOR_API_KEY: ${{ secrets.CURSOR_API_KEY }}
         run: |
-          echo "🚀 Evaluating architecture compliance for changed files..."
+          echo "🚀 Evaluating architecture compliance..."
           
-          # Prepare changed files list for cursor-agent
-          CHANGED_FILES=$(cat filtered_files.txt | tr '\n' ' ' | sed 's/[[:space:]]*$//')
-          echo "📋 Files to evaluate: $CHANGED_FILES"
-          
-          # Run cursor-agent with specific file focus
+          # Run cursor-agent and capture both output and exit code
           set +e  # Don't exit on command failure
-          timeout 120s cursor-agent -p "Evaluate ONLY these changed files for architecture compliance with the Fakeflix architecture guidelines: $CHANGED_FILES. Return only a JSON object with 'rating' (1-10 number) and 'summary' (brief text). Example: {\"rating\": 8, \"summary\": \"Good compliance but missing observability\"}" --model claude-4-sonnet --output-format json > .cursor.log 2>&1
+          timeout 120s cursor-agent -p "Evaluate this codebase for architecture compliance with the Fakeflix guidelines. Return only a JSON object with 'rating' (1-10 number) and 'summary' (brief text). Example: {\"rating\": 8, \"summary\": \"Good compliance but missing observability\"}" --model claude-4-sonnet --output-format json > .cursor.log 2>&1
           AGENT_EXIT_CODE=$?
           set -e  # Re-enable exit on error
           
@@ -154,19 +115,13 @@ jobs:
           if [ -z "$RATING" ] || ! [[ "$RATING" =~ ^[0-9]+$ ]]; then
             echo "❌ Could not extract valid rating from Cursor Agent output"
             exit 1
-          elif [ "$RATING" -lt 8 ]; then
-            echo "❌ Architecture rating ($RATING/10) is below the required threshold of 8"
+          elif [ "$RATING" -lt 9 ]; then
+            echo "❌ Architecture rating ($RATING/10) is below the required threshold of 9"
             echo "Pipeline failed due to architecture compliance issues"
             exit 1
           else
             echo "✅ Architecture rating ($RATING/10) meets the required threshold"
           fi
-
-      - name: Architecture Review (No Changes)
-        if: steps.changed-files.outputs.has_changes == 'false'
-        run: |
-          echo "ℹ️ No relevant files changed - skipping architecture review"
-          echo "✅ Architecture check passed (no changes to evaluate)"
       - name: Code format
         shell: bash
         run: |
