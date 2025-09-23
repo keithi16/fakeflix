@@ -83,36 +83,38 @@ jobs:
           echo "🚀 Evaluating architecture compliance..."
           
           # Run cursor-agent with timeout and capture output
-          timeout 240s cursor-agent -p "Evaluate this codebase for architecture compliance with the Fakeflix guidelines. Return only a JSON object with 'rating' (1-10 number) and 'summary' (brief text). Example: {\"rating\": 8, \"summary\": \"Good compliance but missing observability\"}" --model claude-4-sonnet > .cursor.log 2>&1 || echo "Agent completed or timed out"
+          timeout 240s cursor-agent -p "Evaluate this codebase for architecture compliance with the Fakeflix guidelines. Return only a JSON object with 'rating' (1-10 number) and 'summary' (brief text). Example: {\"rating\": 8, \"summary\": \"Good compliance but missing observability\"}" --model claude-4-sonnet > .cursor.log 2>&1 || echo "Agent completed or timed out" --model claude-4-sonnet --output-format json
           
           # Display the full log for debugging
           echo "=== Cursor Agent Output ==="
           cat .cursor.log
           echo "=========================="
           
-          # Extract rating from multiple possible JSON structures
+          # Extract rating from the nested JSON structure
           RATING=""
+          SUMMARY=""
           
-          # Method 1: Try to extract from nested result field (your case)
-          RATING=$(cat .cursor.log | jq -r '.result | fromjson | .rating' 2>/dev/null || echo "")
+          # Method 1: Extract JSON from markdown code block in result field
+          JSON_BLOCK=$(cat .cursor.log | jq -r '.result' 2>/dev/null | grep -o '{"rating":[^}]*}' | head -1 || echo "")
+          if [ -n "$JSON_BLOCK" ]; then
+            RATING=$(echo "$JSON_BLOCK" | jq -r '.rating' 2>/dev/null || echo "")
+            SUMMARY=$(echo "$JSON_BLOCK" | jq -r '.summary' 2>/dev/null || echo "")
+          fi
           
-          # Method 2: Try direct JSON object
+          # Method 2: Simple regex extraction for rating number
+          if [ -z "$RATING" ] || [ "$RATING" = "null" ]; then
+            RATING=$(cat .cursor.log | grep -oE '"rating":\s*[0-9]+' | grep -oE '[0-9]+' | head -1 || echo "")
+          fi
+          
+          # Method 3: Try direct JSON parsing (fallback)
           if [ -z "$RATING" ] || [ "$RATING" = "null" ]; then
             RATING=$(cat .cursor.log | jq -r '.rating' 2>/dev/null || echo "")
           fi
           
-          # Method 3: Try to find JSON object in text and extract rating
-          if [ -z "$RATING" ] || [ "$RATING" = "null" ]; then
-            RATING=$(cat .cursor.log | grep -o '{"rating":[0-9]\+[^}]*}' | jq -r '.rating' 2>/dev/null | head -1 || echo "")
+          # Extract summary if not already found
+          if [ -z "$SUMMARY" ] || [ "$SUMMARY" = "null" ]; then
+            SUMMARY="Architecture evaluation completed"
           fi
-          
-          # Method 4: Simple regex extraction
-          if [ -z "$RATING" ] || [ "$RATING" = "null" ]; then
-            RATING=$(cat .cursor.log | grep -o '"rating":[[:space:]]*[0-9]\+' | grep -o '[0-9]\+' | head -1 || echo "")
-          fi
-          
-          # Extract summary if possible
-          SUMMARY=$(cat .cursor.log | jq -r '.result | fromjson | .summary' 2>/dev/null || echo "Architecture evaluation completed")
           
           echo "📊 Extracted Rating: $RATING"
           echo "📝 Summary: $SUMMARY"
