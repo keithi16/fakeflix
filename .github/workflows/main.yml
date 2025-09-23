@@ -100,31 +100,6 @@ jobs:
           fi
           
           echo "✅ Architecture compliance passed"
-        env:
-          CURSOR_API_KEY: ${{ secrets.CURSOR_API_KEY }}
-        run: |
-          cursor-agent -p "now you are an architect and will evaluate the changes made to this code comply with the guidelines in this repo, do a full evaluation and rate it from 1-10, if the rate is below 9 you should return with error" --model claude-4-sonnet --output-format json
-          
-          # Extract the rating from the log
-          RATING=$(cat .cursor.log | grep -oE "Rating[: ]+([0-9]+)" | grep -oE "[0-9]+" | head -1)
-          
-          # Display the rating
-          echo "Architecture Rating: $RATING"
-          
-          # Check if rating exists and is below 9
-          if [ -z "$RATING" ]; then
-            echo "❌ Could not extract rating from Cursor Agent output"
-            echo "Full log:"
-            cat .cursor.log
-            exit 1
-          elif [ "$RATING" -lt 9 ]; then
-            echo "❌ Architecture rating ($RATING/10) is below the required threshold of 9"
-            echo "Full evaluation log:"
-            cat .cursor.log
-            exit 1
-          else
-            echo "✅ Architecture rating ($RATING/10) meets the required threshold"
-          fi
       - name: Code format
         shell: bash
         run: |
