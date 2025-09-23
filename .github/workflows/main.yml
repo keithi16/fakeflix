@@ -76,32 +76,59 @@ jobs:
           curl https://cursor.com/install -fsS | bash
           echo "$HOME/.cursor/bin" >> $GITHUB_PATH
       - name: Architecture Review (Simple JSON)
-        timeout-minutes: 3
+        timeout-minutes: 5
         env:
           CURSOR_API_KEY: ${{ secrets.CURSOR_API_KEY }}
         run: |
           echo "🚀 Evaluating architecture compliance..."
           
-          cursor-agent -p "
-            Evaluate this code for architecture compliance.
-            Respond with valid JSON only:
-            {\"rating\": 9, \"summary\": \"Good compliance with minor issues\"}
-          " --model claude-4-sonnet --output-format json | tee .cursor.log
+          # Run cursor-agent with timeout and capture output
+          timeout 240s cursor-agent -p "Evaluate this codebase for architecture compliance with the Fakeflix guidelines. Return only a JSON object with 'rating' (1-10 number) and 'summary' (brief text). Example: {\"rating\": 8, \"summary\": \"Good compliance but missing observability\"}" --model claude-4-sonnet > .cursor.log 2>&1 || echo "Agent completed or timed out"
           
-          # Parse JSON
-          RATING=$(jq -r '.rating' .cursor.log 2>/dev/null)
-          SUMMARY=$(jq -r '.summary' .cursor.log 2>/dev/null)
+          # Display the full log for debugging
+          echo "=== Cursor Agent Output ==="
+          cat .cursor.log
+          echo "=========================="
           
-          echo "📊 Rating: $RATING/10"
-          echo "📝 Summary: $SUMMARY"
+          # Extract rating from multiple possible JSON structures
+          RATING=""
           
-          # Simple validation
-          if [[ ! "$RATING" =~ ^[0-9]+$ ]] || [ "$RATING" -lt 9 ]; then
-            echo "❌ Rating $RATING below threshold 9"
-            exit 1
+          # Method 1: Try to extract from nested result field (your case)
+          RATING=$(cat .cursor.log | jq -r '.result | fromjson | .rating' 2>/dev/null || echo "")
+          
+          # Method 2: Try direct JSON object
+          if [ -z "$RATING" ] || [ "$RATING" = "null" ]; then
+            RATING=$(cat .cursor.log | jq -r '.rating' 2>/dev/null || echo "")
           fi
           
-          echo "✅ Architecture compliance passed"
+          # Method 3: Try to find JSON object in text and extract rating
+          if [ -z "$RATING" ] || [ "$RATING" = "null" ]; then
+            RATING=$(cat .cursor.log | grep -o '{"rating":[0-9]\+[^}]*}' | jq -r '.rating' 2>/dev/null | head -1 || echo "")
+          fi
+          
+          # Method 4: Simple regex extraction
+          if [ -z "$RATING" ] || [ "$RATING" = "null" ]; then
+            RATING=$(cat .cursor.log | grep -o '"rating":[[:space:]]*[0-9]\+' | grep -o '[0-9]\+' | head -1 || echo "")
+          fi
+          
+          # Extract summary if possible
+          SUMMARY=$(cat .cursor.log | jq -r '.result | fromjson | .summary' 2>/dev/null || echo "Architecture evaluation completed")
+          
+          echo "📊 Extracted Rating: $RATING"
+          echo "📝 Summary: $SUMMARY"
+          
+          # Validate and check rating
+          if [ -z "$RATING" ] || ! [[ "$RATING" =~ ^[0-9]+$ ]]; then
+            echo "❌ Could not extract valid rating from Cursor Agent output"
+            echo "Please check the agent response format above"
+            exit 1
+          elif [ "$RATING" -lt 9 ]; then
+            echo "❌ Architecture rating ($RATING/10) is below the required threshold of 9"
+            echo "Pipeline failed due to architecture compliance issues"
+            exit 1
+          else
+            echo "✅ Architecture rating ($RATING/10) meets the required threshold"
+          fi
       - name: Code format
         shell: bash
         run: |
