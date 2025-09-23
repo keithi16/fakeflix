@@ -77,6 +77,8 @@ jobs:
           echo "$HOME/.cursor/bin" >> $GITHUB_PATH
       - name: Architecture Review (Simple JSON)
         timeout-minutes: 3
+        env:
+          CURSOR_API_KEY: ${{ secrets.CURSOR_API_KEY }}
         run: |
           echo "🚀 Evaluating architecture compliance..."
           
