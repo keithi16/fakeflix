@@ -82,47 +82,37 @@ jobs:
         run: |
           echo "🚀 Evaluating architecture compliance..."
           
-          # Run cursor-agent with timeout and capture output
-          timeout 240s cursor-agent -p "Evaluate this codebase for architecture compliance with the Fakeflix guidelines. Return only a JSON object with 'rating' (1-10 number) and 'summary' (brief text). Example: {\"rating\": 8, \"summary\": \"Good compliance but missing observability\"}" --model claude-4-sonnet --output-format json > .cursor.log 2>&1 || echo "Agent completed or timed out"
+          # Run cursor-agent and capture both output and exit code
+          set +e  # Don't exit on command failure
+          timeout 240s cursor-agent -p "Evaluate this codebase for architecture compliance with the Fakeflix guidelines. Return only a JSON object with 'rating' (1-10 number) and 'summary' (brief text). Example: {\"rating\": 8, \"summary\": \"Good compliance but missing observability\"}" --model claude-4-sonnet --output-format json > .cursor.log 2>&1
+          AGENT_EXIT_CODE=$?
+          set -e  # Re-enable exit on error
           
           # Display the full log for debugging
           echo "=== Cursor Agent Output ==="
           cat .cursor.log
           echo "=========================="
+          echo "Agent Exit Code: $AGENT_EXIT_CODE"
           
-          # Extract rating from the nested JSON structure
-          RATING=""
-          SUMMARY=""
+          # Extract rating (simplified)
+          RATING=$(cat .cursor.log | jq -r '.result' 2>/dev/null | grep -oE '"rating":\s*[0-9]+' | grep -oE '[0-9]+' | head -1 || echo "")
           
-          # Method 1: Extract JSON from markdown code block in result field
-          JSON_BLOCK=$(cat .cursor.log | jq -r '.result' 2>/dev/null | grep -o '{"rating":[^}]*}' | head -1 || echo "")
-          if [ -n "$JSON_BLOCK" ]; then
-            RATING=$(echo "$JSON_BLOCK" | jq -r '.rating' 2>/dev/null || echo "")
-            SUMMARY=$(echo "$JSON_BLOCK" | jq -r '.summary' 2>/dev/null || echo "")
-          fi
-          
-          # Method 2: Simple regex extraction for rating number
-          if [ -z "$RATING" ] || [ "$RATING" = "null" ]; then
+          # If no rating found, try direct extraction
+          if [ -z "$RATING" ]; then
             RATING=$(cat .cursor.log | grep -oE '"rating":\s*[0-9]+' | grep -oE '[0-9]+' | head -1 || echo "")
           fi
           
-          # Method 3: Try direct JSON parsing (fallback)
-          if [ -z "$RATING" ] || [ "$RATING" = "null" ]; then
-            RATING=$(cat .cursor.log | jq -r '.rating' 2>/dev/null || echo "")
-          fi
-          
-          # Extract summary if not already found
-          if [ -z "$SUMMARY" ] || [ "$SUMMARY" = "null" ]; then
-            SUMMARY="Architecture evaluation completed"
-          fi
-          
           echo "📊 Extracted Rating: $RATING"
-          echo "📝 Summary: $SUMMARY"
+          
+          # Check agent exit code first
+          if [ $AGENT_EXIT_CODE -ne 0 ]; then
+            echo "❌ Cursor Agent returned error (exit code: $AGENT_EXIT_CODE)"
+            exit 1
+          fi
           
           # Validate and check rating
           if [ -z "$RATING" ] || ! [[ "$RATING" =~ ^[0-9]+$ ]]; then
             echo "❌ Could not extract valid rating from Cursor Agent output"
-            echo "Please check the agent response format above"
             exit 1
           elif [ "$RATING" -lt 9 ]; then
             echo "❌ Architecture rating ($RATING/10) is below the required threshold of 9"
