@@ -6,15 +6,15 @@ import * as Factory from 'factory.ts';
 import { planFactory } from './plan.test-factory';
 
 export const subscriptionFactory = Factory.Sync.makeFactory<Partial<Subscription>>({
-  id: faker.string.uuid(),
-  userId: faker.string.uuid(),
-  planId: faker.string.uuid(),
+  id: Factory.each(() => faker.string.uuid()),
+  userId: Factory.each(() => faker.string.uuid()),
+  planId: Factory.each(() => faker.string.uuid()),
   status: SubscriptionStatus.Active,
-  startDate: faker.date.recent(),
+  startDate: Factory.each(() => faker.date.recent()),
   endDate: null,
   autoRenew: true,
-  createdAt: faker.date.recent(),
-  updatedAt: faker.date.recent(),
+  createdAt: Factory.each(() => faker.date.recent()),
+  updatedAt: Factory.each(() => faker.date.recent()),
   deletedAt: null,
 });
 

@@ -14,7 +14,7 @@ import { planFactory } from '../../factory/plan.test-factory';
 
 const fakeUserId = faker.string.uuid();
 jest.mock('jsonwebtoken', () => ({
-  verify: jest.fn((_token: string, _secret: string, _options: any, callback: any) => {
+  verify: jest.fn((_token: string, _secret: string, _options: unknown, callback: (err: Error | null, decoded: unknown) => void) => {
     callback(null, { sub: fakeUserId });
   }),
 }));

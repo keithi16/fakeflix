@@ -5,14 +5,14 @@ import { Plan } from '../../persistence/entity/plan.entity';
 import * as Factory from 'factory.ts';
 
 export const planFactory = Factory.Sync.makeFactory<Partial<Plan>>({
-  id: faker.string.uuid(),
-  name: faker.string.sample(),
-  description: faker.string.sample(),
+  id: Factory.each(() => faker.string.uuid()),
+  name: Factory.each(() => faker.string.sample()),
+  description: Factory.each(() => faker.string.sample()),
   amount: 10,
-  currency: faker.finance.currencyCode(),
+  currency: Factory.each(() => faker.finance.currencyCode()),
   interval: PlanInterval.Month,
   trialPeriod: 0,
-  createdAt: faker.date.recent(),
-  updatedAt: faker.date.recent(),
+  createdAt: Factory.each(() => faker.date.recent()),
+  updatedAt: Factory.each(() => faker.date.recent()),
   deletedAt: null,
 });

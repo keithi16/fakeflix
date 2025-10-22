@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { Transactional } from 'typeorm-transactional';
 import { Subscription } from '../../persistence/entity/subscription.entity';
 import { SubscriptionStatus } from '../enum/subscription-status.enum';
 
@@ -15,6 +16,7 @@ export class SubscriptionService {
     private readonly clsService: ClsService
   ) {}
 
+  @Transactional({ connectionName: 'billing' })
   async createSubscription({ planId }: { planId: string }): Promise<Subscription> {
     const plan = await this.planRepository.findOneById(planId);
     if (!plan) {

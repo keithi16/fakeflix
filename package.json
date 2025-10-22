@@ -45,6 +45,8 @@
     "bcrypt": "^5.1.1",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.0",
+    "date-fns": "^4.1.0",
+    "decimal.js": "^10.6.0",
     "eslint-plugin-no-relative-import-paths": "^1.5.2",
     "fs-extra": "^11.1.1",
     "graphql": "^16.7.1",
