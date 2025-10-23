@@ -18,9 +18,9 @@ import { InvoiceController } from './http/rest/controller/invoice.controller';
 import { UsageController } from './http/rest/controller/usage.controller';
 import { CreditController } from './http/rest/controller/credit.controller';
 import { BillingPublicApiProvider } from './integration/provider/public-api.provider';
-import { EasyTaxProvider } from './integration/provider/easytax-tax.provider';
-import { PaymentGatewayProvider } from './integration/provider/payment-gateway.provider';
-import { AccountingIntegrationProvider } from './integration/provider/accounting-integration.provider';
+import { EasyTaxClient } from './http/client/easytax-api/easytax-tax.client';
+import { PaymentGatewayClient } from './http/client/payment-gateway-api/payment-gateway.client';
+import { AccountingIntegrationClient } from './http/client/accounting-api/accounting-integration.client';
 import { BillingPersistenceModule } from './persistence/billing-persistence.module';
 import { LoggerModule } from '@tlc/shared-module/logger';
 
@@ -38,11 +38,14 @@ const coreServices = [
   DunningManagerService,
 ];
 
+const httpClients = [
+  EasyTaxClient,
+  PaymentGatewayClient,
+  AccountingIntegrationClient,
+];
+
 const integrationProviders = [
   BillingPublicApiProvider,
-  EasyTaxProvider,
-  PaymentGatewayProvider,
-  AccountingIntegrationProvider,
 ];
 
 @Module({
@@ -55,7 +58,7 @@ const integrationProviders = [
     AuthModule,
     LoggerModule,
   ],
-  providers: [...coreServices, ...integrationProviders],
+  providers: [...coreServices, ...httpClients, ...integrationProviders],
   controllers: [
     SubscriptionController,
     SubscriptionBillingController,

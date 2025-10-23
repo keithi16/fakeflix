@@ -6,12 +6,13 @@ import {
   EasyTaxResponseLine,
   Address,
   TaxDetail,
-} from '../../core/interface/tax-calculation.interface';
+  EasyTaxLineItem,
+} from '../../../core/interface/tax-calculation.interface';
 
 /**
- * EASYTAX TAX PROVIDER (MOCKED)
+ * EASYTAX TAX CLIENT
  * 
- * Simulates integration with EasyTax external tax calculation API.
+ * HTTP client for EasyTax external tax calculation API.
  * 
  * In production, this would:
  * - Make HTTP calls to EasyTax API
@@ -26,7 +27,7 @@ import {
  * - Return detailed jurisdiction breakdowns
  */
 @Injectable()
-export class EasyTaxProvider {
+export class EasyTaxClient {
   constructor(
     private readonly appLogger: AppLogger,
   ) {}
@@ -50,7 +51,7 @@ export class EasyTaxProvider {
     }
     
     // Calculate taxes for each line
-    const lines: EasyTaxResponseLine[] = request.lines.map(line => {
+    const lines: EasyTaxResponseLine[] = request.lines.map((line: EasyTaxLineItem) => {
       // Determine tax rate based on ship-to address
       const taxRate = this.calculateTaxRate(line.addresses.shipTo);
       const tax = line.amount * taxRate;

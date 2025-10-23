@@ -3,13 +3,13 @@ import {
   PaymentRequest,
   PaymentResponse,
   RefundResponse,
-} from '../../core/interface/payment-result.interface';
-import { PaymentStatus } from '../../core/enum/payment-status.enum';
+} from '../../../core/interface/payment-result.interface';
+import { PaymentStatus } from '../../../core/enum/payment-status.enum';
 
 /**
- * PAYMENT GATEWAY PROVIDER (MOCKED)
+ * PAYMENT GATEWAY CLIENT
  * 
- * Simulates integration with payment gateway (Stripe, Braintree, etc).
+ * HTTP client for payment gateway integration (Stripe, Braintree, etc).
  * 
  * Features:
  * - 90% success rate (realistic failure simulation)
@@ -19,7 +19,7 @@ import { PaymentStatus } from '../../core/enum/payment-status.enum';
  * - Refund processing
  */
 @Injectable()
-export class PaymentGatewayProvider {
+export class PaymentGatewayClient {
   /**
    * Process a payment
    * 

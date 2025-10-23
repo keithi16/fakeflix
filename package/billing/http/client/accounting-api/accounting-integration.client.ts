@@ -1,11 +1,11 @@
 import { Injectable } from '@nestjs/common';
-import { Invoice } from '../../persistence/entity/invoice.entity';
-import { Payment } from '../../persistence/entity/payment.entity';
+import { Invoice } from '../../../persistence/entity/invoice.entity';
+import { Payment } from '../../../persistence/entity/payment.entity';
 
 /**
- * ACCOUNTING INTEGRATION PROVIDER (MOCKED)
+ * ACCOUNTING INTEGRATION CLIENT
  * 
- * Simulates integration with accounting systems (QuickBooks, Xero, NetSuite).
+ * HTTP client for accounting systems integration (QuickBooks, Xero, NetSuite).
  * 
  * In production, this would:
  * - Sync invoices to accounting system
@@ -19,7 +19,7 @@ import { Payment } from '../../persistence/entity/payment.entity';
  * - Simulates occasional sync failures
  */
 @Injectable()
-export class AccountingIntegrationProvider {
+export class AccountingIntegrationClient {
   /**
    * Sync invoice to accounting system
    * 

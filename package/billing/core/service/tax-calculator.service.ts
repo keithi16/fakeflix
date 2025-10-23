@@ -2,7 +2,13 @@ import { Injectable } from '@nestjs/common';
 import { InvoiceLineItem } from '../../persistence/entity/invoice-line-item.entity';
 import { TaxRateRepository } from '../../persistence/repository/tax-rate.repository';
 import { TaxProvider } from '../enum/tax-provider.enum';
-import { TaxConfiguration, Address, EasyTaxTransactionRequest } from '../interface/tax-calculation.interface';
+import { 
+  TaxConfiguration, 
+  Address, 
+  EasyTaxTransactionRequest, 
+  EasyTaxResponseLine 
+} from '../interface/tax-calculation.interface';
+import { EasyTaxClient } from '../../http/client/easytax-api/easytax-tax.client';
 import Decimal from 'decimal.js';
 
 /**
@@ -23,8 +29,7 @@ import Decimal from 'decimal.js';
 export class TaxCalculatorService {
   constructor(
     private readonly taxRateRepository: TaxRateRepository,
-    // EasyTax provider will be injected when we create it
-    // private readonly easyTaxProvider: EasyTaxProvider,
+    private readonly easyTaxClient: EasyTaxClient,
   ) {}
 
   /**
@@ -144,7 +149,6 @@ export class TaxCalculatorService {
       }));
 
       // Build EasyTax request
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const request: EasyTaxTransactionRequest = {
         type: 'SalesInvoice',
         companyCode: taxConfig.easyTaxAccountId || 'DEFAULT',
@@ -154,25 +158,11 @@ export class TaxCalculatorService {
         commit: false, // Don't commit until payment succeeds
       };
 
-      // Call EasyTax API (will implement provider next)
-      // const response = await this.easyTaxProvider.createTransaction(request);
-      
-      // Mock response for now
-      const response = {
-        totalTax: lineItems.reduce((sum, line) => sum + (line.amount * 0.08), 0),
-        lines: lineItems.map((line, index) => ({
-          lineNumber: `${index + 1}`,
-          tax: line.amount * 0.08,
-          rate: 0.08,
-          taxableAmount: line.amount,
-          jurisdictions: ['California', 'Los Angeles County'],
-          details: [],
-        })),
-        transactionId: 'EASY-' + Date.now(),
-      };
+      // Call EasyTax API
+      const response = await this.easyTaxClient.createTransaction(request);
 
       // Apply EasyTax results to line items
-      response.lines.forEach((taxLine, index) => {
+      response.lines.forEach((taxLine: EasyTaxResponseLine, index: number) => {
         const lineItem = lineItems[index];
         lineItem.taxAmount = taxLine.tax;
         lineItem.taxRate = taxLine.rate;
