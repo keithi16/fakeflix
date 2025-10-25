@@ -7,4 +7,5 @@ import { BillingSubscriptionHttpClient } from './http/client/billing-subscriptio
   providers: [BillingSubscriptionHttpClient],
   exports: [BillingSubscriptionHttpClient],
 })
-export class DomainModuleIntegrationModule {}
+export class PublicApiModule {}
+

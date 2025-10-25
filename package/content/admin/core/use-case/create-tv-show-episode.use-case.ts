@@ -6,6 +6,7 @@ import { Episode } from '../../../shared/persistence/entity/episode.entity';
 import { Video } from '../../../shared/persistence/entity/video.entity';
 import { CreateEpisodeRequestDto } from '../../http/rest/dto/request/create-episode.dto';
 import { ContentRepository } from '../../persistence/repository/content.repository';
+import { EpisodeRepository } from '../../persistence/repository/episode.repository';
 import { ContentDistributionService } from '../service/content-distribution.service';
 import { EpisodeLifecycleService } from '../service/episode-lifecycle.service';
 import { VideoProcessorService } from '../service/video-processor.service';
@@ -14,7 +15,8 @@ import { VideoProcessorService } from '../service/video-processor.service';
 export class CreateTvShowEpisodeUseCase {
   constructor(
     private readonly contentRepository: ContentRepository,
-    private readonly contendDistributionService: ContentDistributionService,
+    private readonly episodeRepository: EpisodeRepository,
+    private readonly contentDistributionService: ContentDistributionService,
     private readonly videoProcessorService: VideoProcessorService,
     private readonly episodeLifecycleService: EpisodeLifecycleService,
     private readonly logger: AppLogger
@@ -26,27 +28,24 @@ export class CreateTvShowEpisodeUseCase {
       videoSizeInKb: number;
     }
   ): Promise<Episode> {
-    //Problem: Requires too many repositories
-    const content = await this.contentRepository.findTvShowContentById(
-      episodeData.contentId,
-      ['tvShow']
+    const tvShowContent = await this.contentRepository.findTvShowContentById(
+      episodeData.contentId
     );
-    if (!content?.tvShow) {
+    if (!tvShowContent) {
       throw new NotFoundDomainException(
         `TV Show with id ${episodeData.contentId} not found`
       );
     }
-    //!Episode cannot be loaded with tvShow because of the number of records
-    //Episode can only be loaded if video is ready
+
+    // Episodes não são carregados junto com TvShow por questões de performance
+    // (um TvShow pode ter centenas de episódios)
     const episode = new Episode({
       title: episodeData.title,
       description: episodeData.description,
       season: episodeData.season,
       number: episodeData.number,
-      tvShow: content.tvShow,
+      tvShowId: tvShowContent.id,
     });
-
-    await this.episodeLifecycleService.checkEpisodeConstraintsOrThrow(episode);
 
     const video = new Video({
       url: episodeData.videoUrl,
@@ -54,24 +53,23 @@ export class CreateTvShowEpisodeUseCase {
     });
 
     episode.video = video;
-    content.tvShow.episodes = [];
-    content.tvShow.episodes.push(episode);
 
-    await this.contentRepository.saveMovieOrTvShow(content);
-    await this.videoProcessorService.processMetadataAndModeration(video);
+    // Valida regras de negócio antes de persistir
+    await this.episodeLifecycleService.checkEpisodeConstraintsOrThrow(episode);
 
     return await runInTransaction(
       async () => {
-        await this.contentRepository.saveMovieOrTvShow(content);
+        // Salva o episode diretamente - TypeORM gerencia a FK automaticamente
+        const savedEpisode = await this.episodeRepository.save(episode);
         await this.videoProcessorService.processMetadataAndModeration(video);
-        await this.contendDistributionService.distributeContent(content.id);
+        await this.contentDistributionService.distributeContent(tvShowContent.id);
         this.logger.log(
-          `Added episode with id ${episode.id} to tvShow ${content.tvShow.id}`,
+          `Added episode with id ${savedEpisode.id} to tvShow ${tvShowContent.id}`,
           {
-            contentBody: content,
+            contentBody: savedEpisode,
           }
         );
-        return episode;
+        return savedEpisode;
       },
       {
         connectionName: 'content',

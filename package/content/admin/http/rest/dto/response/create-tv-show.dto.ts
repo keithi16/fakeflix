@@ -4,9 +4,6 @@ export class CreateTvShowResponseDto {
   @IsUUID()
   @IsNotEmpty()
   readonly id: string;
-  @IsUUID()
-  @IsNotEmpty()
-  readonly tvShowId: string;
   @IsString()
   @IsNotEmpty()
   readonly title: string;

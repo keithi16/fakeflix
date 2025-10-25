@@ -4,7 +4,6 @@ import { createNestApp } from '@tlc/shared-lib/test';
 import { ConfigModule, ConfigService } from '@tlc/shared-module/config';
 import knex, { Knex } from 'knex';
 import nock, { cleanAll } from 'nock';
-import { contentFactory } from '../../../../../__test__/factory/content.factory';
 import { movieFactory } from '../../../../../__test__/factory/movie.factory';
 import { videoMetadataFactory } from '../../../../../__test__/factory/video-metadata.factory';
 import { videoFactory } from '../../../../../__test__/factory/video.factory';
@@ -56,21 +55,16 @@ describe('SetAgeRecommendationUseCase', () => {
   });
 
   it('analyzes the age recomendation for the video and updates the content', async () => {
-    const content = contentFactory.build({
+    const movieContent = movieFactory.build({
       ageRecommendation: 10,
-    });
-    const movie = movieFactory.build({
-      contentId: content.id,
     });
     const video = videoFactory.build({
       url: `${CONTENT_TEST_FIXTURES}/sample.mp4`,
-      movieId: movie.id,
     });
     const videoMetadata = videoMetadataFactory.build({
       videoId: video.id,
     });
-    await testDbClient('Content').insert(content);
-    await testDbClient('Movie').insert(movie);
+    await testDbClient('Content').insert(movieContent);
     await testDbClient('Video').insert(video);
     await testDbClient('VideoMetadata').insert(videoMetadata);
 

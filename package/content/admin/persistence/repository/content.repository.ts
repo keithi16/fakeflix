@@ -1,12 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { InjectDataSource } from '@nestjs/typeorm';
-import { NotFoundDomainException } from '@tlc/shared-lib/common';
 import { DefaultTypeOrmRepository } from '@tlc/shared-module/typeorm';
 import { DataSource } from 'typeorm';
 import { ContentType } from '../../../shared/core/enum/content-type.enum';
-import { Content } from '../../../shared/persistence/entity/content.entity';
-import { MovieContentModel } from '../../core/model/movie-content.model';
-import { TvShowContentModel } from '../../core/model/tv-show-content.model';
+import { Content, MovieContent, TvShowContent } from '../../../shared/core';
+import { isMovieContent, isTvShowContent } from '../../../shared/core';
 
 @Injectable()
 export class ContentRepository extends DefaultTypeOrmRepository<Content> {
@@ -17,124 +15,95 @@ export class ContentRepository extends DefaultTypeOrmRepository<Content> {
     super(Content, dataSource.manager);
   }
 
-  async saveMovieOrTvShow(entity: MovieContentModel): Promise<MovieContentModel>;
-  async saveMovieOrTvShow(entity: TvShowContentModel): Promise<TvShowContentModel>;
-  async saveMovieOrTvShow(
-    entity: MovieContentModel | TvShowContentModel
-  ): Promise<MovieContentModel | TvShowContentModel>;
-  async saveMovieOrTvShow(
-    entity: MovieContentModel | TvShowContentModel
-  ): Promise<MovieContentModel | TvShowContentModel> {
-    if (entity.type === ContentType.MOVIE) {
-      return this.saveMovie(entity as MovieContentModel);
+  async save(content: Content): Promise<Content> {
+    // Handle special case for TvShowContent episodes
+    if (isTvShowContent(content) && content.episodes) {
+      const episodes = content.episodes;
+      const savedContent = await super.save(content);
+
+      // Saves the relations from the ManyToOne relationship side to avoid replacement
+      if (Array.isArray(episodes) && episodes.length > 0) {
+        await this.transactionalEntityManager.save(episodes);
+      }
+
+      return savedContent;
     }
-    if (entity.type === ContentType.TV_SHOW) {
-      return this.saveTvShow(entity as TvShowContentModel);
-    }
-    throw new NotFoundDomainException(`Content type ${entity.type} not found`);
+
+    return await super.save(content);
   }
 
-  private async saveMovie(entity: MovieContentModel): Promise<MovieContentModel> {
-    const content = new Content({
-      id: entity.id,
-      title: entity.title,
-      description: entity.description,
-      ageRecommendation: entity.ageRecommendation,
-      type: entity.type,
-      movie: entity.movie,
-    });
-    const savedContent = await super.save(content);
+  async saveMovieContent(content: MovieContent): Promise<MovieContent> {
+    const saved = await this.save(content);
 
-    if (!savedContent.movie) {
-      throw new NotFoundDomainException(`Movie not found for content ${savedContent.id}`);
+    // Re-fetch with relations to ensure everything is loaded
+    const movieContent = await this.findMovieContentById(saved.id);
+    if (!movieContent) {
+      throw new Error(`Failed to properly save movie content with id ${saved.id}`);
     }
-    return this.mapToMovieContentModel(savedContent);
+
+    return movieContent;
   }
-  private async saveTvShow(entity: TvShowContentModel): Promise<TvShowContentModel> {
-    const episodes = entity.tvShow.episodes;
-    //Saves content and tvShow but skips the episodes
-    const content = new Content({
-      id: entity.id,
-      title: entity.title,
-      description: entity.description,
-      type: entity.type,
-      ageRecommendation: entity.ageRecommendation,
-      releaseDate: entity.releaseDate,
-      tvShow: entity.tvShow,
+
+  async saveTvShowContent(content: TvShowContent): Promise<TvShowContent> {
+    const saved = await this.save(content);
+
+    // Re-fetch with relations to ensure everything is loaded
+    const tvShowContent = await this.findTvShowContentById(saved.id);
+    if (!tvShowContent) {
+      throw new Error(`Failed to properly save tv show content with id ${saved.id}`);
+    }
+
+    return tvShowContent;
+  }
+
+  async findMovieContentById(id: string): Promise<MovieContent | null> {
+    const content = await this.findOne({
+      where: { id, type: ContentType.MOVIE },
+      relations: ['video', 'thumbnail'],
     });
 
-    await super.save(content);
-    //saves the relations from the ManyToOne relationship side to avoid replacement
-    if (Array.isArray(episodes) && episodes.length > 0) {
-      await this.transactionalEntityManager.save(episodes);
-    }
-
-    if (!content.tvShow) {
-      throw new NotFoundDomainException(`Tv show not found for content ${content.id}`);
-    }
-    return this.mapToTvShowContentModel(content);
+    return isMovieContent(content) ? content : null;
   }
 
   async findTvShowContentById(
     id: string,
-    relations: string[]
-  ): Promise<TvShowContentModel | null> {
-    const content = await super.findOneById(id, relations);
+    additionalRelations?: string[]
+  ): Promise<TvShowContent | null> {
+    const defaultRelations = ['thumbnail'];
+    const allRelations = additionalRelations
+      ? [...defaultRelations, ...additionalRelations]
+      : defaultRelations;
 
-    //Ensure the content is the type tvShow
-    if (!content || !content.tvShow) {
-      return null;
-    }
+    const content = await this.findOne({
+      where: { id, type: ContentType.TV_SHOW },
+      relations: allRelations,
+    });
 
-    return this.mapToTvShowContentModel(content);
+    return isTvShowContent(content) ? content : null;
   }
 
-  async findContentByVideoId(
-    videoId: string
-  ): Promise<TvShowContentModel | MovieContentModel | null> {
-    const content = await this.transactionalEntityManager
-      .createQueryBuilder(Content, 'content')
-      .leftJoinAndSelect('content.movie', 'movie')
-      .leftJoinAndSelect('movie.video', 'movieVideo')
-      .leftJoinAndSelect('content.tvShow', 'tvShow')
-      .leftJoinAndSelect('tvShow.episodes', 'episode')
-      .leftJoinAndSelect('episode.video', 'episodeVideo')
-      .where('movieVideo.id = :videoId OR episodeVideo.id = :videoId', { videoId })
+  async findContentByVideoId(videoId: string): Promise<Content | null> {
+    // For MovieContent, check if video.id matches
+    const movieContent = await this.transactionalEntityManager
+      .createQueryBuilder(MovieContent, 'content')
+      .leftJoinAndSelect('content.video', 'video')
+      .leftJoinAndSelect('content.thumbnail', 'thumbnail')
+      .where('video.id = :videoId', { videoId })
       .getOne();
 
-    if (!content || (!content.movie && !content.tvShow)) {
-      return null;
+    if (movieContent) {
+      return movieContent;
     }
-    if (content.tvShow) {
-      return this.mapToTvShowContentModel(content);
-    }
-    if (content.movie) {
-      return this.mapToMovieContentModel(content);
-    }
-    return null;
-  }
 
-  private mapToMovieContentModel(content: Content): MovieContentModel {
-    return new MovieContentModel({
-      id: content.id,
-      title: content.title,
-      description: content.description,
-      ageRecommendation: content.ageRecommendation,
-      createdAt: content.createdAt,
-      updatedAt: content.updatedAt,
-      deletedAt: content.deletedAt,
-      movie: content.movie!,
-    });
-  }
-  private mapToTvShowContentModel(content: Content): TvShowContentModel {
-    return new TvShowContentModel({
-      id: content.id,
-      title: content.title,
-      description: content.description,
-      createdAt: content.createdAt,
-      updatedAt: content.updatedAt,
-      deletedAt: content.deletedAt,
-      tvShow: content.tvShow!,
-    });
+    // For TvShowContent, check if any episode's video matches
+    const tvShowContent = await this.transactionalEntityManager
+      .createQueryBuilder(TvShowContent, 'content')
+      .leftJoinAndSelect('content.episodes', 'episode')
+      .leftJoinAndSelect('episode.video', 'episodeVideo')
+      .leftJoinAndSelect('content.thumbnail', 'thumbnail')
+      .where('episodeVideo.id = :videoId', { videoId })
+      .getOne();
+
+    return tvShowContent;
   }
 }

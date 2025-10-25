@@ -33,7 +33,7 @@
     "db:generate": {
       "executor": "nx:run-commands",
       "options": {
-        "command": "ts-node -r tsconfig-paths/register -P {projectRoot}/tsconfig.lib.json  ./node_modules/typeorm/cli.js migration:generate {projectRoot}/persistence/migration/migration",
+        "command": "ts-node -r tsconfig-paths/register -P {projectRoot}/tsconfig.lib.json  ./node_modules/typeorm/cli.js migration:generate {projectRoot}/shared/persistence/migration/migration",
         "args": ["-d {projectRoot}/shared/persistence/typeorm-datasource.ts"]
       }
     },

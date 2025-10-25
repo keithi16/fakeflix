@@ -1,6 +1,6 @@
 import { JwtService } from '@nestjs/jwt';
 import { Test, TestingModule } from '@nestjs/testing';
-import { BillingSubscriptionStatusApi } from '@tlc/shared-module/integration';
+import { BillingSubscriptionStatusApi } from '@tlc/shared-module/public-api';
 import { hashSync } from 'bcrypt';
 import { User } from '../../../../persistence/entity/user.entity';
 import { UserRepository } from '../../../../persistence/repository/user.repository';

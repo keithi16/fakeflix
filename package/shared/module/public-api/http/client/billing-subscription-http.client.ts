@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { ConfigService } from '../../../config/service/config.service';
 import { HttpClient } from '../../../http-client/client/http.client';
 import { BillingApiUserSubscriptionActiveResponseDto } from '../dto/response/billing-api-subscription-status-response.dto';
-import { BillingSubscriptionStatusApi } from '../../interface/billing-integration.interface';
+import { BillingSubscriptionStatusApi } from '../../interface/billing-public-api.interface';
 
 @Injectable()
 export class BillingSubscriptionHttpClient implements BillingSubscriptionStatusApi {
@@ -31,3 +31,4 @@ export class BillingSubscriptionHttpClient implements BillingSubscriptionStatusA
     return isActive;
   }
 }
+

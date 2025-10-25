@@ -19,4 +19,8 @@ export const dataSourceOptionsFactory = (
   migrationsRun: false,
   migrationsTableName: 'content_migrations',
   logging: false,
+  extra: {
+    // Converte bigint para number ao invés de string
+    bigNumberStrings: false,
+  },
 });

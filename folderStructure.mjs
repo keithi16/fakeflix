@@ -81,11 +81,15 @@ export const folderStructureConfig = createFolderStructure({
                   ],
                 },
                 {
-                  name: 'integration',
+                  name: 'public-api',
                   children: [
                     {
-                      name: 'provider',
-                      ruleId: 'finalDirectoryWithUnitTests_integrationProvider',
+                      name: 'facade',
+                      ruleId: 'finalDirectoryWithUnitTests_facade',
+                    },
+                    {
+                      name: 'interface',
+                      children: [{ name: '*.interface.ts' }],
                     },
                   ],
                 },
@@ -312,8 +316,7 @@ export const folderStructureConfig = createFolderStructure({
     finalDirectoryWithUnitTests_eventHandler:
       finalDirectoryWithUnitTestsBuilder('event-handler'),
     finalDirectoryWithUnitTests_httpClient: finalDirectoryWithUnitTestsBuilder('client'),
-    finalDirectoryWithUnitTests_integrationProvider:
-      finalDirectoryWithUnitTestsBuilder('provider'),
+    finalDirectoryWithUnitTests_facade: finalDirectoryWithUnitTestsBuilder('facade'),
     tsOnlyFiles: {
       children: [{ name: '*.ts' }],
     },

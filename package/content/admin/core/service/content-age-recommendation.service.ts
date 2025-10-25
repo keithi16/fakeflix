@@ -1,11 +1,10 @@
 import { Injectable } from '@nestjs/common';
-import { MovieContentModel } from '../model/movie-content.model';
-import { TvShowContentModel } from '../model/tv-show-content.model';
+import { Content } from '../../../shared/persistence/entity/content.entity';
 
 @Injectable()
 export class ContentAgeRecommendationService {
   setAgeRecommendationForContent(
-    content: TvShowContentModel | MovieContentModel,
+    content: Content,
     lastAgeRecommendation: number
   ): void {
     /**

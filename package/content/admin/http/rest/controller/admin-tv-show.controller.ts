@@ -58,17 +58,16 @@ export class AdminTvShowController {
     )
     thumbnail: Express.Multer.File
   ): Promise<CreateTvShowResponseDto> {
-    const content = await this.createTvShowUseCase.execute({
+    const createdContent = await this.createTvShowUseCase.execute({
       title: contentData.title,
       description: contentData.description,
       thumbnailUrl: thumbnail.path,
     });
     return {
-      id: content.id,
-      tvShowId: content.tvShow.id,
-      title: content.title,
-      description: content.description,
-      thumbnailUrl: content.tvShow?.thumbnail?.url,
+      id: createdContent.id,
+      title: createdContent.title,
+      description: createdContent.description,
+      thumbnailUrl: createdContent.thumbnail?.url,
     };
   }
 

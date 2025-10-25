@@ -4,7 +4,6 @@ import { createNestApp } from '@tlc/shared-lib/test';
 import { ConfigModule, ConfigService } from '@tlc/shared-module/config';
 import knex, { Knex } from 'knex';
 import nock, { cleanAll } from 'nock';
-import { contentFactory } from '../../../../../__test__/factory/content.factory';
 import { movieFactory } from '../../../../../__test__/factory/movie.factory';
 import { videoMetadataFactory } from '../../../../../__test__/factory/video-metadata.factory';
 import { videoFactory } from '../../../../../__test__/factory/video.factory';
@@ -56,19 +55,14 @@ describe('GenerateSummaryForVideoUseCase', () => {
   });
 
   it('generates a summary for a video with existing metadata', async () => {
-    const content = contentFactory.build();
-    const movie = movieFactory.build({
-      contentId: content.id,
-    });
+    const movieContent = movieFactory.build();
     const video = videoFactory.build({
       url: `${CONTENT_TEST_FIXTURES}/sample.mp4`,
-      movieId: movie.id,
     });
     const videoMetadata = videoMetadataFactory.build({
       videoId: video.id,
     });
-    await testDbClient('Content').insert(content);
-    await testDbClient('Movie').insert(movie);
+    await testDbClient('Content').insert(movieContent);
     await testDbClient('Video').insert(video);
     await testDbClient('VideoMetadata').insert(videoMetadata);
 
@@ -107,16 +101,11 @@ describe('GenerateSummaryForVideoUseCase', () => {
 
   it('creates new metadata when no metadata exists for the video', async () => {
     // Create content without metadata
-    const content = contentFactory.build();
-    const movie = movieFactory.build({
-      contentId: content.id,
-    });
+    const movieContent = movieFactory.build();
     const video = videoFactory.build({
       url: `${CONTENT_TEST_FIXTURES}/sample.mp4`,
-      movieId: movie.id,
     });
-    await testDbClient('Content').insert(content);
-    await testDbClient('Movie').insert(movie);
+    await testDbClient('Content').insert(movieContent);
     await testDbClient('Video').insert(video);
 
     nock('https://generativelanguage.googleapis.com')
@@ -156,16 +145,11 @@ describe('GenerateSummaryForVideoUseCase', () => {
   });
 
   it('handles API errors during summary generation', async () => {
-    const content = contentFactory.build();
-    const movie = movieFactory.build({
-      contentId: content.id,
-    });
+    const movieContent = movieFactory.build();
     const video = videoFactory.build({
       url: `${CONTENT_TEST_FIXTURES}/sample.mp4`,
-      movieId: movie.id,
     });
-    await testDbClient('Content').insert(content);
-    await testDbClient('Movie').insert(movie);
+    await testDbClient('Content').insert(movieContent);
     await testDbClient('Video').insert(video);
 
     // Mock the API to throw an error

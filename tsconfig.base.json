@@ -31,7 +31,7 @@
       "@tlc/shared-module/config": ["package/shared/module/config/index.ts"],
       "@tlc/shared-module/event": ["package/shared/module/event/index.ts"],
       "@tlc/shared-module/http-client": ["package/shared/module/http-client/index.ts"],
-      "@tlc/shared-module/integration": ["package/shared/module/integration/index.ts"],
+      "@tlc/shared-module/public-api": ["package/shared/module/public-api/index.ts"],
       "@tlc/shared-module/logger": ["package/shared/module/logger/index.ts"],
       "@tlc/shared-module/typeorm": ["package/shared/module/typeorm/index.ts"]
     },

@@ -1,7 +1,7 @@
 import { DefaultEntity } from '@tlc/shared-module/typeorm';
 import { Column, Entity, JoinColumn, ManyToOne, OneToOne } from 'typeorm';
+import { TvShowContent } from './content.entity';
 import { Thumbnail } from './thumbnail.entity';
-import { TvShow } from './tv-show.entity';
 import { Video } from './video.entity';
 
 @Entity('Episode')
@@ -21,8 +21,8 @@ export class Episode extends DefaultEntity<Episode> {
   @Column()
   tvShowId: string;
 
-  @ManyToOne(() => TvShow, (tvShow) => tvShow.episodes)
-  tvShow: TvShow;
+  @ManyToOne(() => TvShowContent, (tvShow) => tvShow.episodes)
+  tvShow: TvShowContent;
 
   @OneToOne(() => Thumbnail)
   @JoinColumn()

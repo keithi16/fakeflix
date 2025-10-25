@@ -6,8 +6,8 @@ import { AuthModule } from '@tlc/shared-module/auth';
 import {
   BillingSubscriptionHttpClient,
   BillingSubscriptionStatusApi,
-  DomainModuleIntegrationModule,
-} from '@tlc/shared-module/integration';
+  PublicApiModule,
+} from '@tlc/shared-module/public-api';
 import { AuthService } from './core/service/authentication.service';
 import { UserManagementService } from './core/service/user-management.service';
 import { AuthResolver } from './http/graphql/resolver/auth.resolver';
@@ -22,7 +22,7 @@ import { UserRepository } from './persistence/repository/user.repository';
       driver: ApolloDriver,
     }),
     IdentityPersistenceModule,
-    DomainModuleIntegrationModule,
+    PublicApiModule,
     AuthModule,
   ],
   providers: [

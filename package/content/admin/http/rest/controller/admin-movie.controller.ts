@@ -77,7 +77,7 @@ export class AdminMovieController {
       throw new BadRequestException('Thumbnail size exceeds the limit.');
     }
 
-    const createdMovie = await this.createMovieUseCase.execute({
+    const createdContent = await this.createMovieUseCase.execute({
       title: contentData.title,
       description: contentData.description,
       videoUrl: videoFile.path,
@@ -86,13 +86,13 @@ export class AdminMovieController {
       sizeInKb: videoFile.size,
     });
     return {
-      id: createdMovie.id,
-      title: createdMovie.title,
-      description: createdMovie.description,
-      videoUrl: createdMovie.movie.video.url,
-      thumbnailUrl: createdMovie.movie.thumbnail?.url,
-      sizeInKb: createdMovie.movie.video.sizeInKb,
-      duration: createdMovie.movie.video.duration,
+      id: createdContent.id,
+      title: createdContent.title,
+      description: createdContent.description,
+      videoUrl: createdContent.video.url,
+      thumbnailUrl: createdContent.thumbnail?.url,
+      sizeInKb: createdContent.video.sizeInKb,
+      duration: createdContent.video.duration,
     };
   }
 }

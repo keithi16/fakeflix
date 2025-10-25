@@ -11,7 +11,7 @@ export class EpisodeLifecycleService {
     const episodeWithSameSeasonAndNumber = await this.episodeRepository.existsBy({
       season: episode.season,
       number: episode.number,
-      tvShowId: episode.tvShow.id,
+      tvShowId: episode.tvShowId,
     });
     if (episodeWithSameSeasonAndNumber) {
       //this is not a domain exception
@@ -21,7 +21,7 @@ export class EpisodeLifecycleService {
     }
 
     const lastEpisode = await this.episodeRepository.findByLastEpisodeByTvShowAndSeason(
-      episode.tvShow.contentId,
+      episode.tvShowId,
       episode.season
     );
     if (lastEpisode && lastEpisode.number + 1 !== episode.number) {

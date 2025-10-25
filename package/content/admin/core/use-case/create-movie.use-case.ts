@@ -1,12 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { AppLogger } from '@tlc/shared-module/logger';
 import { runInTransaction } from 'typeorm-transactional';
-import { Movie } from '../../../shared/persistence/entity/movie.entity';
+import { MovieContent } from '../../../shared/core';
 import { Thumbnail } from '../../../shared/persistence/entity/thumbnail.entity';
 import { Video } from '../../../shared/persistence/entity/video.entity';
 import { ExternalMovieRatingClient } from '../../http/client/external-movie-rating/external-movie-rating.client';
 import { ContentRepository } from '../../persistence/repository/content.repository';
-import { MovieContentModel } from '../model/movie-content.model';
 import { VideoProcessorService } from '../service/video-processor.service';
 
 export interface ExternalMovieRating {
@@ -30,37 +29,31 @@ export class CreateMovieUseCase {
     thumbnailUrl?: string;
     duration: number;
     sizeInKb: number;
-  }): Promise<MovieContentModel> {
+  }): Promise<MovieContent> {
     const externalRating = await this.externalMovieRatingClient.getRating(video.title);
-    const contentModel = new MovieContentModel({
+    
+    const content = MovieContent.create({
       title: video.title,
       description: video.description,
       ageRecommendation: null,
-      movie: new Movie({
-        externalRating: externalRating ?? null,
-        video: new Video({
-          url: video.videoUrl,
-          sizeInKb: video.sizeInKb,
-        }),
+      externalRating: externalRating ?? null,
+      video: new Video({
+        url: video.videoUrl,
+        sizeInKb: video.sizeInKb,
       }),
-    });
-
-    if (video.thumbnailUrl) {
-      contentModel.movie.thumbnail = new Thumbnail({
+      thumbnail: video.thumbnailUrl ? new Thumbnail({
         url: video.thumbnailUrl,
-      });
-    }
+      }) : null,
+    });
 
     return await runInTransaction(
       async () => {
-        const content = await this.contentRepository.saveMovieOrTvShow(contentModel);
-        await this.videoProcessorService.processMetadataAndModeration(
-          contentModel.movie.video
-        );
-        this.appLogger.log(`Created movie with id ${content.id}`, {
-          contentBody: content,
+        const savedContent = await this.contentRepository.saveMovieContent(content);
+        await this.videoProcessorService.processMetadataAndModeration(savedContent.video);
+        this.appLogger.log(`Created movie with id ${savedContent.id}`, {
+          contentBody: savedContent,
         });
-        return content;
+        return savedContent;
       },
       {
         connectionName: 'content',

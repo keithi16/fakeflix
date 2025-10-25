@@ -17,7 +17,7 @@ import { SubscriptionBillingController } from './http/rest/controller/subscripti
 import { InvoiceController } from './http/rest/controller/invoice.controller';
 import { UsageController } from './http/rest/controller/usage.controller';
 import { CreditController } from './http/rest/controller/credit.controller';
-import { BillingPublicApiProvider } from './integration/provider/public-api.provider';
+import { BillingFacade } from './public-api/facade/billing.facade';
 import { EasyTaxClient } from './http/client/easytax-api/easytax-tax.client';
 import { PaymentGatewayClient } from './http/client/payment-gateway-api/payment-gateway.client';
 import { AccountingIntegrationClient } from './http/client/accounting-api/accounting-integration.client';
@@ -44,8 +44,8 @@ const httpClients = [
   AccountingIntegrationClient,
 ];
 
-const integrationProviders = [
-  BillingPublicApiProvider,
+const publicApiFacades = [
+  BillingFacade,
 ];
 
 @Module({
@@ -58,7 +58,7 @@ const integrationProviders = [
     AuthModule,
     LoggerModule,
   ],
-  providers: [...coreServices, ...httpClients, ...integrationProviders],
+  providers: [...coreServices, ...httpClients, ...publicApiFacades],
   controllers: [
     SubscriptionController,
     SubscriptionBillingController,
@@ -66,7 +66,7 @@ const integrationProviders = [
     UsageController,
     CreditController,
   ],
-  exports: [BillingPublicApiProvider, ...coreServices],
+  exports: [BillingFacade, ...coreServices],
 })
 export class BillingModule {}
 

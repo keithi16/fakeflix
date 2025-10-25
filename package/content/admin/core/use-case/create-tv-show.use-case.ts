@@ -1,8 +1,7 @@
 import { Injectable } from '@nestjs/common';
-import { TvShowContentModel } from '../model/tv-show-content.model';
-import { ContentRepository } from '../../persistence/repository/content.repository';
+import { TvShowContent } from '../../../shared/core';
 import { Thumbnail } from '../../../shared/persistence/entity/thumbnail.entity';
-import { TvShow } from '../../../shared/persistence/entity/tv-show.entity';
+import { ContentRepository } from '../../persistence/repository/content.repository';
 
 @Injectable()
 export class CreateTvShowUseCase {
@@ -13,18 +12,17 @@ export class CreateTvShowUseCase {
     title: string;
     description: string;
     thumbnailUrl?: string;
-  }): Promise<TvShowContentModel> {
-    const content = new TvShowContentModel({
+  }): Promise<TvShowContent> {
+    const content = TvShowContent.create({
       title: tvShow.title,
       description: tvShow.description,
-      tvShow: new TvShow({}),
+      ageRecommendation: null,
+      releaseDate: null,
+      thumbnail: tvShow.thumbnailUrl ? new Thumbnail({
+        url: tvShow.thumbnailUrl,
+      }) : undefined,
     });
 
-    if (tvShow.thumbnailUrl && content.tvShow) {
-      content.tvShow.thumbnail = new Thumbnail({
-        url: tvShow.thumbnailUrl,
-      });
-    }
-    return await this.contentRepository.saveMovieOrTvShow(content);
+    return await this.contentRepository.saveTvShowContent(content);
   }
 }

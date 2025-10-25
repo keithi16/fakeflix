@@ -6,9 +6,9 @@ import { Video } from '../../../shared/persistence/entity/video.entity';
 export class VideoProcessorService {
   constructor(private readonly videoProcessingJobProducer: VideoProcessingJobProducer) {}
 
-  async processMetadataAndModeration(video: Video) {
+  async processMetadataAndModeration(video: Video): Promise<void> {
     //Triggers the async processing of video metadata and moderation
-    return Promise.all([
+    await Promise.all([
       this.videoProcessingJobProducer.processRecommendation(video),
       this.videoProcessingJobProducer.processTranscript(video),
       this.videoProcessingJobProducer.processSummary(video),

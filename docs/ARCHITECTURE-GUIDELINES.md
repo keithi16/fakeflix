@@ -53,8 +53,8 @@ packages/billing/
 │   │   └── repository/   # Repository implementations
 │   ├── http/            # Internal - never exported
 │   │   └── rest/        # REST controllers and DTOs
-│   ├── integration/     # Public interfaces - exported
-│   │   └── provider/    # Public API providers
+│   ├── public-api/      # Public interfaces - exported
+│   │   └── facade/      # Public API facades
 │   └── index.ts         # Only exports public API
 └── package.json
 ```
@@ -143,9 +143,9 @@ export class BillingModule {}
       middleware: { mount: true },
     }),
   ],
-  providers: [SubscriptionService, BillingPublicApiProvider],
+  providers: [SubscriptionService, BillingFacade],
   controllers: [SubscriptionController],
-  exports: [BillingPublicApiProvider],
+  exports: [BillingFacade],
 })
 export class BillingModule {}
 
@@ -155,7 +155,7 @@ export interface BillingSubscriptionStatusApi {
 }
 
 @Injectable()
-export class BillingPublicApiProvider implements BillingSubscriptionStatusApi {
+export class BillingFacade implements BillingSubscriptionStatusApi {
   constructor(private readonly subscriptionService: SubscriptionService) {}
 
   public async isUserSubscriptionActive(userId: string): Promise<boolean> {
@@ -309,7 +309,7 @@ export class SubscriptionService implements BillingSubscriptionStatusApi {
 }
 
 // ✅ GOOD: Consumer uses only the contract
-// packages/shared/module/integration/http/client/billing-subscription-http.client.ts
+// packages/shared/module/public-api/http/client/billing-subscription-http.client.ts
 @Injectable()
 export class BillingSubscriptionHttpClient implements BillingSubscriptionStatusApi {
   constructor(
@@ -394,14 +394,14 @@ export class VideoTranscriptionConsumer {
 
 ```typescript
 // ✅ GOOD: Replaceable payment service design
-// packages/shared/src/interfaces/payment.interface.ts
+// packages/shared/module/public-api/interface/payment.interface.ts
 export interface PaymentServiceContract {
   processPayment(request: PaymentRequest): Promise<PaymentResult>;
   refundPayment(paymentId: string): Promise<RefundResult>;
 }
 
 // ✅ GOOD: Multiple implementations of the same interface
-// packages/billing/src/integration/provider/stripe-payment.provider.ts
+// packages/billing/src/public-api/facade/stripe-payment.facade.ts
 @Injectable()
 export class StripePaymentProvider implements PaymentServiceContract {
   async processPayment(request: PaymentRequest): Promise<PaymentResult> {
@@ -409,7 +409,7 @@ export class StripePaymentProvider implements PaymentServiceContract {
   }
 }
 
-// packages/billing/src/integration/provider/paypal-payment.provider.ts
+// packages/billing/src/public-api/facade/paypal-payment.facade.ts
 @Injectable()
 export class PayPalPaymentProvider implements PaymentServiceContract {
   async processPayment(request: PaymentRequest): Promise<PaymentResult> {
@@ -632,7 +632,7 @@ export class BillingPersistenceModule {}
 export class ContentSharedPersistenceModule {}
 
 // ✅ GOOD: Cross-module data access via HTTP client
-// packages/shared/module/integration/http/client/billing-subscription-http.client.ts
+// packages/shared/module/public-api/http/client/billing-subscription-http.client.ts
 @Injectable()
 export class BillingSubscriptionHttpClient implements BillingSubscriptionStatusApi {
   constructor(
@@ -1734,7 +1734,7 @@ export class VideoProcessingJobProducer {
 }
 
 // ✅ GOOD: Timeout and retry configuration
-// packages/billing/src/integration/provider/payment-gateway.provider.ts
+// packages/billing/src/public-api/facade/payment-gateway.facade.ts
 @Injectable()
 export class PaymentGatewayProvider {
   constructor(private httpService: HttpService) {}
@@ -1919,8 +1919,8 @@ packages/[domain]/
 │   │   ├── entity/          # Database entities
 │   │   ├── repository/      # Repository implementations
 │   │   └── migration/       # Database migrations
-│   ├── integration/         # External Service Integration
-│   │   └── provider/        # Public API providers
+│   ├── public-api/          # Public Module API
+│   │   └── facade/          # Public API facades
 │   ├── queue/               # Message Queue Layer (Content only)
 │   │   ├── consumer/        # Queue consumers
 │   │   └── producer/        # Queue producers

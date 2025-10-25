@@ -21,7 +21,7 @@ export class SetAgeRecommendationForContentUseCase {
       content,
       ageRecommendation
     );
-    await this.contentRepository.saveMovieOrTvShow(content);
+    await this.contentRepository.save(content);
     this.logger.log(
       `Set age recommendation for content with video ID ${videoId} to ${ageRecommendation}`
     );

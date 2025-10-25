@@ -1,6 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { BillingSubscriptionStatusApi } from '@tlc/shared-module/integration';
+import { BillingSubscriptionStatusApi } from '@tlc/shared-module/public-api';
 import { compare } from 'bcrypt';
 import { UserRepository } from '../../persistence/repository/user.repository';
 import { UserUnauthorizedException } from '../exception/user-unauthorized.exception';
