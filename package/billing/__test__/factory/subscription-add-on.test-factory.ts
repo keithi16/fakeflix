@@ -1,4 +1,4 @@
-import { faker } from '@faker-js/faker/.';
+import { faker } from '@faker-js/faker';
 import * as Factory from 'factory.ts';
 import { SubscriptionAddOn } from '../../persistence/entity/subscription-add-on.entity';
 

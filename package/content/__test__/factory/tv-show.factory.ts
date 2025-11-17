@@ -1,4 +1,4 @@
-import { faker } from '@faker-js/faker/.';
+import { faker } from '@faker-js/faker';
 import { TvShowContent } from '../../shared/persistence/entity/content.entity';
 import { ContentType } from '../../shared/core/enum/content-type.enum';
 

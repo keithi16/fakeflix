@@ -1,4 +1,4 @@
-import { faker } from '@faker-js/faker/.';
+import { faker } from '@faker-js/faker';
 import * as Factory from 'factory.ts';
 import { Credit } from '../../persistence/entity/credit.entity';
 import { CreditType } from '../../core/enum/credit-type.enum';

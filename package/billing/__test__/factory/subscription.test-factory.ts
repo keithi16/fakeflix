@@ -1,4 +1,4 @@
-import { faker } from '@faker-js/faker/.';
+import { faker } from '@faker-js/faker';
 
 import { SubscriptionStatus } from '../../core/enum/subscription-status.enum';
 import { Subscription } from '../../persistence/entity/subscription.entity';

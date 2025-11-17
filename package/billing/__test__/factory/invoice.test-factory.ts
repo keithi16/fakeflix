@@ -1,4 +1,4 @@
-import { faker } from '@faker-js/faker/.';
+import { faker } from '@faker-js/faker';
 import * as Factory from 'factory.ts';
 import { Invoice } from '../../persistence/entity/invoice.entity';
 import { InvoiceStatus } from '../../core/enum/invoice-status.enum';

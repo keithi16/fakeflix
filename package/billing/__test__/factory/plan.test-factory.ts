@@ -1,4 +1,4 @@
-import { faker } from '@faker-js/faker/.';
+import { faker } from '@faker-js/faker';
 import { PlanInterval } from '../../core/enum/plan-interval.enum';
 import { Plan } from '../../persistence/entity/plan.entity';
 

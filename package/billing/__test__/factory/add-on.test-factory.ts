@@ -1,4 +1,4 @@
-import { faker } from '@faker-js/faker/.';
+import { faker } from '@faker-js/faker';
 import * as Factory from 'factory.ts';
 import { AddOn } from '../../persistence/entity/add-on.entity';
 import { AddOnType } from '../../core/enum/add-on-type.enum';

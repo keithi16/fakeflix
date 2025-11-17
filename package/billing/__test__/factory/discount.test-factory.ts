@@ -1,4 +1,4 @@
-import { faker } from '@faker-js/faker/.';
+import { faker } from '@faker-js/faker';
 import * as Factory from 'factory.ts';
 import { Discount } from '../../persistence/entity/discount.entity';
 import { DiscountType } from '../../core/enum/discount-type.enum';

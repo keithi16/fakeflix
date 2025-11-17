@@ -1,4 +1,4 @@
-import { faker } from '@faker-js/faker/.';
+import { faker } from '@faker-js/faker';
 import * as Factory from 'factory.ts';
 import { UsageRecord } from '../../persistence/entity/usage-record.entity';
 import { UsageType } from '../../core/enum/usage-type.enum';
