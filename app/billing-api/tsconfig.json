@@ -1,4 +1,15 @@
 {
   "extends": "../../tsconfig.base.json",
-  "include": ["**/*.ts"]
+  "include": ["**/*.ts"],
+  "references": [
+    {
+      "path": "../../package/billing/tsconfig.lib.json"
+    },
+    {
+      "path": "../../package/shared/lib/tsconfig.lib.json"
+    },
+    {
+      "path": "../../package/shared/module/tsconfig.lib.json"
+    }
+  ]
 }

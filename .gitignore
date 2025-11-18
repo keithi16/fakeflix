@@ -1,5 +1,6 @@
 # Compiled output
 /dist
+/.tsbuild
 /node_modules
 #temporary folder for uploads
 /uploads

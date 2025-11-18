@@ -129,6 +129,11 @@
   },
   "nx": {},
   "workspaces": [
-    "package/*"
+    "app/*",
+    "package/billing",
+    "package/content",
+    "package/identity",
+    "package/shared/lib",
+    "package/shared/module"
   ]
 }

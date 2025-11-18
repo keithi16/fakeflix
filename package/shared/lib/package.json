@@ -1,0 +1,18 @@
+{
+  "name": "@tlc/shared-lib",
+  "version": "1.0.0",
+  "private": true,
+  "exports": {
+    ".": "./index.ts",
+    "./common": "./index.ts",
+    "./test": "./test/index.ts"
+  },
+  "typesVersions": {
+    "*": {
+      ".": ["./index.ts"],
+      "common": ["./index.ts"],
+      "test": ["./test/index.ts"]
+    }
+  }
+}
+

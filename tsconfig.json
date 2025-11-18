@@ -1,0 +1,14 @@
+{
+  "extends": "./tsconfig.base.json",
+  "files": [],
+  "references": [
+    { "path": "./package/shared/lib/tsconfig.lib.json" },
+    { "path": "./package/shared/module/tsconfig.lib.json" },
+    { "path": "./package/billing/tsconfig.lib.json" },
+    { "path": "./package/content/tsconfig.lib.json" },
+    { "path": "./package/identity/tsconfig.lib.json" },
+    { "path": "./app/billing-api" },
+    { "path": "./app/monolith" }
+  ]
+}
+

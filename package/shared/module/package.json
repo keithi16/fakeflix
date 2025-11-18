@@ -1,0 +1,26 @@
+{
+  "name": "@tlc/shared-module",
+  "version": "1.0.0",
+  "private": true,
+  "exports": {
+    "./auth": "./auth/index.ts",
+    "./config": "./config/index.ts",
+    "./event": "./event/index.ts",
+    "./http-client": "./http-client/index.ts",
+    "./logger": "./logger/index.ts",
+    "./public-api": "./public-api/index.ts",
+    "./typeorm": "./typeorm/index.ts"
+  },
+  "typesVersions": {
+    "*": {
+      "auth": ["./auth/index.ts"],
+      "config": ["./config/index.ts"],
+      "event": ["./event/index.ts"],
+      "http-client": ["./http-client/index.ts"],
+      "logger": ["./logger/index.ts"],
+      "public-api": ["./public-api/index.ts"],
+      "typeorm": ["./typeorm/index.ts"]
+    }
+  }
+}
+
