@@ -3,8 +3,6 @@
     "allowJs": false,
     "allowSyntheticDefaultImports": true,
     "alwaysStrict": true,
-    "baseUrl": ".",
-    "rootDir": ".",
     "checkJs": false,
     "declaration": true,
     "declarationMap": true,

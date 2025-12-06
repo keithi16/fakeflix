@@ -16,26 +16,62 @@ The billing module manages the complete lifecycle of subscription billing for a 
 
 ## 🏗️ Architecture
 
-The module follows **modular architecture principles** with clear separation:
+The module follows **Feature Folders** (Vertical Slice Architecture) with a **single NestJS module**:
+
+> 📖 **Detailed Guide**: See [FEATURE-FOLDERS.md](../../docs/FEATURE-FOLDERS.md) for comprehensive documentation on Feature Folders, decision criteria, and implementation guidelines.
+> 
+> 📚 **Architecture Principles**: See [ARCHITECTURE-GUIDELINES.md](../../docs/ARCHITECTURE-GUIDELINES.md) for complete modular architecture principles.
 
 ```
 billing/
-├── core/                    # Domain logic (NEVER exported)
-│   ├── enum/                # Business enums
-│   ├── service/             # Business services (9 services)
-│   └── interface/           # Domain interfaces
-├── persistence/             # Data layer (NEVER exported)
-│   ├── entity/              # TypeORM entities (16 entities)
-│   ├── repository/          # Data repositories (14 repositories)
-│   └── migration/           # Database migrations
-├── http/                    # External interface (NEVER exported)
-│   └── rest/                # REST API layer
-│       ├── controller/      # HTTP controllers
-│       └── dto/             # Request/Response DTOs
-├── integration/             # External integrations
-│   └── provider/            # Integration providers (3 mocked)
-└── index.ts                 # Public API exports ONLY
+├── subscription/            # Feature: Subscription lifecycle + add-ons + discounts
+│   ├── core/service/        # SubscriptionService, SubscriptionBillingService,
+│   │                        # AddOnManagerService, DiscountEngineService
+│   ├── persistence/         # Subscription, Plan, AddOn, Discount entities/repos
+│   └── http/                # Controllers & DTOs
+├── invoice/                 # Feature: Invoice generation
+│   ├── core/service/        # InvoiceService, InvoiceGeneratorService
+│   ├── persistence/         # Invoice, InvoiceLineItem, Charge entities/repos
+│   └── http/                # Controller & DTOs
+├── payment/                 # Feature: Payment processing + dunning retries
+│   ├── core/service/        # DunningManagerService
+│   ├── persistence/         # Payment, DunningAttempt entities/repos
+│   └── http/client/         # Payment gateway & accounting clients
+├── usage/                   # Feature: Usage-based billing
+│   ├── core/                # UsageBillingService
+│   ├── persistence/         # UsageRecord entity/repo
+│   └── http/                # Controller & DTOs
+├── credit/                  # Feature: Credit management
+│   ├── core/                # CreditManagerService
+│   ├── persistence/         # Credit entity/repo
+│   └── http/                # Controller & DTOs
+├── tax/                     # Feature: Tax calculation
+│   ├── core/                # TaxCalculatorService
+│   ├── persistence/         # Tax entities/repos
+│   └── http/client/         # EasyTax API client
+├── proration/               # Cross-cutting: Proration calculations
+│   └── core/                # ProrationCalculatorService
+├── shared/                  # Shared code & infrastructure
+│   ├── core/                # Common enums & interfaces
+│   └── persistence/         # Centralized datasource & migrations
+│       ├── billing-persistence.module.ts
+│       ├── migration/
+│       └── typeorm-datasource.*
+├── public-api/              # Public facade
+│   └── facade/              # BillingFacade
+├── billing.module.ts        # Single NestJS module
+└── index.ts                 # Public API exports
 ```
+
+### Why Single Module with Package by Domain?
+
+- **Cohesion**: Everything related to a domain is in one place
+- **Navigation**: Easy to find all code for a specific domain (e.g., all subscription logic in `subscription/`)
+- **Single Module**: Billing domains are tightly coupled (transactional operations spanning multiple domains)
+- **No Circular Dependencies**: Folder organization without module complexity
+- **Bounded Context**: Each folder represents a clear business domain with its own ubiquitous language
+
+**Domain Organization**: Sub-features (add-on, discount) are grouped with their parent domain (subscription) because they don't exist independently and share the same bounded context.
 
 ## 📚 Core Services
 

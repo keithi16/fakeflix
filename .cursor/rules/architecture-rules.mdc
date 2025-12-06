@@ -34,3 +34,4 @@ alwaysApply: true
 10. Fail independence
 
 For detailed guidelines, patterns, and examples: READ docs/ARCHITECTURE-GUIDELINES.md
+For Feature Folders pattern (Vertical Slices): READ docs/FEATURE-FOLDERS.md
