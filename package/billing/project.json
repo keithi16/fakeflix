@@ -32,22 +32,22 @@
     "db:generate": {
       "executor": "nx:run-commands",
       "options": {
-        "command": "ts-node -r tsconfig-paths/register -P {projectRoot}/tsconfig.lib.json ./node_modules/typeorm/cli.js migration:generate {projectRoot}/shared/persistence/migration/migration",
-        "args": ["-d {projectRoot}/shared/persistence/typeorm-datasource.ts"]
+        "command": "ts-node -r tsconfig-paths/register -P {projectRoot}/tsconfig.lib.json ./node_modules/typeorm/cli.js migration:generate {projectRoot}/persistence/migration/migration",
+        "args": ["-d {projectRoot}/persistence/typeorm-datasource.ts"]
       }
     },
     "db:migrate": {
       "executor": "nx:run-commands",
       "options": {
         "command": "ts-node -r tsconfig-paths/register -P {projectRoot}/tsconfig.lib.json ./node_modules/typeorm/cli.js migration:run",
-        "args": ["-d {projectRoot}/shared/persistence/typeorm-datasource.ts"]
+        "args": ["-d {projectRoot}/persistence/typeorm-datasource.ts"]
       }
     },
     "db:drop": {
       "executor": "nx:run-commands",
       "options": {
         "command": "ts-node -r tsconfig-paths/register -P {projectRoot}/tsconfig.lib.json ./node_modules/typeorm/cli.js schema:drop",
-        "args": ["-d {projectRoot}/shared/persistence/typeorm-datasource.ts"]
+        "args": ["-d {projectRoot}/persistence/typeorm-datasource.ts"]
       }
     }
   }

@@ -13,16 +13,6 @@ This document provides explicit guidelines for AI agents working with modular ar
 - **Domain-Based Organization**: Organize by business capabilities, not technical features
 - **Evolutionary Design**: Start modular, extract to microservices only when proven necessary
 
-## Document Scope
-
-This document focuses on **inter-package architecture** (how packages interact and the principles that govern modular systems).
-
-For **intra-package organization** (how to structure code within a package), see:
-- **[FEATURE-FOLDERS.md](./FEATURE-FOLDERS.md)** - Organizing packages into feature folders (vertical slices)
-- Decision trees for creating features
-- Cohesion criteria and real examples
-- Shared folder rules
-
 ## The 10 Principles of Modular Architecture
 
 ### 1. Well-Defined Boundaries
@@ -54,26 +44,20 @@ export { Subscription } from './persistence/entity/subscription.entity';
 
 ```
 packages/billing/
-├── subscription/           # Feature folder (vertical slice)
-│   ├── core/
-│   │   ├── service/        # Domain services
-│   │   └── use-case/       # Application use cases
-│   ├── http/rest/
-│   │   ├── controller/     # REST controllers
-│   │   └── dto/            # Request/Response DTOs
-│   └── persistence/
-│       ├── entity/         # Subscription entities
-│       └── repository/     # Subscription repositories
-├── invoice/                # Feature folder (vertical slice)
-│   ├── core/
-│   ├── http/
-│   └── persistence/
-├── shared/                 # Shared infrastructure only
-│   └── persistence/        # TypeORM config, migrations
-└── index.ts                # Only exports BillingModule + config
+├── src/
+│   ├── core/             # Internal - never exported
+│   │   ├── service/      # Domain services
+│   │   └── enum/         # Domain enums
+│   ├── persistence/      # Internal - never exported
+│   │   ├── entity/       # Database entities
+│   │   └── repository/   # Repository implementations
+│   ├── http/            # Internal - never exported
+│   │   └── rest/        # REST controllers and DTOs
+│   ├── public-api/      # Public interfaces - exported
+│   │   └── facade/      # Public API facades
+│   └── index.ts         # Only exports public API
+└── package.json
 ```
-
-> 💡 **Note**: See [FEATURE-FOLDERS.md](./FEATURE-FOLDERS.md) for detailed guidelines on organizing features within packages.
 
 ### 2. Composability
 
@@ -1911,76 +1895,42 @@ grep -r "host.*database.*username" packages/ | \
 5. **Tight Coupling**: Don't create hard dependencies between modules
 6. **Duplicate Entity Names**: Never use same @Entity names across modules
 7. **Exported Internal Services**: Don't export domain services in index.ts
-8. **Horizontal Layering Inside Packages**: Organizing by technical layers (controllers/, services/, repositories/) instead of features (subscription/, invoice/). See [FEATURE-FOLDERS.md](./FEATURE-FOLDERS.md) for correct vertical slice organization
 
 ### File Organization Patterns
 
-For detailed guidelines on organizing code within packages, see **[FEATURE-FOLDERS.md](./FEATURE-FOLDERS.md)**.
-
-#### Quick Summary
-
-Our codebase follows a **3-level hierarchy**:
-
-1. **Package** (Bounded Context): `billing/`, `content/`, `identity/`
-2. **Module** (Sub-domain, optional): `content/admin/`, `content/catalog/`
-3. **Feature** (Vertical Slice): `billing/subscription/`, `content/admin/movie/`
-
-Each **feature** is a complete vertical slice containing:
+#### Fakeflix Structure (Clean Architecture)
 
 ```
-feature-name/
-├── core/          # Business logic (services, use-cases)
-├── http/          # API layer (controllers, DTOs, clients)
-├── persistence/   # Data access (entities, repositories)
-├── queue/         # Async processing (consumers, producers) [if needed]
-└── __test__/      # Tests (e2e, unit)
+packages/[domain]/
+├── src/
+│   ├── core/                # Domain/Business Logic Layer
+│   │   ├── enum/            # Domain enums
+│   │   ├── service/         # Domain services
+│   │   ├── use-case/        # Application use cases
+│   │   └── model/           # Domain models
+│   ├── http/                # Presentation Layer
+│   │   ├── rest/
+│   │   │   ├── controller/  # REST controllers
+│   │   │   └── dto/         # Request/Response DTOs
+│   │   └── graphql/
+│   │       ├── resolver/    # GraphQL resolvers
+│   │       └── type/        # GraphQL types
+│   ├── persistence/         # Data Access Layer
+│   │   ├── entity/          # Database entities
+│   │   ├── repository/      # Repository implementations
+│   │   └── migration/       # Database migrations
+│   ├── public-api/          # Public Module API
+│   │   └── facade/          # Public API facades
+│   ├── queue/               # Message Queue Layer (Content only)
+│   │   ├── consumer/        # Queue consumers
+│   │   └── producer/        # Queue producers
+│   └── index.ts            # Public API exports (module + config only)
+├── __test__/              # Tests (unit, integration, e2e)
+├── migrations/            # Database migrations
+└── package.json           # Module dependencies
 ```
 
-#### When to Use Each Level
-
-| Level | Purpose | Examples | When to Create |
-|-------|---------|----------|----------------|
-| **Package** | DDD Bounded Context | `billing`, `content`, `identity` | Different databases, teams, domains |
-| **Module** | Sub-domain separation | `content/admin`, `content/catalog` | Logical grouping within package |
-| **Feature** | Business capability | `subscription`, `invoice`, `movie` | Individual user-facing feature |
-
-#### Real Examples from Codebase
-
-```
-packages/
-├── billing/                    # Package (Bounded Context)
-│   ├── subscription/           # Feature (Vertical Slice)
-│   │   ├── core/
-│   │   ├── http/
-│   │   ├── persistence/
-│   │   └── __test__/
-│   ├── invoice/                # Feature (Vertical Slice)
-│   └── shared/                 # Infrastructure only
-│
-├── content/                    # Package (Bounded Context)
-│   ├── admin/                  # Module (Sub-domain)
-│   │   ├── movie/              # Feature (Vertical Slice)
-│   │   ├── tv-show/            # Feature (Vertical Slice)
-│   │   └── age-recommendation/ # Feature (Vertical Slice)
-│   ├── catalog/                # Module (Sub-domain)
-│   │   ├── player/             # Feature (Vertical Slice)
-│   │   └── content-listing/    # Feature (Vertical Slice)
-│   └── shared/                 # Infrastructure only
-│
-└── identity/                   # Package (Bounded Context)
-    ├── authentication/         # Feature (Vertical Slice)
-    ├── user/                   # Feature (Vertical Slice)
-    └── shared/                 # Infrastructure only
-```
-
-**For detailed guidelines**, including:
-- Decision tree: when to create a new feature
-- Cohesion criteria with real examples
-- Shared folder rules (when to use `shared/`)
-- Implementation checklist
-- Anti-patterns to avoid
-
-See **[FEATURE-FOLDERS.md](./FEATURE-FOLDERS.md)**.
+This structure ensures clear separation of concerns while maintaining the modular architecture principles.
 
 ## Recommended Event System Implementations
 

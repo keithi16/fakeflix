@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
 import { GraphQLModule } from '@nestjs/graphql';
 import { AuthModule } from '@tlc/shared-module/auth';
@@ -7,23 +8,12 @@ import {
   BillingSubscriptionStatusApi,
   PublicApiModule,
 } from '@tlc/shared-module/public-api';
-
-// Authentication domain
-import { AuthService } from './authentication/core/service/authentication.service';
-import { AuthResolver } from './authentication/http/graphql/resolver/auth.resolver';
-
-// User domain
-import { UserManagementService } from './user/core/service/user-management.service';
-import { UserResolver } from './user/http/graphql/resolver/user.resolver';
-import { UserRepository } from './user/persistence/repository/user.repository';
-
-// Shared infrastructure
-import { IdentityPersistenceModule } from './shared/persistence/identity-persistence.module';
-
-const coreServices = [
-  AuthService,
-  UserManagementService,
-];
+import { AuthService } from './core/service/authentication.service';
+import { UserManagementService } from './core/service/user-management.service';
+import { AuthResolver } from './http/graphql/resolver/auth.resolver';
+import { UserResolver } from './http/graphql/resolver/user.resolver';
+import { IdentityPersistenceModule } from './persistence/identity-persistence.module';
+import { UserRepository } from './persistence/repository/user.repository';
 
 @Module({
   imports: [
@@ -40,9 +30,10 @@ const coreServices = [
       provide: BillingSubscriptionStatusApi,
       useExisting: BillingSubscriptionHttpClient,
     },
-    ...coreServices,
+    AuthService,
     AuthResolver,
     UserResolver,
+    UserManagementService,
     UserRepository,
   ],
 })
