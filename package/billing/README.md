@@ -5,6 +5,7 @@ This module implements a **production-grade subscription billing system** with r
 ## 🎯 Overview
 
 The billing module manages the complete lifecycle of subscription billing for a streaming service, including:
+
 - Plan management and changes with proration
 - Add-on management
 - Usage-based (metered) billing with tiered pricing
@@ -40,48 +41,59 @@ billing/
 ## 📚 Core Services
 
 ### 1. **SubscriptionBillingService** (Main Orchestrator)
+
 The central service coordinating all billing operations.
 
 **Key Methods:**
+
 - `changePlan()` - Complex plan changes with proration
 - `addAddOn()` - Add features to subscriptions
 - `generateMonthlyInvoice()` - Consolidate billing period charges
 
 ### 2. **ProrationCalculatorService**
+
 Handles proportional billing calculations when plans change mid-cycle.
 
 **Features:**
+
 - Credit calculation for unused time (excluding tax)
 - Charge calculation for new plan (including tax)
 - Different billing interval conversions (Monthly ↔ Annual)
 - Leap year handling
 
 ### 3. **UsageBillingService**
+
 Implements metered/usage-based billing with progressive tiers.
 
 **Features:**
+
 - Usage recording with multipliers (4K = 2x, downloads = 1.5x)
 - Tiered pricing (0-500 hours @ $0.10, 501+ @ $0.05)
 - Quota management and warnings
 - Aggregation and forecasting
 
 ### 4. **TaxCalculatorService**
+
 Multi-provider tax calculation supporting complex scenarios.
 
 **Providers:**
+
 - **Standard**: Internal tax rates by region
 - **EasyTax**: External API for complex jurisdictions (mocked)
 - **VAT MOSS**: European VAT compliance
 
 **Features:**
+
 - Automatic provider selection by address
 - Fallback on provider errors
 - Detailed jurisdiction breakdowns
 
 ### 5. **DiscountEngineService**
+
 Complex discount application with business rules.
 
 **Features:**
+
 - Priority-based ordering
 - Stackability rules
 - Cascading calculations
@@ -89,36 +101,44 @@ Complex discount application with business rules.
 - Multiple discount types (%, fixed, first-months, referral, bundle)
 
 ### 6. **CreditManagerService**
+
 Credit lifecycle management with FIFO application.
 
 **Features:**
+
 - Credit types (refund, service, promotional, proration)
 - FIFO application (expiring soonest first)
 - Credit expiration handling
 - Partial credit application
 
 ### 7. **InvoiceGeneratorService**
+
 Invoice consolidation and generation.
 
 **Features:**
+
 - Unique invoice numbering (INV-{YYYYMM}-{userId}-{seq})
 - Total calculations with taxes, discounts, credits
 - Due date management
 - Invoice finalization workflow
 
 ### 8. **AddOnManagerService**
+
 Add-on lifecycle management.
 
 **Features:**
+
 - Compatibility validation
 - Proration on add/remove
 - Migration during plan changes
 - Plan requirement enforcement
 
 ### 9. **DunningManagerService**
+
 Payment retry logic for failed payments.
 
 **Schedule:**
+
 - Day 1: Immediate retry
 - Day 3: Retry + email
 - Day 7: Retry + notification
@@ -128,21 +148,27 @@ Payment retry logic for failed payments.
 ## 💳 Integration Providers (Mocked)
 
 ### EasyTaxProvider
+
 Simulates external tax API with realistic features:
+
 - API latency simulation (100-300ms)
 - 5% failure rate for error handling
 - Detailed jurisdiction breakdowns
 - Realistic tax rates by state
 
 ### PaymentGatewayProvider
+
 Simulates payment processing (Stripe-like):
+
 - 90% success rate
 - Realistic failure reasons
 - Transaction ID generation
 - Refund processing
 
 ### AccountingIntegrationProvider
+
 Simulates accounting system sync:
+
 - Invoice sync
 - Payment sync
 - External ID tracking
@@ -150,6 +176,7 @@ Simulates accounting system sync:
 ## 📊 Data Model
 
 ### Core Entities
+
 - **Plan**: Subscription plans with pricing
 - **Subscription**: User subscriptions with metadata
 - **Invoice**: Consolidated billing documents
@@ -166,6 +193,7 @@ Simulates accounting system sync:
 ## 🧮 Complex Calculations
 
 ### Proration Formula
+
 ```
 Credit = (Unused Days / Total Days) * Original Amount * (1 - Tax Rate)
 Charge = (Days to Bill / New Plan Days) * New Plan Amount
@@ -173,6 +201,7 @@ Net = Charge - Credit
 ```
 
 ### Usage Tiering
+
 ```
 Example: 600 streaming hours
 - 0-100: Included ($0)
@@ -182,6 +211,7 @@ Total: $45.00
 ```
 
 ### Tax Calculation
+
 ```
 Standard: Lookup by region
 EasyTax: API call with address validation
@@ -206,6 +236,7 @@ This implementation demonstrates:
 ## 📈 Metrics & Observability
 
 The system includes logging and metrics for:
+
 - Proration accuracy
 - Tax calculation time
 - Payment success rates
@@ -216,6 +247,7 @@ The system includes logging and metrics for:
 ## 🧪 Testing Approach
 
 Each service is independently testable with:
+
 - Unit tests for business logic
 - Integration tests for database operations
 - Mock providers for external systems
@@ -225,15 +257,11 @@ Each service is independently testable with:
 
 ```typescript
 // Change plan with complex proration
-const result = await subscriptionBillingService.changePlan(
-  userId,
-  newPlanId,
-  {
-    effectiveDate: new Date(),
-    chargeImmediately: true,
-    keepAddOns: false,
-  }
-);
+const result = await subscriptionBillingService.changePlan(userId, newPlanId, {
+  effectiveDate: new Date(),
+  chargeImmediately: true,
+  keepAddOns: false,
+});
 
 console.log(`Proration credit: $${result.invoice.totalCredit}`);
 console.log(`Amount due: $${result.invoice.amountDue}`);
@@ -252,7 +280,7 @@ console.log(`Amount due: $${result.invoice.amountDue}`);
 ## 📖 References
 
 - Inspired by `bill-test.service.ts` (procurement module)
-- Follows `ARCHITECTURE-GUIDELINES.md` principles
+- Follows modular architecture principles (see `docs/ARCHITECTURE-OVERVIEW.md`)
 - Based on real-world SaaS billing systems (Stripe, Chargebee, Zuora)
 
 ---

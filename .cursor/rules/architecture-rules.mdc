@@ -6,8 +6,6 @@ alwaysApply: true
 
 # Fakeflix Architecture Principles
 
-## Core Rules (Full details: docs/ARCHITECTURE-GUIDELINES.md)
-
 **Structure:**
 
 - Apps = Bootstraps (orchestration only)
@@ -22,15 +20,34 @@ alwaysApply: true
 
 **10 Key Principles:**
 
-1. Well-defined boundaries
-2. Composability
-3. Independence
-4. Individual scale
-5. Explicit communication
-6. Replaceability
-7. Deployment independence
-8. State isolation
-9. Observability
-10. Fail independence
+1. Well-defined boundaries | 2. Composability | 3. Independence | 4. Individual scale | 5. Explicit communication
+2. Replaceability | 7. Deployment independence | 8. State isolation ⚠️ | 9. Observability | 10. Fail independence
 
-For detailed guidelines, patterns, and examples: READ docs/ARCHITECTURE-GUIDELINES.md
+---
+
+## 📚 Progressive Documentation Loading
+
+**IMPORTANT**: Only load documents relevant to your current task. Do NOT load all documentation at once.
+
+### Decision Tree: What to Read
+
+**IF** task involves creating/modifying modules or understanding architecture:
+→ READ `docs/ARCHITECTURE-OVERVIEW.md` FIRST (navigation hub)
+
+**IF** task involves database entities or TypeORM:
+→ READ `docs/STATE-ISOLATION.md` ⚠️ CRITICAL (check duplicate entity names)
+
+**IF** task involves creating controllers or services:
+→ READ `docs/CODING-PATTERNS.md` (repository, controller, transaction patterns)
+
+**IF** task involves organizing code within a package:
+→ READ `docs/FEATURE-FOLDERS.md` (vertical slices)
+
+**IF** task involves creating new modules or communication or boundaries:
+→ READ `docs/MODULAR-PRINCIPLES.md` (principles 1-7)
+
+**IF** task involves logging, metrics, or error handling:
+→ READ `docs/RESILIENCE-OBSERVABILITY.md` (principles 9-10)
+
+**IF** task involves verification or pre-commit checks:
+→ READ `docs/IMPLEMENTATION-CHECKLIST.md` (detection commands)

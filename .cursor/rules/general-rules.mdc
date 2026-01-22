@@ -1,0 +1,19 @@
+---
+alwaysApply: true
+---
+
+# Context7 MCP
+
+Always use context7 when I need code generation, setup or configuration steps, or
+library/API documentation. This means you should automatically use the Context7 MCP
+tools to resolve library id and get library docs without me having to explicitly ask.
+
+# Writing implementation plans
+
+Implementation plans should always include build and lint and e2e tests when necessary
+To run build add `nx build <packageName>` and `nx lint:check <packageName>` and yarn `test:e2e <packageName>`
+
+# When dealing with database entities and migrations
+
+Never create migrations manually always use `nx db:generate <packageName>`
+To run migrations always use `nx db:migrate <packageName>`
