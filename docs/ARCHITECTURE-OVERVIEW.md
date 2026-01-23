@@ -78,6 +78,17 @@ Building resilient systems:
 - Health checks and metrics
 - Event system implementations
 
+### 🔌 [THIRD-PARTY-INTEGRATION.md](./THIRD-PARTY-INTEGRATION.md)
+**When to read**: Integrating external APIs or third-party services
+
+Integration patterns and best practices:
+- Mock, HTTP, and SDK integration patterns
+- Client encapsulation and architecture compliance
+- Direct injection vs interface patterns
+- Resilience patterns (circuit breakers, timeouts, retries)
+- Security and observability guidelines
+- Migration from mock to production
+
 ### ✅ [IMPLEMENTATION-CHECKLIST.md](./IMPLEMENTATION-CHECKLIST.md)
 **When to read**: Starting new features or refactoring code
 
@@ -106,6 +117,7 @@ Intra-package organization:
 - **Add a database entity** → Read [STATE-ISOLATION.md](./STATE-ISOLATION.md) first!
 - **Create a controller/service** → Read [CODING-PATTERNS.md](./CODING-PATTERNS.md)
 - **Add inter-module communication** → Read [MODULAR-PRINCIPLES.md](./MODULAR-PRINCIPLES.md#5-explicit-communication)
+- **Integrate external API** → Read [THIRD-PARTY-INTEGRATION.md](./THIRD-PARTY-INTEGRATION.md)
 - **Implement error handling** → Read [RESILIENCE-OBSERVABILITY.md](./RESILIENCE-OBSERVABILITY.md#fail-independence)
 - **Add monitoring/logging** → Read [RESILIENCE-OBSERVABILITY.md](./RESILIENCE-OBSERVABILITY.md#observability--monitoring)
 - **Organize code within a package** → Read [FEATURE-FOLDERS.md](./FEATURE-FOLDERS.md)
@@ -144,6 +156,7 @@ For **intra-package organization** (how to structure code within a package), see
    - Database work → [STATE-ISOLATION.md](./STATE-ISOLATION.md)
    - Service/Controller work → [CODING-PATTERNS.md](./CODING-PATTERNS.md)
    - Module communication → [MODULAR-PRINCIPLES.md](./MODULAR-PRINCIPLES.md)
+   - External API integration → [THIRD-PARTY-INTEGRATION.md](./THIRD-PARTY-INTEGRATION.md)
 3. Always run verification commands from [IMPLEMENTATION-CHECKLIST.md](./IMPLEMENTATION-CHECKLIST.md)
 
 ## Architecture Principles Summary
