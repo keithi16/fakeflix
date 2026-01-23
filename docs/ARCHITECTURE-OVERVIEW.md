@@ -17,18 +17,18 @@ This document provides a high-level introduction to our modular architecture app
 
 Our architecture is built on 10 foundational principles that ensure maintainability, scalability, and resilience:
 
-| # | Principle | Description | Details |
-|---|-----------|-------------|---------|
-| 1 | **Well-Defined Boundaries** | Clear responsibilities, no internal exposure | [MODULAR-PRINCIPLES.md](./MODULAR-PRINCIPLES.md#1-well-defined-boundaries) |
-| 2 | **Composability** | Building blocks that combine flexibly | [MODULAR-PRINCIPLES.md](./MODULAR-PRINCIPLES.md#2-composability) |
-| 3 | **Independence** | Autonomous operation without tight coupling | [MODULAR-PRINCIPLES.md](./MODULAR-PRINCIPLES.md#3-independence) |
-| 4 | **Individual Scale** | Module-specific resource optimization | [MODULAR-PRINCIPLES.md](./MODULAR-PRINCIPLES.md#4-individual-scale) |
-| 5 | **Explicit Communication** | Well-defined contracts for all interactions | [MODULAR-PRINCIPLES.md](./MODULAR-PRINCIPLES.md#5-explicit-communication) |
-| 6 | **Replaceability** | Swappable implementations behind interfaces | [MODULAR-PRINCIPLES.md](./MODULAR-PRINCIPLES.md#6-replaceability) |
-| 7 | **Deployment Independence** | Deployment-agnostic module design | [MODULAR-PRINCIPLES.md](./MODULAR-PRINCIPLES.md#7-deployment-independence) |
-| 8 | **State Isolation** | Own state management per module | [STATE-ISOLATION.md](./STATE-ISOLATION.md) ⚠️ |
-| 9 | **Observability** | Individual visibility and monitoring | [RESILIENCE-OBSERVABILITY.md](./RESILIENCE-OBSERVABILITY.md#observability--monitoring) |
-| 10 | **Fail Independence** | Failures don't cascade between modules | [RESILIENCE-OBSERVABILITY.md](./RESILIENCE-OBSERVABILITY.md#fail-independence) |
+| #   | Principle                   | Description                                  | Details                                                                                |
+| --- | --------------------------- | -------------------------------------------- | -------------------------------------------------------------------------------------- |
+| 1   | **Well-Defined Boundaries** | Clear responsibilities, no internal exposure | [MODULAR-PRINCIPLES.md](./MODULAR-PRINCIPLES.md#1-well-defined-boundaries)             |
+| 2   | **Composability**           | Building blocks that combine flexibly        | [MODULAR-PRINCIPLES.md](./MODULAR-PRINCIPLES.md#2-composability)                       |
+| 3   | **Independence**            | Autonomous operation without tight coupling  | [MODULAR-PRINCIPLES.md](./MODULAR-PRINCIPLES.md#3-independence)                        |
+| 4   | **Individual Scale**        | Module-specific resource optimization        | [MODULAR-PRINCIPLES.md](./MODULAR-PRINCIPLES.md#4-individual-scale)                    |
+| 5   | **Explicit Communication**  | Well-defined contracts for all interactions  | [MODULAR-PRINCIPLES.md](./MODULAR-PRINCIPLES.md#5-explicit-communication)              |
+| 6   | **Replaceability**          | Swappable implementations behind interfaces  | [MODULAR-PRINCIPLES.md](./MODULAR-PRINCIPLES.md#6-replaceability)                      |
+| 7   | **Deployment Independence** | Deployment-agnostic module design            | [MODULAR-PRINCIPLES.md](./MODULAR-PRINCIPLES.md#7-deployment-independence)             |
+| 8   | **State Isolation**         | Own state management per module              | [STATE-ISOLATION.md](./STATE-ISOLATION.md) ⚠️                                          |
+| 9   | **Observability**           | Individual visibility and monitoring         | [RESILIENCE-OBSERVABILITY.md](./RESILIENCE-OBSERVABILITY.md#observability--monitoring) |
+| 10  | **Fail Independence**       | Failures don't cascade between modules       | [RESILIENCE-OBSERVABILITY.md](./RESILIENCE-OBSERVABILITY.md#fail-independence)         |
 
 ⚠️ **State Isolation is the most critical and frequently violated principle** - see dedicated document for details.
 
@@ -37,18 +37,22 @@ Our architecture is built on 10 foundational principles that ensure maintainabil
 Our architecture guidelines are organized into focused documents by responsibility:
 
 ### 📘 [MODULAR-PRINCIPLES.md](./MODULAR-PRINCIPLES.md)
+
 **When to read**: Understanding module boundaries and interactions
 
 Deep dive into principles 1-7 covering:
+
 - How modules should be structured
 - Communication patterns between modules
 - Composability and independence guidelines
 - Code examples for each principle
 
 ### 🔒 [STATE-ISOLATION.md](./STATE-ISOLATION.md)
+
 **When to read**: Working with databases, entities, or data access
 
 Critical guidelines for principle 8:
+
 - Entity naming conventions
 - Database connection patterns
 - **FORBIDDEN**: Duplicate entity names across modules
@@ -58,9 +62,11 @@ Critical guidelines for principle 8:
 **Read this before creating any database entities!**
 
 ### 🛠️ [CODING-PATTERNS.md](./CODING-PATTERNS.md)
+
 **When to read**: Implementing services, controllers, or repositories
 
 Technical implementation patterns:
+
 - Repository Pattern & ORM Encapsulation
 - Controller Responsibilities & Lean Pattern
 - Transaction Management & Named Connections
@@ -68,9 +74,11 @@ Technical implementation patterns:
 - Testing strategies
 
 ### 🔧 [RESILIENCE-OBSERVABILITY.md](./RESILIENCE-OBSERVABILITY.md)
+
 **When to read**: Adding monitoring, logging, or error handling
 
 Building resilient systems:
+
 - Observability & Monitoring (Principle 9)
 - Fail Independence (Principle 10)
 - Circuit breaker patterns
@@ -79,9 +87,11 @@ Building resilient systems:
 - Event system implementations
 
 ### 🔌 [THIRD-PARTY-INTEGRATION.md](./THIRD-PARTY-INTEGRATION.md)
+
 **When to read**: Integrating external APIs or third-party services
 
 Integration patterns and best practices:
+
 - Mock, HTTP, and SDK integration patterns
 - Client encapsulation and architecture compliance
 - Direct injection vs interface patterns
@@ -90,9 +100,11 @@ Integration patterns and best practices:
 - Migration from mock to production
 
 ### ✅ [IMPLEMENTATION-CHECKLIST.md](./IMPLEMENTATION-CHECKLIST.md)
+
 **When to read**: Starting new features or refactoring code
 
 Practical checklists:
+
 - Verification steps for new features
 - Refactoring guidelines
 - Common anti-patterns to avoid
@@ -100,11 +112,8 @@ Practical checklists:
 - Automated verification tools
 - Pre-commit hooks
 
-### 📁 [FEATURE-FOLDERS.md](./FEATURE-FOLDERS.md)
-**When to read**: Organizing code within packages
-
 Intra-package organization:
-- Feature folders (vertical slices)
+
 - Decision trees for creating features
 - Cohesion criteria
 - Shared folder rules
@@ -164,6 +173,7 @@ For **intra-package organization** (how to structure code within a package), see
 ### What Makes Good Modular Architecture?
 
 ✅ **Good Modular Architecture**:
+
 - Clear boundaries between modules
 - Explicit communication via interfaces
 - Each module owns its data
@@ -172,6 +182,7 @@ For **intra-package organization** (how to structure code within a package), see
 - Easy to test in isolation
 
 ❌ **Bad Modular Architecture**:
+
 - Shared databases between modules
 - Direct class dependencies
 - Tight coupling
@@ -182,7 +193,6 @@ For **intra-package organization** (how to structure code within a package), see
 ## Additional Resources
 
 - **Nx Workspace Documentation**: See [.cursor/rules/nx-rules.mdc](../.cursor/rules/nx-rules.mdc)
-- **Feature Folders Pattern**: See [FEATURE-FOLDERS.md](./FEATURE-FOLDERS.md)
 - **Architecture Rules for AI**: See [.cursor/rules/architecture-rules.mdc](../.cursor/rules/architecture-rules.mdc)
 
 ---

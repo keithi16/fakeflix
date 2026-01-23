@@ -41,31 +41,6 @@ export { SubscriptionRepository } from './persistence/repository/subscription.re
 export { Subscription } from './persistence/entity/subscription.entity';
 ```
 
-**File Structure Example**:
-
-```
-packages/billing/
-├── subscription/           # Feature folder (vertical slice)
-│   ├── core/
-│   │   ├── service/        # Domain services
-│   │   └── use-case/       # Application use cases
-│   ├── http/rest/
-│   │   ├── controller/     # REST controllers
-│   │   └── dto/            # Request/Response DTOs
-│   └── persistence/
-│       ├── entity/         # Subscription entities
-│       └── repository/     # Subscription repositories
-├── invoice/                # Feature folder (vertical slice)
-│   ├── core/
-│   ├── http/
-│   └── persistence/
-├── shared/                 # Shared infrastructure only
-│   └── persistence/        # TypeORM config, migrations
-└── index.ts                # Only exports BillingModule + config
-```
-
-> 💡 **Note**: See [FEATURE-FOLDERS.md](./FEATURE-FOLDERS.md) for detailed guidelines on organizing features within packages.
-
 ---
 
 ## 2. Composability

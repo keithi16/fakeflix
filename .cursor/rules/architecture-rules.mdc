@@ -21,36 +21,53 @@ alwaysApply: true
 **10 Key Principles:**
 
 1. Well-defined boundaries | 2. Composability | 3. Independence | 4. Individual scale | 5. Explicit communication
-2. Replaceability | 7. Deployment independence | 8. State isolation ⚠️ | 9. Observability | 10. Fail independence
+6. Replaceability | 7. Deployment independence | 8. State isolation ⚠️ | 9. Observability | 10. Fail independence
 
 ---
 
 ## 📚 Progressive Documentation Loading
 
-**IMPORTANT**: Only load documents relevant to your current task. Do NOT load all documentation at once.
+**CRITICAL**: Only load documents relevant to your current task. Do NOT load all documentation at once (saves ~51k tokens).
 
-### Decision Tree: What to Read
+### Decision Tree: What to Read (Priority Order)
 
-**IF** task involves creating/modifying modules or understanding architecture:
-→ READ `docs/ARCHITECTURE-OVERVIEW.md` FIRST (navigation hub)
+**Start here for navigation:**
+- **Understanding overall architecture or starting new work** → `docs/ARCHITECTURE-OVERVIEW.md` (navigation hub, ~12KB)
 
-**IF** task involves database entities or TypeORM:
-→ READ `docs/STATE-ISOLATION.md` ⚠️ CRITICAL (check duplicate entity names)
+**Database & Entities (CRITICAL - most violated):**
+- **Creating/modifying entities, migrations, or TypeORM** → `docs/STATE-ISOLATION.md` ⚠️ (~16KB)
+  - Always check for duplicate entity names before creating entities
+  - Required before any database work
 
-**IF** task involves creating controllers or services:
-→ READ `docs/CODING-PATTERNS.md` (repository, controller, transaction patterns)
+**Implementation Patterns:**
+- **Creating controllers, services, or repositories** → `docs/CODING-PATTERNS.md` (~28KB)
+  - Repository pattern, lean controllers, transaction management
+- **Organizing code within a package** → See `docs/IMPLEMENTATION-CHECKLIST.md` (File Organization section)
+  - Note: `FEATURE-FOLDERS.md` referenced but not yet created
 
-**IF** task involves organizing code within a package:
-→ READ `docs/FEATURE-FOLDERS.md` (vertical slices)
+**Module Design & Communication:**
+- **Creating new modules, boundaries, or inter-module communication** → `docs/MODULAR-PRINCIPLES.md` (~20KB)
+  - Principles 1-7: boundaries, composability, independence, communication
 
-**IF** task involves creating new modules or communication or boundaries:
-→ READ `docs/MODULAR-PRINCIPLES.md` (principles 1-7)
+**Resilience & Observability:**
+- **Logging, metrics, error handling, circuit breakers** → `docs/RESILIENCE-OBSERVABILITY.md` (~20KB)
+  - Principles 9-10: observability, fail independence
 
-**IF** task involves logging, metrics, or error handling:
-→ READ `docs/RESILIENCE-OBSERVABILITY.md` (principles 9-10)
+**External Integrations:**
+- **Integrating external APIs, third-party services, HTTP clients** → `docs/THIRD-PARTY-INTEGRATION.md` (~16KB)
+  - Mock/HTTP/SDK patterns, client encapsulation, injection patterns
 
-**IF** task involves integrating external APIs or third-party services:
-→ READ `docs/THIRD-PARTY-INTEGRATION.md` (client patterns, HTTP integration, SDK usage)
+**Verification & Compliance:**
+- **Pre-commit checks, architecture verification, detection commands** → `docs/IMPLEMENTATION-CHECKLIST.md` (~20KB)
+  - Detection commands, verification steps, anti-patterns
 
-**IF** task involves verification or pre-commit checks:
-→ READ `docs/IMPLEMENTATION-CHECKLIST.md` (detection commands)
+### Quick Reference by Task Type
+
+| Task Type | Primary Doc | Secondary Docs |
+|----------|------------|----------------|
+| New entity/migration | STATE-ISOLATION.md | ARCHITECTURE-OVERVIEW.md |
+| New controller/service | CODING-PATTERNS.md | IMPLEMENTATION-CHECKLIST.md |
+| New module | MODULAR-PRINCIPLES.md + STATE-ISOLATION.md | ARCHITECTURE-OVERVIEW.md |
+| External API integration | THIRD-PARTY-INTEGRATION.md | RESILIENCE-OBSERVABILITY.md |
+| Error handling/logging | RESILIENCE-OBSERVABILITY.md | CODING-PATTERNS.md |
+| Architecture verification | IMPLEMENTATION-CHECKLIST.md | (run detection commands) |

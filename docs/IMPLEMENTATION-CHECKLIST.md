@@ -245,9 +245,7 @@ export class BillingService {
 // ✅ GOOD
 @Injectable()
 export class BillingService {
-  constructor(
-    private readonly identityClient: IdentityHttpClient
-  ) {}
+  constructor(private readonly identityClient: IdentityHttpClient) {}
 }
 ```
 
@@ -382,33 +380,6 @@ export { billingConfigFactory } from './config';
 // Internal services stay internal
 ```
 
-### 8. Horizontal Layering Inside Packages
-
-❌ **DON'T** organize by technical layers:
-
-```
-packages/billing/
-├── controllers/     # ❌ All controllers together
-├── services/        # ❌ All services together
-└── repositories/    # ❌ All repositories together
-```
-
-✅ **DO** organize by features (vertical slices):
-
-```
-packages/billing/
-├── subscription/    # ✅ Feature folder
-│   ├── core/
-│   ├── http/
-│   └── persistence/
-└── invoice/         # ✅ Feature folder
-    ├── core/
-    ├── http/
-    └── persistence/
-```
-
-See [FEATURE-FOLDERS.md](./FEATURE-FOLDERS.md) for details.
-
 ---
 
 ## File Organization Patterns
@@ -436,11 +407,11 @@ feature-name/
 
 ### When to Create Each Level
 
-| Level | Purpose | Examples | When to Create |
-|-------|---------|----------|----------------|
-| **Package** | DDD Bounded Context | `billing`, `content`, `identity` | Different databases, teams, domains |
-| **Module** | Sub-domain separation | `content/admin`, `content/catalog` | Logical grouping within package |
-| **Feature** | Business capability | `subscription`, `invoice`, `movie` | Individual user-facing feature |
+| Level       | Purpose               | Examples                           | When to Create                      |
+| ----------- | --------------------- | ---------------------------------- | ----------------------------------- |
+| **Package** | DDD Bounded Context   | `billing`, `content`, `identity`   | Different databases, teams, domains |
+| **Module**  | Sub-domain separation | `content/admin`, `content/catalog` | Logical grouping within package     |
+| **Feature** | Business capability   | `subscription`, `invoice`, `movie` | Individual user-facing feature      |
 
 For detailed guidelines, see [FEATURE-FOLDERS.md](./FEATURE-FOLDERS.md).
 
@@ -591,7 +562,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      
+
       - name: Check State Isolation
         run: |
           DUPLICATES=$(grep -r "@Entity.*name:" packages/ | grep -o "name: '[^']*'" | sort | uniq -d)
@@ -599,7 +570,7 @@ jobs:
             echo "❌ Duplicate entity names found"
             exit 1
           fi
-      
+
       - name: Check Cross-Module Imports
         run: |
           VIOLATIONS=$(grep -r "from.*@tlc.*/.*entity" packages/ | grep -v shared)
@@ -607,7 +578,7 @@ jobs:
             echo "❌ Cross-module entity imports found"
             exit 1
           fi
-      
+
       - name: Check Controller Patterns
         run: |
           VIOLATIONS=$(grep -r "Repository" packages/*/http/rest/controller/*.ts)
@@ -627,9 +598,7 @@ Add custom Nx target in `nx.json`:
     "verify-architecture": {
       "executor": "nx:run-commands",
       "options": {
-        "commands": [
-          "bash scripts/verify-architecture.sh"
-        ]
+        "commands": ["bash scripts/verify-architecture.sh"]
       }
     }
   }
@@ -696,6 +665,7 @@ echo "✅ All checks passed"
 ### Implementation Guidelines
 
 When implementing features:
+
 1. Follow the 10 principles
 2. Use established patterns (Repository, Controller, Transaction)
 3. Verify state isolation
@@ -706,6 +676,7 @@ When implementing features:
 ### Verification Steps
 
 Before committing:
+
 1. Run detection commands
 2. Check for violations
 3. Verify tests pass
@@ -714,6 +685,7 @@ Before committing:
 ### Automation
 
 Set up:
+
 1. Pre-commit hooks
 2. CI/CD checks
 3. Nx integration
