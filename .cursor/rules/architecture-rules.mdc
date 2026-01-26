@@ -21,7 +21,7 @@ alwaysApply: true
 **10 Key Principles:**
 
 1. Well-defined boundaries | 2. Composability | 3. Independence | 4. Individual scale | 5. Explicit communication
-6. Replaceability | 7. Deployment independence | 8. State isolation ⚠️ | 9. Observability | 10. Fail independence
+2. Replaceability | 7. Deployment independence | 8. State isolation ⚠️ | 9. Observability | 10. Fail independence
 
 ---
 
@@ -32,42 +32,48 @@ alwaysApply: true
 ### Decision Tree: What to Read (Priority Order)
 
 **Start here for navigation:**
+
 - **Understanding overall architecture or starting new work** → `docs/ARCHITECTURE-OVERVIEW.md` (navigation hub, ~12KB)
 
 **Database & Entities (CRITICAL - most violated):**
+
 - **Creating/modifying entities, migrations, or TypeORM** → `docs/STATE-ISOLATION.md` ⚠️ (~16KB)
   - Always check for duplicate entity names before creating entities
   - Required before any database work
 
 **Implementation Patterns:**
+
 - **Creating controllers, services, or repositories** → `docs/CODING-PATTERNS.md` (~28KB)
   - Repository pattern, lean controllers, transaction management
 - **Organizing code within a package** → See `docs/IMPLEMENTATION-CHECKLIST.md` (File Organization section)
-  - Note: `FEATURE-FOLDERS.md` referenced but not yet created
 
 **Module Design & Communication:**
+
 - **Creating new modules, boundaries, or inter-module communication** → `docs/MODULAR-PRINCIPLES.md` (~20KB)
   - Principles 1-7: boundaries, composability, independence, communication
 
 **Resilience & Observability:**
+
 - **Logging, metrics, error handling, circuit breakers** → `docs/RESILIENCE-OBSERVABILITY.md` (~20KB)
   - Principles 9-10: observability, fail independence
 
 **External Integrations:**
+
 - **Integrating external APIs, third-party services, HTTP clients** → `docs/THIRD-PARTY-INTEGRATION.md` (~16KB)
   - Mock/HTTP/SDK patterns, client encapsulation, injection patterns
 
 **Verification & Compliance:**
+
 - **Pre-commit checks, architecture verification, detection commands** → `docs/IMPLEMENTATION-CHECKLIST.md` (~20KB)
   - Detection commands, verification steps, anti-patterns
 
 ### Quick Reference by Task Type
 
-| Task Type | Primary Doc | Secondary Docs |
-|----------|------------|----------------|
-| New entity/migration | STATE-ISOLATION.md | ARCHITECTURE-OVERVIEW.md |
-| New controller/service | CODING-PATTERNS.md | IMPLEMENTATION-CHECKLIST.md |
-| New module | MODULAR-PRINCIPLES.md + STATE-ISOLATION.md | ARCHITECTURE-OVERVIEW.md |
-| External API integration | THIRD-PARTY-INTEGRATION.md | RESILIENCE-OBSERVABILITY.md |
-| Error handling/logging | RESILIENCE-OBSERVABILITY.md | CODING-PATTERNS.md |
-| Architecture verification | IMPLEMENTATION-CHECKLIST.md | (run detection commands) |
+| Task Type                 | Primary Doc                                | Secondary Docs              |
+| ------------------------- | ------------------------------------------ | --------------------------- |
+| New entity/migration      | STATE-ISOLATION.md                         | ARCHITECTURE-OVERVIEW.md    |
+| New controller/service    | CODING-PATTERNS.md                         | IMPLEMENTATION-CHECKLIST.md |
+| New module                | MODULAR-PRINCIPLES.md + STATE-ISOLATION.md | ARCHITECTURE-OVERVIEW.md    |
+| External API integration  | THIRD-PARTY-INTEGRATION.md                 | RESILIENCE-OBSERVABILITY.md |
+| Error handling/logging    | RESILIENCE-OBSERVABILITY.md                | CODING-PATTERNS.md          |
+| Architecture verification | IMPLEMENTATION-CHECKLIST.md                | (run detection commands)    |

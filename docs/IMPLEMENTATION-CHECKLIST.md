@@ -413,8 +413,6 @@ feature-name/
 | **Module**  | Sub-domain separation | `content/admin`, `content/catalog` | Logical grouping within package     |
 | **Feature** | Business capability   | `subscription`, `invoice`, `movie` | Individual user-facing feature      |
 
-For detailed guidelines, see [FEATURE-FOLDERS.md](./FEATURE-FOLDERS.md).
-
 ---
 
 ## Detection Commands
@@ -699,7 +697,6 @@ Set up:
 - **State Isolation**: See [STATE-ISOLATION.md](./STATE-ISOLATION.md)
 - **Coding Patterns**: See [CODING-PATTERNS.md](./CODING-PATTERNS.md)
 - **Resilience**: See [RESILIENCE-OBSERVABILITY.md](./RESILIENCE-OBSERVABILITY.md)
-- **Feature Organization**: See [FEATURE-FOLDERS.md](./FEATURE-FOLDERS.md)
 
 ---
 

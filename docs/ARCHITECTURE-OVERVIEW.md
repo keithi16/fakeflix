@@ -129,14 +129,11 @@ Intra-package organization:
 - **Integrate external API** → Read [THIRD-PARTY-INTEGRATION.md](./THIRD-PARTY-INTEGRATION.md)
 - **Implement error handling** → Read [RESILIENCE-OBSERVABILITY.md](./RESILIENCE-OBSERVABILITY.md#fail-independence)
 - **Add monitoring/logging** → Read [RESILIENCE-OBSERVABILITY.md](./RESILIENCE-OBSERVABILITY.md#observability--monitoring)
-- **Organize code within a package** → Read [FEATURE-FOLDERS.md](./FEATURE-FOLDERS.md)
 - **Verify architecture compliance** → Read [IMPLEMENTATION-CHECKLIST.md](./IMPLEMENTATION-CHECKLIST.md)
 
 ## Document Scope
 
 These documents focus on **inter-package architecture** (how packages interact and the principles that govern modular systems).
-
-For **intra-package organization** (how to structure code within a package), see [FEATURE-FOLDERS.md](./FEATURE-FOLDERS.md).
 
 ## Common Pitfalls
 
