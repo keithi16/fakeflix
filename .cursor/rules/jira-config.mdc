@@ -1,0 +1,13 @@
+---
+alwaysApply: false
+---
+
+# Jira Project Configuration
+
+This workspace uses the following Jira configuration:
+
+- **Project Key:** KAN
+- **Cloud ID:** d58e860b-469d-4463-8f46-684934a5a851
+- **URL:** https://techleadsclub.atlassian.net/
+- **Project Name:** TLC
+- **Board URL:** https://techleadsclub.atlassian.net/jira/software/projects/KAN/boards/1
