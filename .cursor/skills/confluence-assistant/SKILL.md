@@ -1,5 +1,5 @@
 ---
-description: Expert in Confluence operations using Atlassian MCP - search, create, update pages, manage spaces, and add comments with proper Markdown formatting.
+description: Expert in Confluence operations using Atlassian MCP - automatically detects workspace Confluence configuration or prompts for site details. Use for searching, creating, updating pages, managing spaces, and adding comments with proper Markdown formatting.
 name: Confluence Assistant
 ---
 
@@ -20,12 +20,32 @@ Use this skill when the user asks to:
 
 ## Configuration
 
-**Cloud ID:** `d58e860b-469d-4463-8f46-684934a5a851`
-**URL:** `https://techleadsclub.atlassian.net/`
+**Project Detection Strategy (Automatic):**
 
-The Cloud ID can be:
-- A site URL (e.g., `https://techleadsclub.atlassian.net/`)
-- A UUID from `getAccessibleAtlassianResources`
+1. **Check workspace rules first**: Look for Confluence configuration in `.cursor/rules/confluence-config.mdc`
+2. **If not found**: Use MCP search tools to discover available Confluence sites
+3. **If still unclear**: Ask user to specify Cloud ID or URL
+4. **Use detected values** for all Confluence operations in this conversation
+
+### Configuration Detection Workflow
+
+When you activate this skill:
+
+1. Check if workspace has `.cursor/rules/confluence-config.mdc` with Confluence configuration
+2. If found, extract and use: Cloud ID, URL
+3. If not found:
+   - Use `search("confluence sites I have access to")` via MCP
+   - Or use `getAccessibleAtlassianResources` to discover available resources
+   - Present discovered sites to user
+   - Ask: "Which Confluence site should I use? (provide Cloud ID or URL)"
+4. Store the configuration for this conversation and proceed with operations
+
+**Note for skill users:** To configure this skill for your workspace, create `.cursor/rules/confluence-config.mdc` with your Confluence details.
+
+**Cloud ID format:**
+
+- Can be a site URL (e.g., `https://example.atlassian.net/`)
+- Can be a UUID from `getAccessibleAtlassianResources`
 
 ## Workflow
 
@@ -46,35 +66,43 @@ search("natural language query about the content")
 Depending on what you have:
 
 - **If you have ARI** (Atlassian Resource Identifier): `fetch(ari)`
-- **If you have page ID**: `getConfluencePage(cloudId, pageId)`
-- **To list spaces**: `getConfluenceSpaces(cloudId, keys=["SPACE_KEY"])`
-- **For pages in a space**: `getPagesInConfluenceSpace(cloudId, spaceId)`
+- **If you have page ID**: `getConfluencePage(cloudId="{CLOUD_ID}", pageId)`
+- **To list spaces**: `getConfluenceSpaces(cloudId="{CLOUD_ID}", keys=["SPACE_KEY"])`
+- **For pages in a space**: `getPagesInConfluenceSpace(cloudId="{CLOUD_ID}", spaceId)`
+
+**Note:** Replace `{CLOUD_ID}` with the detected Cloud ID from configuration.
 
 ### 3. Creating Pages
 
 ```
 createConfluencePage(
-  cloudId,
+  cloudId="{CLOUD_ID}",
   spaceId="123456",
   title="Page Title",
   body="# Markdown Content\n\n## Section\nContent here..."
 )
 ```
 
-**CRITICAL:** Always use **Markdown** in the `body` field.
+**CRITICAL:**
+
+- Always use **Markdown** in the `body` field
+- Replace `{CLOUD_ID}` with the detected Cloud ID from configuration
 
 ### 4. Updating Pages
 
 ```
 updateConfluencePage(
-  cloudId,
+  cloudId="{CLOUD_ID}",
   pageId="123456",
   title="Updated Title",
   body="# Updated Markdown Content\n\n..."
 )
 ```
 
-**CRITICAL:** Always use **Markdown** in the `body` field.
+**CRITICAL:**
+
+- Always use **Markdown** in the `body` field
+- Replace `{CLOUD_ID}` with the detected Cloud ID from configuration
 
 ## Best Practices
 
@@ -92,6 +120,7 @@ updateConfluencePage(
   - Page ID (numeric) vs Space Key (string)
   - Space ID (numeric) vs Space Key (CAPS_STRING)
 - **CloudId** can be URL or UUID - both work
+- **Use detected configuration** - Read from `.cursor/rules/confluence-config.mdc` or ask user
 - **ARI format**: `ari:cloud:confluence:site-id:page/page-id`
 
 ## Examples
@@ -104,26 +133,30 @@ User: "Find the API documentation page and add a new section"
 1. search("API documentation")
 2. Get page details from results
 3. updateConfluencePage(
-     cloudId,
+     cloudId="{CLOUD_ID}",
      pageId="found-id",
      title="API Documentation",
      body="# API Documentation\n\n## Existing Content\n...\n\n## New Section\nNew content here..."
    )
 ```
 
+**Note:** Replace `{CLOUD_ID}` with detected configuration value.
+
 ### Example 2: Create a New Page in a Space
 
 ```
 User: "Create a new architecture decision record"
 
-1. getConfluenceSpaces(cloudId, keys=["TECH"])
+1. getConfluenceSpaces(cloudId="{CLOUD_ID}", keys=["TECH"])
 2. createConfluencePage(
-     cloudId,
+     cloudId="{CLOUD_ID}",
      spaceId="space-id-from-step-1",
      title="ADR-001: Use Microservices Architecture",
      body="# ADR-001: Use Microservices Architecture\n\n## Status\nAccepted\n\n## Context\n...\n\n## Decision\n...\n\n## Consequences\n..."
    )
 ```
+
+**Note:** Replace `{CLOUD_ID}` with detected configuration value.
 
 ### Example 3: Find and Read Page Content
 
@@ -131,9 +164,11 @@ User: "Create a new architecture decision record"
 User: "What's in our onboarding documentation?"
 
 1. search("onboarding documentation")
-2. getConfluencePage(cloudId, pageId="id-from-results")
+2. getConfluencePage(cloudId="{CLOUD_ID}", pageId="id-from-results")
 3. Summarize the content for the user
 ```
+
+**Note:** Replace `{CLOUD_ID}` with detected configuration value.
 
 ## Common Patterns
 
@@ -141,23 +176,25 @@ User: "What's in our onboarding documentation?"
 
 ```
 1. search("topic")
-2. getConfluencePage(cloudId, pageId)
-3. updateConfluencePage(cloudId, pageId, updatedBody)
+2. getConfluencePage(cloudId="{CLOUD_ID}", pageId)
+3. updateConfluencePage(cloudId="{CLOUD_ID}", pageId, updatedBody)
 ```
 
 ### Pattern 2: Find Space → Create Page
 
 ```
-1. getConfluenceSpaces(cloudId)
-2. createConfluencePage(cloudId, spaceId, title, body)
+1. getConfluenceSpaces(cloudId="{CLOUD_ID}")
+2. createConfluencePage(cloudId="{CLOUD_ID}", spaceId, title, body)
 ```
 
 ### Pattern 3: List Pages in Space
 
 ```
-1. getConfluenceSpaces(cloudId, keys=["KEY"])
-2. getPagesInConfluenceSpace(cloudId, spaceId)
+1. getConfluenceSpaces(cloudId="{CLOUD_ID}", keys=["KEY"])
+2. getPagesInConfluenceSpace(cloudId="{CLOUD_ID}", spaceId)
 ```
+
+**Note:** Replace `{CLOUD_ID}` with detected configuration value in all patterns.
 
 ## Output Format
 
@@ -167,9 +204,11 @@ When creating or updating pages, use well-structured Markdown:
 # Main Title
 
 ## Introduction
+
 Brief overview of the topic.
 
 ## Sections
+
 Organize content logically with:
 
 - Clear headings (##, ###)
@@ -192,6 +231,7 @@ Organize content logically with:
 
 ## Important Notes
 
+- **Use detected configuration** - Read from `.cursor/rules/confluence-config.mdc` or ask user
 - **Markdown is mandatory** - Never use HTML or other formats
 - **Search first** - Most efficient way to find content
 - **Validate IDs** - Ensure space/page IDs exist before operations

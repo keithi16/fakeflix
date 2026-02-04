@@ -1,0 +1,15 @@
+---
+alwaysApply: false
+---
+
+# Confluence Configuration
+
+This workspace uses the following Confluence configuration:
+
+- **Cloud ID:** d58e860b-469d-4463-8f46-684934a5a851
+- **URL:** https://techleadsclub.atlassian.net/
+
+The Cloud ID can be:
+
+- A site URL (e.g., `https://techleadsclub.atlassian.net/`)
+- A UUID from `getAccessibleAtlassianResources`
