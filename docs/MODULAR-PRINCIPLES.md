@@ -4,6 +4,42 @@ This document provides detailed guidelines for the first 7 principles of modular
 
 > **Navigation**: Return to [ARCHITECTURE-OVERVIEW.md](./ARCHITECTURE-OVERVIEW.md) | See also [STATE-ISOLATION.md](./STATE-ISOLATION.md) (Principle 8) | [RESILIENCE-OBSERVABILITY.md](./RESILIENCE-OBSERVABILITY.md) (Principles 9-10)
 
+## Quick Reference (For LLMs)
+
+**When to use this doc**: Creating new modules, designing module boundaries, or implementing inter-module communication
+
+**Key rules**:
+
+- ✅ DO: Keep clear boundaries - export only facades/interfaces
+- ✅ DO: Use explicit interfaces for inter-module communication
+- ✅ DO: Design modules to be composable and independent
+- ❌ DON'T: Import internal classes from other modules
+- ❌ DON'T: Create tight coupling between modules
+
+**Detection**: See [IMPLEMENTATION-CHECKLIST.md](./IMPLEMENTATION-CHECKLIST.md#detection-commands) for detection commands
+
+**See also**:
+
+- [STATE-ISOLATION.md](./STATE-ISOLATION.md) - Principle 8 (database isolation)
+- [RESILIENCE-OBSERVABILITY.md](./RESILIENCE-OBSERVABILITY.md) - Principles 9-10
+- [IMPLEMENTATION-CHECKLIST.md](./IMPLEMENTATION-CHECKLIST.md) - Verification steps
+
+## When to Read This Document
+
+**Read this document when:**
+
+- [ ] Creating a new module
+- [ ] Designing module boundaries
+- [ ] Implementing inter-module communication
+- [ ] Understanding composability and independence
+- [ ] Planning module deployment strategies
+
+**Skip this document if:**
+
+- You're only working with databases/entities (see [STATE-ISOLATION.md](./STATE-ISOLATION.md))
+- You're only implementing services/controllers (see [CODING-PATTERNS.md](./CODING-PATTERNS.md))
+- You're only adding observability (see [RESILIENCE-OBSERVABILITY.md](./RESILIENCE-OBSERVABILITY.md))
+
 ## Table of Contents
 
 - [1. Well-Defined Boundaries](#1-well-defined-boundaries)

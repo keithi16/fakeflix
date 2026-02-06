@@ -4,6 +4,43 @@ This document covers building resilient and observable systems through proper mo
 
 > **Navigation**: Return to [ARCHITECTURE-OVERVIEW.md](./ARCHITECTURE-OVERVIEW.md) | See also [MODULAR-PRINCIPLES.md](./MODULAR-PRINCIPLES.md) | [CODING-PATTERNS.md](./CODING-PATTERNS.md)
 
+## Quick Reference (For LLMs)
+
+**When to use this doc**: Adding logging, monitoring, error handling, or circuit breakers
+
+**Key rules**:
+
+- ✅ DO: Add module-specific logging, metrics, and health checks
+- ✅ DO: Use circuit breakers for external service calls
+- ✅ DO: Implement timeouts and retries with exponential backoff
+- ❌ DON'T: Mix module concerns in logging/monitoring
+- ❌ DON'T: Let failures cascade between modules
+
+**Detection**: See [IMPLEMENTATION-CHECKLIST.md](./IMPLEMENTATION-CHECKLIST.md#detection-commands) for detection commands
+
+**See also**:
+
+- [THIRD-PARTY-INTEGRATION.md](./THIRD-PARTY-INTEGRATION.md) - External API integration patterns
+- [CODING-PATTERNS.md](./CODING-PATTERNS.md) - Service implementation patterns
+- [IMPLEMENTATION-CHECKLIST.md](./IMPLEMENTATION-CHECKLIST.md) - Verification steps
+
+## When to Read This Document
+
+**Read this document when:**
+
+- [ ] Adding logging to services
+- [ ] Implementing metrics and monitoring
+- [ ] Adding health checks
+- [ ] Implementing circuit breakers
+- [ ] Handling failures and graceful degradation
+- [ ] Setting up observability dashboards
+
+**Skip this document if:**
+
+- You're only creating entities/repositories (see [STATE-ISOLATION.md](./STATE-ISOLATION.md) and [CODING-PATTERNS.md](./CODING-PATTERNS.md))
+- You're only integrating external APIs (see [THIRD-PARTY-INTEGRATION.md](./THIRD-PARTY-INTEGRATION.md))
+- You're only designing module boundaries (see [MODULAR-PRINCIPLES.md](./MODULAR-PRINCIPLES.md))
+
 ## Table of Contents
 
 - [Observability & Monitoring](#observability--monitoring)
@@ -511,16 +548,13 @@ When implementing observability and resilience:
 
 ## Detection Commands
 
+**See [IMPLEMENTATION-CHECKLIST.md](./IMPLEMENTATION-CHECKLIST.md#detection-commands) for all detection commands.**
+
+**Quick checks for observability**:
+
 ```bash
-# Find services without logging
+# Services without logging
 find packages/*/core/service -name "*.service.ts" -exec grep -L "Logger" {} \;
-
-# Find HTTP calls without timeout
-grep -r "httpService\|axios" packages/ | grep -v "timeout:"
-
-# Find external calls without try-catch
-grep -r "await.*Client\." packages/*/core/service/*.ts | \
-  grep -v "try" -A 5
 
 # Check for circuit breaker usage
 grep -r "CircuitBreaker" packages/

@@ -4,6 +4,42 @@ This document provides practical checklists, verification steps, and automation 
 
 > **Navigation**: Return to [ARCHITECTURE-OVERVIEW.md](./ARCHITECTURE-OVERVIEW.md) | See all patterns: [MODULAR-PRINCIPLES.md](./MODULAR-PRINCIPLES.md) | [STATE-ISOLATION.md](./STATE-ISOLATION.md) | [CODING-PATTERNS.md](./CODING-PATTERNS.md) | [RESILIENCE-OBSERVABILITY.md](./RESILIENCE-OBSERVABILITY.md)
 
+## Quick Reference (For LLMs)
+
+**When to use this doc**: Starting new features, refactoring code, or verifying architecture compliance
+
+**Key rules**:
+
+- ✅ DO: Run detection commands before claiming compliance
+- ✅ DO: Follow checklists when adding features or refactoring
+- ✅ DO: Verify state isolation (duplicate entity check) first
+- ❌ DON'T: Skip verification steps
+- ❌ DON'T: Commit without running detection commands
+
+**Detection**: All detection commands are in the [Detection Commands](#detection-commands) section below
+
+**See also**:
+
+- [STATE-ISOLATION.md](./STATE-ISOLATION.md) - Entity naming conventions
+- [CODING-PATTERNS.md](./CODING-PATTERNS.md) - Implementation patterns
+- [MODULAR-PRINCIPLES.md](./MODULAR-PRINCIPLES.md) - Architecture principles
+
+## When to Read This Document
+
+**Read this document when:**
+
+- [ ] Starting a new feature implementation
+- [ ] Refactoring existing code
+- [ ] Verifying architecture compliance
+- [ ] Running detection commands
+- [ ] Setting up automated verification
+- [ ] Organizing code within a package
+
+**Skip this document if:**
+
+- You're only learning about architecture principles (see [ARCHITECTURE-OVERVIEW.md](./ARCHITECTURE-OVERVIEW.md) and [MODULAR-PRINCIPLES.md](./MODULAR-PRINCIPLES.md))
+- You're only reading implementation patterns (see [CODING-PATTERNS.md](./CODING-PATTERNS.md))
+
 ## Table of Contents
 
 - [When Adding New Features](#when-adding-new-features)
@@ -47,12 +83,12 @@ If cross-module interaction is needed:
 
 ### 4. Implement with Patterns
 
-- [ ] **Repository**: Extend `DefaultTypeOrmRepository`
-- [ ] **Controller**: Keep lean (<20 lines), only call services
-- [ ] **Service**: Use `@Transactional({ connectionName: 'moduleName' })` for writes
-- [ ] **Entity**: Use module-prefixed name (e.g., `BillingPlan`)
-- [ ] **Logging**: Add module-specific logger
-- [ ] **Metrics**: Track relevant business/technical metrics
+- [ ] **Repository**: Extend `DefaultTypeOrmRepository` (see [CODING-PATTERNS.md](./CODING-PATTERNS.md#repository-pattern--orm-encapsulation))
+- [ ] **Controller**: Keep lean (<20 lines), only call services (see [CODING-PATTERNS.md](./CODING-PATTERNS.md#controller-responsibilities--lean-pattern))
+- [ ] **Service**: Use `@Transactional({ connectionName: 'moduleName' })` for writes (see [CODING-PATTERNS.md](./CODING-PATTERNS.md#transaction-management--named-connections))
+- [ ] **Entity**: Use module-prefixed name (see [STATE-ISOLATION.md](./STATE-ISOLATION.md#entity-naming-conventions))
+- [ ] **Logging**: Add module-specific logger (see [RESILIENCE-OBSERVABILITY.md](./RESILIENCE-OBSERVABILITY.md#observability--monitoring))
+- [ ] **Metrics**: Track relevant business/technical metrics (see [RESILIENCE-OBSERVABILITY.md](./RESILIENCE-OBSERVABILITY.md#observability--monitoring))
 
 ### 5. Add Resilience
 
@@ -72,14 +108,13 @@ If cross-module interaction is needed:
 
 ### 7. Verify State Isolation
 
-**CRITICAL**: Run before committing:
+**CRITICAL**: Run before committing. See [STATE-ISOLATION.md](./STATE-ISOLATION.md) for detailed guidelines.
+
+**Quick check** (see [Detection Commands](#detection-commands) for full list):
 
 ```bash
-# Check for duplicate entity names
+# Check for duplicate entity names (CRITICAL)
 grep -r "@Entity.*name:" packages/ | grep -o "name: '[^']*'" | sort | uniq -d
-
-# Check for cross-module entity imports
-grep -r "from.*@tlc.*/.*entity" packages/ | grep -v shared
 ```
 
 ### 8. Test Independence
@@ -138,7 +173,7 @@ Follow this checklist when modifying existing code:
 #### Missing Transactions → Add @Transactional
 
 - [ ] Identify write operations without `@Transactional`
-- [ ] Add `@Transactional({ connectionName: 'moduleName' })`
+- [ ] Add `@Transactional({ connectionName: 'moduleName' })` (see [CODING-PATTERNS.md](./CODING-PATTERNS.md#transaction-management--named-connections))
 - [ ] Ensure no nested transactional methods
 - [ ] Test rollback behavior
 
@@ -479,6 +514,37 @@ grep -r "httpService\|axios" packages/ | grep -v "timeout:"
 
 # External calls without try-catch
 grep -r "await.*Client\." packages/*/core/service/*.ts | grep -v "try" -A 5
+
+# Check for circuit breaker usage
+grep -r "CircuitBreaker" packages/
+```
+
+#### Check Third-Party Integration
+
+```bash
+# Clients without timeout
+grep -r "httpClient\|HttpClient" packages/*/http/client/ | grep -v "timeout"
+
+# Hardcoded API keys
+grep -r "apiKey.*=.*['\"]" packages/ --exclude-dir=node_modules
+
+# Clients without error handling
+grep -r "async.*Client" packages/*/http/client/*.ts | grep -v "try\|catch"
+
+# Clients shared across modules
+grep -r "from '@.*/http/client" packages/
+```
+
+#### Check State Isolation (Detailed)
+
+```bash
+# Check for identical entity file contents
+find packages/ -name "*.entity.ts" -exec basename {} \; | \
+  sort | uniq -d | xargs -I {} find packages/ -name {} -exec md5sum {} \;
+
+# Check for shared database configurations
+grep -r "host.*database.*username" packages/ | \
+  grep -v "process.env.*_DATABASE_" | head -5
 ```
 
 ---

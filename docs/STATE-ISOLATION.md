@@ -4,6 +4,43 @@
 
 > **Navigation**: Return to [ARCHITECTURE-OVERVIEW.md](./ARCHITECTURE-OVERVIEW.md) | See also [MODULAR-PRINCIPLES.md](./MODULAR-PRINCIPLES.md) | [CODING-PATTERNS.md](./CODING-PATTERNS.md)
 
+## Quick Reference (For LLMs)
+
+**When to use this doc**: Creating/modifying entities, migrations, or working with databases
+
+**Key rules**:
+
+- ✅ DO: Prefix entity names with module name (e.g., `BillingPlan`, not `Plan`)
+- ✅ DO: Give each module its own database connection
+- ✅ DO: Use events/APIs for cross-module data needs
+- ❌ DON'T: Create duplicate `@Entity({ name: 'X' })` across modules (CRITICAL VIOLATION)
+- ❌ DON'T: Access other modules' databases directly
+
+**Detection**: See [IMPLEMENTATION-CHECKLIST.md](./IMPLEMENTATION-CHECKLIST.md#detection-commands) for detection commands
+
+**See also**:
+
+- [CODING-PATTERNS.md](./CODING-PATTERNS.md) - Repository and transaction patterns
+- [IMPLEMENTATION-CHECKLIST.md](./IMPLEMENTATION-CHECKLIST.md) - Verification steps
+
+## When to Read This Document
+
+**Read this document when:**
+
+- [ ] Creating or modifying database entities
+- [ ] Setting up database connections
+- [ ] Creating migrations
+- [ ] Planning cross-module data access
+- [ ] Verifying state isolation compliance
+
+**Skip this document if:**
+
+- You're only implementing services/controllers (see [CODING-PATTERNS.md](./CODING-PATTERNS.md))
+- You're only designing module boundaries (see [MODULAR-PRINCIPLES.md](./MODULAR-PRINCIPLES.md))
+- You're only integrating external APIs (see [THIRD-PARTY-INTEGRATION.md](./THIRD-PARTY-INTEGRATION.md))
+
+**CRITICAL**: Read this before creating any database entities!
+
 ## Table of Contents
 
 - [Definition](#definition)
@@ -21,6 +58,7 @@
 **State Isolation**: Each module owns and manages its own state without sharing databases or state with other modules.
 
 This principle ensures:
+
 - Clear data ownership
 - Independent schema evolution
 - Deployment flexibility
@@ -236,59 +274,16 @@ export class BillingService {
 
 ## Detection Commands
 
-### MANDATORY: Run Before Claiming Compliance
+**See [IMPLEMENTATION-CHECKLIST.md](./IMPLEMENTATION-CHECKLIST.md#detection-commands) for all detection commands.**
 
-**CRITICAL**: Run these commands before completing any State Isolation analysis:
-
-#### 1. Check for Duplicate Entity Names (MOST IMPORTANT)
+**Most critical command for State Isolation**:
 
 ```bash
-# Check for duplicate entity names
-grep -r "@Entity.*name:" packages/ | \
-  grep -o "name: '[^']*'" | sort | uniq -d
+# Check for duplicate entity names (CRITICAL - run first)
+grep -r "@Entity.*name:" packages/ | grep -o "name: '[^']*'" | sort | uniq -d
 ```
 
-**Expected output**: Empty (no duplicates)
-
-#### 2. Show Which Modules Have Duplicate Entities
-
-```bash
-# Show which modules have duplicate entities
-grep -r "@Entity.*name:" packages/ | \
-  sed 's/.*packages\/\([^/]*\)\/.*@Entity.*name: *['\''"]\([^'\''"]*\)['\''"].*/\1:\2/' | \
-  sort | awk -F: '{if($2==prev){print "❌ DUPLICATE: " $2 " in " prevmod " and " $1} prevmod=$1; prev=$2}'
-```
-
-**Expected output**: Empty (no duplicates reported)
-
-#### 3. Check for Identical Entity File Contents
-
-```bash
-# Check for identical entity file contents
-find packages/ -name "*.entity.ts" -exec basename {} \; | \
-  sort | uniq -d | xargs -I {} find packages/ -name {} -exec md5sum {} \;
-```
-
-**Expected output**: Empty or files with different checksums
-
-#### 4. Cross-Module Import Detection
-
-```bash
-# Check for cross-module entity imports
-grep -r "from.*@tlc.*/.*entity" packages/ | grep -v shared
-```
-
-**Expected output**: Empty (no cross-module entity imports)
-
-#### 5. Shared Configuration Detection
-
-```bash
-# Check for shared database configurations
-grep -r "host.*database.*username" packages/ | \
-  grep -v "process.env.*_DATABASE_" | head -5
-```
-
-**Expected output**: Only environment-variable-based configurations
+**Expected output**: Empty (no duplicates). If ANY duplicates are found, State Isolation is VIOLATED.
 
 ---
 
@@ -348,14 +343,14 @@ export class RenamePlanTables1234567890 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
     // Billing module owns Plan
     await queryRunner.renameTable('Plan', 'BillingPlan');
-    
+
     // Content module needs its own
     await queryRunner.query(`
       CREATE TABLE "ContentPlan" (
         ... // Copy structure, not data
       );
     `);
-    
+
     // Migrate data if needed
     await queryRunner.query(`
       INSERT INTO "ContentPlan" (...)
@@ -392,7 +387,7 @@ export class ContentService {
     @InjectRepository(User, 'identity') // ❌ Cross-module access
     private userRepository: Repository<User>
   ) {}
-  
+
   async getUserContent(userId: string) {
     const user = await this.userRepository.findOne({ where: { id: userId } });
     // ...
@@ -405,7 +400,7 @@ export class ContentService {
   constructor(
     private readonly identityClient: IdentityHttpClient // ✅ Uses API
   ) {}
-  
+
   async getUserContent(userId: string) {
     const user = await this.identityClient.getUserById(userId);
     // ...
@@ -423,11 +418,11 @@ export class ContentService {
 
 ```typescript
 // ✅ GOOD: Same server, different databases
-BILLING_DATABASE_HOST=postgres.prod.com
-BILLING_DATABASE_NAME=billing_db
+BILLING_DATABASE_HOST = postgres.prod.com;
+BILLING_DATABASE_NAME = billing_db;
 
-CONTENT_DATABASE_HOST=postgres.prod.com  // Same host OK
-CONTENT_DATABASE_NAME=content_db         // Different DB required
+CONTENT_DATABASE_HOST = postgres.prod.com; // Same host OK
+CONTENT_DATABASE_NAME = content_db; // Different DB required
 ```
 
 ### Q: How do I handle user data across modules?
@@ -450,9 +445,9 @@ export class User {
 @Entity({ name: 'BillingSubscription' })
 export class Subscription {
   id: string;
-  userId: string;        // String reference, not FK
-  userEmail: string;     // Replicated for billing emails
-  userName: string;      // Replicated for invoices
+  userId: string; // String reference, not FK
+  userEmail: string; // Replicated for billing emails
+  userName: string; // Replicated for invoices
   // NO sensitive data like passwordHash
 }
 ```
@@ -460,6 +455,7 @@ export class Subscription {
 ### Q: What about shared lookup tables?
 
 **A**: Either:
+
 1. Duplicate in each module (if small and stable)
 2. Create a shared reference data service
 3. Use events to sync reference data

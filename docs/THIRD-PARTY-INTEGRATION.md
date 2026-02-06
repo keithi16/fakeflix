@@ -4,6 +4,43 @@ Patterns and best practices for integrating external APIs and services.
 
 > **Navigation**: Return to [ARCHITECTURE-OVERVIEW.md](./ARCHITECTURE-OVERVIEW.md) | See also [RESILIENCE-OBSERVABILITY.md](./RESILIENCE-OBSERVABILITY.md) | [MODULAR-PRINCIPLES.md](./MODULAR-PRINCIPLES.md)
 
+## Quick Reference (For LLMs)
+
+**When to use this doc**: Integrating external APIs, third-party services, or HTTP clients
+
+**Key rules**:
+
+- ✅ DO: Encapsulate ALL HTTP/API details in client class
+- ✅ DO: Use timeouts, retries, and circuit breakers
+- ✅ DO: Store API keys in environment variables (ConfigService)
+- ❌ DON'T: Expose HTTP details to services
+- ❌ DON'T: Hardcode API keys or share clients across modules
+
+**Detection**: See [IMPLEMENTATION-CHECKLIST.md](./IMPLEMENTATION-CHECKLIST.md#detection-commands) for detection commands
+
+**See also**:
+
+- [RESILIENCE-OBSERVABILITY.md](./RESILIENCE-OBSERVABILITY.md) - Circuit breaker and failure patterns
+- [MODULAR-PRINCIPLES.md](./MODULAR-PRINCIPLES.md) - Module boundaries and replaceability
+- [IMPLEMENTATION-CHECKLIST.md](./IMPLEMENTATION-CHECKLIST.md) - Verification steps
+
+## When to Read This Document
+
+**Read this document when:**
+
+- [ ] Integrating external REST APIs
+- [ ] Using vendor SDKs
+- [ ] Creating HTTP clients
+- [ ] Implementing mock clients for testing
+- [ ] Configuring API authentication and security
+- [ ] Migrating from mock to production clients
+
+**Skip this document if:**
+
+- You're only working with internal module communication (see [MODULAR-PRINCIPLES.md](./MODULAR-PRINCIPLES.md))
+- You're only creating entities/repositories (see [STATE-ISOLATION.md](./STATE-ISOLATION.md) and [CODING-PATTERNS.md](./CODING-PATTERNS.md))
+- You're only adding logging/monitoring (see [RESILIENCE-OBSERVABILITY.md](./RESILIENCE-OBSERVABILITY.md))
+
 ## Table of Contents
 
 - [Integration Patterns](#integration-patterns)
@@ -26,11 +63,12 @@ Patterns and best practices for integrating external APIs and services.
 export class PaymentGatewayClient {
   async processPayment(request: PaymentRequest): Promise<PaymentResponse> {
     await this.simulateLatency(); // 100-300ms
-    
-    if (Math.random() < 0.10) { // 10% failure rate
+
+    if (Math.random() < 0.1) {
+      // 10% failure rate
       return { success: false, failureReason: 'Card declined' };
     }
-    
+
     return {
       success: true,
       transactionId: `PAY-${Date.now()}`,
@@ -49,13 +87,13 @@ export class PaymentGatewayClient {
 export class ExternalRatingClient {
   constructor(
     private readonly configService: ConfigService,
-    private readonly httpClient: HttpClient, // Shared HttpClient
+    private readonly httpClient: HttpClient // Shared HttpClient
   ) {}
 
   async getRating(title: string): Promise<number | undefined> {
     const apiToken = this.configService.get('api.token');
     const apiUrl = this.configService.get('api.url');
-    
+
     try {
       const response = await this.httpClient.get(`${apiUrl}/rating/${title}`, {
         headers: { Authorization: `Bearer ${apiToken}` },
@@ -82,12 +120,14 @@ export class GeminiClient implements VideoSummaryAdapter {
     const ai = new GoogleGenAI({
       apiKey: this.configService.get('gemini.apiKey'),
     });
-    
+
     const result = await ai.models.generateContent({
       model: 'gemini-2.0-flash',
-      contents: [/* ... */],
+      contents: [
+        /* ... */
+      ],
     });
-    
+
     return result.text;
   }
 }
@@ -123,7 +163,7 @@ export class PaymentGatewayClient {
     const url = `${this.baseUrl}/v1/charges`;
     const headers = { Authorization: `Bearer ${this.apiKey}` };
     const apiRequest = this.mapToApiFormat(data);
-    
+
     const response = await this.httpClient.post(url, apiRequest, { headers });
     return this.mapFromApiFormat(response);
   }
@@ -133,18 +173,20 @@ export class PaymentGatewayClient {
 @Injectable()
 export class PaymentService {
   constructor(private readonly paymentClient: PaymentGatewayClient) {}
-  
+
   async processPayment(invoice: Invoice): Promise<Payment> {
     // No HTTP details - just business logic
     const response = await this.paymentClient.processPayment({
       amount: invoice.totalAmount,
       invoiceId: invoice.id,
     });
-    
-    return this.paymentRepository.save(new Payment({
-      transactionId: response.transactionId,
-      amount: invoice.totalAmount,
-    }));
+
+    return this.paymentRepository.save(
+      new Payment({
+        transactionId: response.transactionId,
+        amount: invoice.totalAmount,
+      })
+    );
   }
 }
 ```
@@ -161,7 +203,7 @@ export class PaymentService {
 @Injectable()
 export class TaxService {
   constructor(
-    private readonly easyTaxClient: EasyTaxClient, // Direct injection
+    private readonly easyTaxClient: EasyTaxClient // Direct injection
   ) {}
 }
 ```
@@ -180,7 +222,9 @@ export const VideoSummaryAdapter = Symbol('VideoSummaryAdapter');
 // Client implements interface
 @Injectable()
 export class GeminiClient implements VideoSummaryAdapter {
-  async generateSummary(videoUrl: string): Promise<string> { /* ... */ }
+  async generateSummary(videoUrl: string): Promise<string> {
+    /* ... */
+  }
 }
 
 // Module provides implementation
@@ -199,7 +243,7 @@ export class VideoProcessorModule {}
 export class SummaryUseCase {
   constructor(
     @Inject(VideoSummaryAdapter)
-    private readonly adapter: VideoSummaryAdapter, // Interface
+    private readonly adapter: VideoSummaryAdapter // Interface
   ) {}
 }
 ```
@@ -252,19 +296,19 @@ export class EasyTaxClient {
 
   async createTransaction(request: TaxRequest): Promise<TaxResponse> {
     await this.simulateLatency();
-    
+
     if (Math.random() < 0.05) {
       throw new Error('EasyTax API error');
     }
-    
+
     return {
       totalTax: request.amount * 0.08,
       transactionId: `EASY-${Date.now()}`,
     };
   }
-  
+
   private async simulateLatency(): Promise<void> {
-    await new Promise(resolve => setTimeout(resolve, 100 + Math.random() * 200));
+    await new Promise((resolve) => setTimeout(resolve, 100 + Math.random() * 200));
   }
 }
 
@@ -272,7 +316,7 @@ export class EasyTaxClient {
 @Injectable()
 export class TaxService {
   constructor(private readonly easyTaxClient: EasyTaxClient) {}
-  
+
   async calculateTax(amount: number): Promise<number> {
     const response = await this.easyTaxClient.createTransaction({ amount });
     return response.totalTax;
@@ -291,17 +335,14 @@ export class ExternalRatingClient {
 
   constructor(
     private readonly httpClient: HttpClient,
-    private readonly configService: ConfigService,
+    private readonly configService: ConfigService
   ) {
-    this.circuitBreaker = new CircuitBreaker(
-      this.callApi.bind(this),
-      {
-        timeout: 3000,
-        errorThresholdPercentage: 50,
-        resetTimeout: 30000,
-      }
-    );
-    
+    this.circuitBreaker = new CircuitBreaker(this.callApi.bind(this), {
+      timeout: 3000,
+      errorThresholdPercentage: 50,
+      resetTimeout: 30000,
+    });
+
     this.circuitBreaker.fallback(() => ({ rating: null }));
   }
 
@@ -318,7 +359,7 @@ export class ExternalRatingClient {
   private async callApi(title: string): Promise<{ rating: number }> {
     const url = `${this.configService.get('api.url')}/rating/${title}`;
     const token = this.configService.get('api.token');
-    
+
     return this.httpClient.get(url, {
       headers: { Authorization: `Bearer ${token}` },
       timeout: 5000,
@@ -345,12 +386,14 @@ export class GeminiClient implements VideoSummaryAdapter {
     const ai = new GoogleGenAI({
       apiKey: this.configService.get('gemini.apiKey'),
     });
-    
+
     const result = await ai.models.generateContent({
       model: 'gemini-2.0-flash',
-      contents: [/* ... */],
+      contents: [
+        /* ... */
+      ],
     });
-    
+
     return result.text || '';
   }
 }
@@ -371,9 +414,9 @@ export class VideoProcessorModule {}
 export class GenerateSummaryUseCase {
   constructor(
     @Inject(VideoSummaryAdapter)
-    private readonly adapter: VideoSummaryAdapter,
+    private readonly adapter: VideoSummaryAdapter
   ) {}
-  
+
   async execute(video: Video): Promise<void> {
     const summary = await this.adapter.generateSummary(video.url);
     // Save summary...
@@ -435,7 +478,7 @@ async processInvoice(invoice: Invoice) {
     this.logger.warn('Tax calculation failed, using default');
     tax = this.calculateDefaultTax(invoice); // Fallback
   }
-  
+
   // Continue even if tax failed
   const payment = await this.paymentClient.processPayment(invoice);
 }
@@ -509,7 +552,7 @@ export class BillingModule {}
 @Injectable()
 export class PaymentClient {
   constructor(private readonly httpClient: HttpClient) {}
-  
+
   async processPayment(data: PaymentRequest) {
     return this.httpClient.post(url, data, {
       headers: { Authorization: `Bearer ${token}` },
@@ -538,18 +581,16 @@ try {
 
 ## Detection Commands
 
+**See [IMPLEMENTATION-CHECKLIST.md](./IMPLEMENTATION-CHECKLIST.md#detection-commands) for all detection commands.**
+
+**Quick checks for third-party integration**:
+
 ```bash
-# Find clients without timeout
-grep -r "httpClient\|HttpClient" package/*/http/client/ | grep -v "timeout"
+# Hardcoded API keys (CRITICAL security issue)
+grep -r "apiKey.*=.*['\"]" packages/ --exclude-dir=node_modules
 
-# Find hardcoded API keys
-grep -r "apiKey.*=.*['\"]" package/ --exclude-dir=node_modules
-
-# Find clients without error handling
-grep -r "async.*Client" package/*/http/client/*.ts | grep -v "try\|catch"
-
-# Find clients shared across modules
-grep -r "from '@.*/http/client" package/
+# Clients shared across modules (violation)
+grep -r "from '@.*/http/client" packages/
 ```
 
 ---

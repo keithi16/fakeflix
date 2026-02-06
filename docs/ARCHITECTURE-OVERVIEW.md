@@ -2,6 +2,27 @@
 
 This document provides a high-level introduction to our modular architecture approach and serves as a navigation hub to detailed guidelines.
 
+## Quick Reference (For LLMs)
+
+**When to use this doc**: Navigation hub - read first to understand architecture and decide which detailed docs to load
+
+**Key rules**:
+
+- ✅ DO: Use this doc to navigate to specific guidelines based on task type
+- ✅ DO: Load specific docs only when needed (progressive loading)
+- ✅ DO: Start here when understanding overall architecture
+- ❌ DON'T: Load all docs at once (saves ~51k tokens)
+- ❌ DON'T: Skip this when starting new work
+
+**Detection**: See [IMPLEMENTATION-CHECKLIST.md](./IMPLEMENTATION-CHECKLIST.md#detection-commands) for all verification commands
+
+**See also**:
+
+- [MODULAR-PRINCIPLES.md](./MODULAR-PRINCIPLES.md) - Principles 1-7
+- [STATE-ISOLATION.md](./STATE-ISOLATION.md) - Principle 8 (CRITICAL)
+- [CODING-PATTERNS.md](./CODING-PATTERNS.md) - Implementation patterns
+- [IMPLEMENTATION-CHECKLIST.md](./IMPLEMENTATION-CHECKLIST.md) - Verification steps
+
 ## Core Philosophy
 
 **Modular Architecture** is a pragmatic approach that avoids premature microservices complexity while maintaining clear boundaries between business domains. It provides the benefits of both monoliths (development simplicity) and distributed systems (independence and scalability).
@@ -120,16 +141,26 @@ Intra-package organization:
 
 ## Quick Reference Guide
 
+### Decision Tree: What to Read
+
+**IF** creating/modifying entities or migrations → **THEN** read [STATE-ISOLATION.md](./STATE-ISOLATION.md) (~8k tokens)  
+**IF** creating controllers, services, or repositories → **THEN** read [CODING-PATTERNS.md](./CODING-PATTERNS.md) (~12k tokens)  
+**IF** creating new modules or designing boundaries → **THEN** read [MODULAR-PRINCIPLES.md](./MODULAR-PRINCIPLES.md) (~7k tokens)  
+**IF** integrating external APIs or third-party services → **THEN** read [THIRD-PARTY-INTEGRATION.md](./THIRD-PARTY-INTEGRATION.md) (~8k tokens)  
+**IF** adding logging, monitoring, or error handling → **THEN** read [RESILIENCE-OBSERVABILITY.md](./RESILIENCE-OBSERVABILITY.md) (~7k tokens)  
+**IF** verifying compliance or running detection commands → **THEN** read [IMPLEMENTATION-CHECKLIST.md](./IMPLEMENTATION-CHECKLIST.md) (~9k tokens)  
+**IF** understanding overall architecture → **THEN** read this overview (~3k tokens) + specific docs as needed
+
 ### I want to...
 
 - **Create a new module** → Read [MODULAR-PRINCIPLES.md](./MODULAR-PRINCIPLES.md) + [STATE-ISOLATION.md](./STATE-ISOLATION.md)
-- **Add a database entity** → Read [STATE-ISOLATION.md](./STATE-ISOLATION.md) first!
-- **Create a controller/service** → Read [CODING-PATTERNS.md](./CODING-PATTERNS.md)
-- **Add inter-module communication** → Read [MODULAR-PRINCIPLES.md](./MODULAR-PRINCIPLES.md#5-explicit-communication)
-- **Integrate external API** → Read [THIRD-PARTY-INTEGRATION.md](./THIRD-PARTY-INTEGRATION.md)
-- **Implement error handling** → Read [RESILIENCE-OBSERVABILITY.md](./RESILIENCE-OBSERVABILITY.md#fail-independence)
-- **Add monitoring/logging** → Read [RESILIENCE-OBSERVABILITY.md](./RESILIENCE-OBSERVABILITY.md#observability--monitoring)
-- **Verify architecture compliance** → Read [IMPLEMENTATION-CHECKLIST.md](./IMPLEMENTATION-CHECKLIST.md)
+- **Add a database entity** → Read [STATE-ISOLATION.md](./STATE-ISOLATION.md) first! (~8k tokens)
+- **Create a controller/service** → Read [CODING-PATTERNS.md](./CODING-PATTERNS.md) (~12k tokens)
+- **Add inter-module communication** → Read [MODULAR-PRINCIPLES.md](./MODULAR-PRINCIPLES.md#5-explicit-communication) (~7k tokens)
+- **Integrate external API** → Read [THIRD-PARTY-INTEGRATION.md](./THIRD-PARTY-INTEGRATION.md) (~8k tokens)
+- **Implement error handling** → Read [RESILIENCE-OBSERVABILITY.md](./RESILIENCE-OBSERVABILITY.md#fail-independence) (~7k tokens)
+- **Add monitoring/logging** → Read [RESILIENCE-OBSERVABILITY.md](./RESILIENCE-OBSERVABILITY.md#observability--monitoring) (~7k tokens)
+- **Verify architecture compliance** → Read [IMPLEMENTATION-CHECKLIST.md](./IMPLEMENTATION-CHECKLIST.md) (~9k tokens)
 
 ## Document Scope
 
@@ -157,13 +188,17 @@ These documents focus on **inter-package architecture** (how packages interact a
 
 ### For AI Agents
 
-1. Load this overview for navigation
-2. Load specific documents based on task:
-   - Database work → [STATE-ISOLATION.md](./STATE-ISOLATION.md)
-   - Service/Controller work → [CODING-PATTERNS.md](./CODING-PATTERNS.md)
-   - Module communication → [MODULAR-PRINCIPLES.md](./MODULAR-PRINCIPLES.md)
-   - External API integration → [THIRD-PARTY-INTEGRATION.md](./THIRD-PARTY-INTEGRATION.md)
-3. Always run verification commands from [IMPLEMENTATION-CHECKLIST.md](./IMPLEMENTATION-CHECKLIST.md)
+1. **Load this overview first** (~3k tokens) for navigation
+2. **Load specific documents based on task** (progressive loading):
+   - **IF** database work → Load [STATE-ISOLATION.md](./STATE-ISOLATION.md) (~8k tokens)
+   - **IF** service/controller work → Load [CODING-PATTERNS.md](./CODING-PATTERNS.md) (~12k tokens)
+   - **IF** module communication → Load [MODULAR-PRINCIPLES.md](./MODULAR-PRINCIPLES.md) (~7k tokens)
+   - **IF** external API integration → Load [THIRD-PARTY-INTEGRATION.md](./THIRD-PARTY-INTEGRATION.md) (~8k tokens)
+   - **IF** logging/monitoring → Load [RESILIENCE-OBSERVABILITY.md](./RESILIENCE-OBSERVABILITY.md) (~7k tokens)
+   - **IF** verification needed → Load [IMPLEMENTATION-CHECKLIST.md](./IMPLEMENTATION-CHECKLIST.md) (~9k tokens)
+3. **Always run verification commands** from [IMPLEMENTATION-CHECKLIST.md](./IMPLEMENTATION-CHECKLIST.md#detection-commands)
+
+**Token Efficiency**: Load only what you need. Typical task requires 1-2 docs (~15-20k tokens) instead of all docs (~54k tokens).
 
 ## Architecture Principles Summary
 

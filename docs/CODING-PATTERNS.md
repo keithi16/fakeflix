@@ -4,6 +4,41 @@ This document provides technical implementation patterns for repositories, contr
 
 > **Navigation**: Return to [ARCHITECTURE-OVERVIEW.md](./ARCHITECTURE-OVERVIEW.md) | See also [STATE-ISOLATION.md](./STATE-ISOLATION.md) | [MODULAR-PRINCIPLES.md](./MODULAR-PRINCIPLES.md)
 
+## Quick Reference (For LLMs)
+
+**When to use this doc**: Implementing repositories, controllers, services, or transaction management
+
+**Key rules**:
+
+- ✅ DO: Extend `DefaultTypeOrmRepository<Entity>` for repositories
+- ✅ DO: Keep controllers lean (<20 lines), only call services
+- ✅ DO: Use `@Transactional({ connectionName: 'moduleName' })` for write operations
+- ❌ DON'T: Extend TypeORM `Repository` directly
+- ❌ DON'T: Put business logic in controllers or call repositories from controllers
+
+**Detection**: See [IMPLEMENTATION-CHECKLIST.md](./IMPLEMENTATION-CHECKLIST.md#detection-commands) for detection commands
+
+**See also**:
+
+- [STATE-ISOLATION.md](./STATE-ISOLATION.md) - Entity naming and database patterns
+- [IMPLEMENTATION-CHECKLIST.md](./IMPLEMENTATION-CHECKLIST.md) - Verification steps
+
+## When to Read This Document
+
+**Read this document when:**
+
+- [ ] Creating or modifying repositories
+- [ ] Creating or modifying controllers
+- [ ] Implementing transaction management
+- [ ] Refactoring fat controllers to lean controllers
+- [ ] Setting up database connections in services
+
+**Skip this document if:**
+
+- You're only working with entities (see [STATE-ISOLATION.md](./STATE-ISOLATION.md))
+- You're only integrating external APIs (see [THIRD-PARTY-INTEGRATION.md](./THIRD-PARTY-INTEGRATION.md))
+- You're only adding logging/monitoring (see [RESILIENCE-OBSERVABILITY.md](./RESILIENCE-OBSERVABILITY.md))
+
 ## Table of Contents
 
 - [Repository Pattern & ORM Encapsulation](#repository-pattern--orm-encapsulation)
@@ -31,11 +66,13 @@ Repositories MUST encapsulate all ORM-specific logic and never expose internal T
 ### Why DefaultTypeOrmRepository?
 
 TypeORM's `Repository` class exposes 50+ methods including:
+
 - `query()`, `createQueryBuilder()` - raw SQL access
 - `increment()`, `decrement()` - direct column manipulation
 - Internal methods that leak ORM implementation details
 
 `DefaultTypeOrmRepository` uses **composition over inheritance**:
+
 - Wraps TypeORM Repository as private property
 - Exposes only safe, controlled methods: `save`, `findOne`, `find`, `exists`
 - Prevents domain services from coupling to ORM internals
@@ -86,7 +123,7 @@ export class InvoiceRepository extends Repository<Invoice> {
   constructor(private dataSource: DataSource) {
     super(Invoice, dataSource.createEntityManager());
   }
-  
+
   // Exposes all TypeORM methods like query(), increment(), etc.
   // Domain services can now call repo.query('RAW SQL') - coupling!
 }
@@ -169,6 +206,7 @@ Controllers MUST be lean and only handle HTTP concerns (input/output). All busin
 ### Why Lean Controllers?
 
 **Fat controllers lead to:**
+
 - Untestable business logic (requires HTTP context)
 - Duplicated logic across endpoints
 - Tight coupling to HTTP framework
@@ -176,6 +214,7 @@ Controllers MUST be lean and only handle HTTP concerns (input/output). All busin
 - Poor separation of concerns
 
 **Lean controllers provide:**
+
 - Framework-agnostic business logic
 - Reusable services across contexts (HTTP, CLI, queues)
 - Easy unit testing of business logic
@@ -199,15 +238,15 @@ Controllers MUST be lean and only handle HTTP concerns (input/output). All busin
 export class InvoiceController {
   constructor(
     private readonly invoiceService: InvoiceService,
-    private readonly clsService: ClsService,
+    private readonly clsService: ClsService
   ) {}
 
   @Get()
   async getUserInvoices(): Promise<InvoiceResponseDto[]> {
     const userId = this.clsService.get('userId');
     const invoices = await this.invoiceService.getUserInvoices(userId);
-    
-    return invoices.map(invoice =>
+
+    return invoices.map((invoice) =>
       plainToInstance(InvoiceResponseDto, invoice, {
         excludeExtraneousValues: true,
       })
@@ -220,7 +259,7 @@ export class InvoiceController {
 export class UsageController {
   constructor(
     private readonly usageRecordRepository: UsageRecordRepository, // ❌ Repository injection
-    private readonly subscriptionRepository: SubscriptionRepository,
+    private readonly subscriptionRepository: SubscriptionRepository
   ) {}
 
   @Get('subscription/:subscriptionId')
@@ -230,33 +269,33 @@ export class UsageController {
       where: { id: subscriptionId },
       relations: ['plan'],
     });
-    
+
     if (!subscription) {
       throw new NotFoundException('Subscription not found');
     }
-    
+
     // ❌ Direct repository call
     const usageRecords = await this.usageRecordRepository.findBySubscriptionIdAndPeriod(
       subscriptionId,
       subscription.currentPeriodStart,
       new Date()
     );
-    
+
     // ❌ Business logic in controller
     const aggregation = await this.usageRecordRepository.aggregateUsageByType(
       subscriptionId,
       subscription.currentPeriodStart,
       new Date()
     );
-    
+
     const summaries = [];
-    
+
     // ❌ Data transformation and calculation logic
     for (const [usageType, totalQuantity] of aggregation.entries()) {
       const includedQuota = subscription.plan.includedUsageQuotas?.[usageType] || 0;
       const billableQuantity = Math.max(0, totalQuantity - includedQuota);
-      const estimatedCost = billableQuantity * 0.10; // ❌ Business rule
-      
+      const estimatedCost = billableQuantity * 0.1; // ❌ Business rule
+
       summaries.push({
         subscriptionId,
         usageType,
@@ -266,7 +305,7 @@ export class UsageController {
         estimatedCost,
       });
     }
-    
+
     return summaries; // 50+ lines of logic!
   }
 }
@@ -276,7 +315,7 @@ export class UsageController {
 export class UsageBillingService {
   constructor(
     private readonly usageRecordRepository: UsageRecordRepository,
-    private readonly subscriptionRepository: SubscriptionRepository,
+    private readonly subscriptionRepository: SubscriptionRepository
   ) {}
 
   async getUsageSummaryForSubscription(subscriptionId: string): Promise<UsageSummary[]> {
@@ -284,24 +323,24 @@ export class UsageBillingService {
       where: { id: subscriptionId },
       relations: ['plan'],
     });
-    
+
     if (!subscription) {
       throw new NotFoundException('Subscription not found');
     }
-    
+
     const aggregation = await this.usageRecordRepository.aggregateUsageByType(
       subscriptionId,
       subscription.currentPeriodStart,
       new Date()
     );
-    
+
     const summaries: UsageSummary[] = [];
-    
+
     for (const [usageType, totalQuantity] of aggregation.entries()) {
       const includedQuota = subscription.plan.includedUsageQuotas?.[usageType] || 0;
       const billableQuantity = Math.max(0, totalQuantity - includedQuota);
       const estimatedCost = this.calculateEstimatedCost(billableQuantity, usageType);
-      
+
       summaries.push({
         subscriptionId,
         usageType,
@@ -311,10 +350,10 @@ export class UsageBillingService {
         estimatedCost,
       });
     }
-    
+
     return summaries;
   }
-  
+
   private calculateEstimatedCost(quantity: number, usageType: UsageType): number {
     // Business logic encapsulated in service
     return quantity * this.getUnitPrice(usageType);
@@ -333,8 +372,8 @@ export class UsageController {
     const summaries = await this.usageBillingService.getUsageSummaryForSubscription(
       subscriptionId
     );
-    
-    return summaries.map(summary =>
+
+    return summaries.map((summary) =>
       plainToInstance(UsageSummaryResponseDto, summary, {
         excludeExtraneousValues: true,
       })
@@ -345,18 +384,18 @@ export class UsageController {
 
 ### Service vs Controller Responsibilities
 
-| Responsibility | Service | Controller |
-|----------------|---------|------------|
-| Business Logic | ✅ YES | ❌ NO |
-| Data Validation (domain) | ✅ YES | ❌ NO |
-| Repository Calls | ✅ YES | ❌ NO |
-| Calculations | ✅ YES | ❌ NO |
-| Orchestration | ✅ YES | ❌ NO |
-| Entity Relationships | ✅ YES | ❌ NO |
-| Request Validation (DTO) | ❌ NO | ✅ YES |
-| HTTP Status Codes | ❌ NO | ✅ YES |
-| Response Mapping (Entity→DTO) | ❌ NO | ✅ YES |
-| User Context Extraction | ❌ NO | ✅ YES |
+| Responsibility                | Service | Controller |
+| ----------------------------- | ------- | ---------- |
+| Business Logic                | ✅ YES  | ❌ NO      |
+| Data Validation (domain)      | ✅ YES  | ❌ NO      |
+| Repository Calls              | ✅ YES  | ❌ NO      |
+| Calculations                  | ✅ YES  | ❌ NO      |
+| Orchestration                 | ✅ YES  | ❌ NO      |
+| Entity Relationships          | ✅ YES  | ❌ NO      |
+| Request Validation (DTO)      | ❌ NO   | ✅ YES     |
+| HTTP Status Codes             | ❌ NO   | ✅ YES     |
+| Response Mapping (Entity→DTO) | ❌ NO   | ✅ YES     |
+| User Context Extraction       | ❌ NO   | ✅ YES     |
 
 ### Common Violations
 
@@ -367,7 +406,7 @@ export class UsageController {
 @Controller('subscription')
 export class SubscriptionController {
   constructor(private readonly subscriptionRepo: Repository<Subscription>) {}
-  
+
   @Get(':id')
   async getSubscription(@Param('id') id: string) {
     return this.subscriptionRepo.findOne({ where: { id } });
@@ -378,7 +417,7 @@ export class SubscriptionController {
 @Controller('subscription')
 export class SubscriptionController {
   constructor(private readonly subscriptionService: SubscriptionService) {}
-  
+
   @Get(':id')
   async getSubscription(@Param('id') id: string) {
     return this.subscriptionService.getSubscriptionById(id);
@@ -393,17 +432,17 @@ export class SubscriptionController {
 @Post(':id/change-plan')
 async changePlan(@Param('id') subscriptionId: string, @Body() dto: ChangePlanDto) {
   const subscription = await this.subscriptionRepo.findOne({ where: { id: subscriptionId } });
-  
+
   // ❌ Business validation in controller
   if (!subscription) {
     throw new BadRequestException('Subscription not found');
   }
-  
+
   // ❌ Ownership check in controller
   if (subscription.userId !== userId) {
     throw new ForbiddenException('Not your subscription');
   }
-  
+
   return this.subscriptionService.changePlan(subscription.id, dto.newPlanId);
 }
 
@@ -411,7 +450,7 @@ async changePlan(@Param('id') subscriptionId: string, @Body() dto: ChangePlanDto
 @Post(':id/change-plan')
 async changePlan(@Param('id') subscriptionId: string, @Body() dto: ChangePlanDto) {
   const userId = this.clsService.get('userId');
-  
+
   // Service handles all validation and business logic
   return this.subscriptionService.changePlanForUser(userId, subscriptionId, dto.newPlanId);
 }
@@ -424,7 +463,7 @@ async changePlan(@Param('id') subscriptionId: string, @Body() dto: ChangePlanDto
 @Get('summary')
 async getSummary() {
   const data = await this.service.getData();
-  
+
   // ❌ Complex transformation in controller
   return data.map(item => ({
     ...item,
@@ -438,7 +477,7 @@ async getSummary() {
 @Get('summary')
 async getSummary() {
   const summary = await this.service.getSummaryWithCalculations();
-  
+
   return plainToInstance(SummaryResponseDto, summary, {
     excludeExtraneousValues: true,
   });
@@ -460,9 +499,7 @@ describe('UsageBillingService', () => {
 describe('UsageController', () => {
   it('should return usage summary', async () => {
     // Need to setup entire HTTP stack just to test business logic
-    return request(app.getHttpServer())
-      .get('/usage/subscription/sub-123')
-      .expect(200);
+    return request(app.getHttpServer()).get('/usage/subscription/sub-123').expect(200);
   });
 });
 ```
@@ -480,16 +517,16 @@ When refactoring fat controllers:
 
 ### Detection Commands
 
+**See [IMPLEMENTATION-CHECKLIST.md](./IMPLEMENTATION-CHECKLIST.md#detection-commands) for all detection commands.**
+
+**Quick checks for coding patterns**:
+
 ```bash
-# Find controllers with repository injections (likely violation)
+# Controllers with repository injections (violation)
 grep -r "Repository" packages/*/http/rest/controller/*.ts
 
-# Find long controller methods (>30 lines)
-awk '/async.*\(.*\).*{/,/^  }/' packages/*/http/rest/controller/*.ts | \
-  awk 'BEGIN{count=0;name=""} /async/{name=$0;count=0} /{count++} /^  }/ && count>30 {print name " - " count " lines"}'
-
-# Count logic lines in controllers (should be minimal)
-find packages/*/http/rest/controller -name "*.ts" -exec wc -l {} \; | sort -rn
+# Write operations without @Transactional
+grep -r "\.save\|\.create\|\.update\|\.delete" packages/*/core/service/*.ts | grep -v "@Transactional"
 ```
 
 ---
@@ -513,18 +550,21 @@ Services that perform database write operations (create, update, delete) MUST us
 ### Why Named Connections?
 
 **Without connectionName** (ambiguous):
+
 ```typescript
 @Transactional()  // Which database? Default? Billing? Content?
 async createSubscription() { }
 ```
 
 **With connectionName** (explicit):
+
 ```typescript
 @Transactional({ connectionName: 'billing' })  // Clear: uses billing database
 async createSubscription() { }
 ```
 
 In monorepo apps with multiple modules and databases:
+
 - Each module has its own named DataSource (`'billing'`, `'content'`, `'identity'`)
 - TypeORM needs to know which connection to use for transaction
 - Explicit naming prevents ambiguity and connection errors
@@ -532,6 +572,7 @@ In monorepo apps with multiple modules and databases:
 ### When to Use @Transactional()
 
 **Always use for:**
+
 1. **Single write operation** - Ensures atomicity
 2. **Multiple write operations** - All-or-nothing semantics
 3. **Read-then-write** - Prevents race conditions
@@ -555,12 +596,12 @@ async addAddOn(subscription: Subscription, addOnId: string) {
     addOnId,
     startDate: new Date(),
   });
-  
+
   await this.subscriptionAddOnRepository.save(subscriptionAddOn);
-  
+
   subscription.addOns.push(subscriptionAddOn);
   await this.subscriptionRepository.save(subscription);
-  
+
   return subscriptionAddOn; // Both saves succeed or both rollback
 }
 
@@ -569,24 +610,24 @@ async addAddOn(subscription: Subscription, addOnId: string) {
 async changePlan(userId: string, newPlanId: string) {
   // 1. Calculate proration
   const proration = await this.calculateProration(userId);
-  
+
   // 2. Create invoice
   const invoice = await this.invoiceRepository.save(new Invoice({
     userId,
     amount: proration.amount,
   }));
-  
+
   // 3. Update subscription
   const subscription = await this.subscriptionRepository.findByUserId(userId);
   subscription.planId = newPlanId;
   await this.subscriptionRepository.save(subscription);
-  
+
   // 4. Apply credits
   await this.creditRepository.save(new Credit({
     userId,
     amount: proration.credit,
   }));
-  
+
   return { invoice, subscription }; // All operations atomic
 }
 
@@ -627,7 +668,7 @@ export class UsageBillingService {
       timestamp: new Date(),
       metadata,
     });
-    
+
     return this.usageRecordRepository.save(usageRecord);
   }
 }
@@ -647,7 +688,7 @@ export class AddOnManagerService {
   ): Promise<{ subscriptionAddOn: SubscriptionAddOn; prorationCharge: number }> {
     // 1. Validate add-on exists
     const addOn = await this.addOnRepository.findById(addOnId);
-    
+
     // 2. Create subscription-add-on relationship
     const subscriptionAddOn = new SubscriptionAddOn({
       subscriptionId: subscription.id,
@@ -655,20 +696,20 @@ export class AddOnManagerService {
       quantity: options.quantity ?? 1,
       startDate: options.effectiveDate ?? new Date(),
     });
-    
+
     await this.subscriptionAddOnRepository.save(subscriptionAddOn);
-    
+
     // 3. Calculate prorated charge
     const prorationCharge = await this.calculateAddOnCharge(
       subscription,
       addOn,
       options.effectiveDate
     );
-    
+
     // 4. Update subscription
     subscription.addOns.push(subscriptionAddOn);
     await this.subscriptionRepository.save(subscription);
-    
+
     // All operations are atomic - if any fails, all rollback
     return { subscriptionAddOn, prorationCharge };
   }
@@ -689,36 +730,35 @@ export class SubscriptionBillingService {
   ): Promise<{ subscription: Subscription; invoice: Invoice }> {
     // Load subscription
     const subscription = await this.subscriptionRepository.findByUserId(userId);
-    
+
     // Calculate proration credit from old plan
     const prorationCredit = await this.prorationCalculator.calculateCredit(
       subscription,
       new Date()
     );
-    
+
     // Calculate proration charge for new plan
     const prorationCharge = await this.prorationCalculator.calculateCharge(
       newPlanId,
       options.effectiveDate ?? new Date()
     );
-    
+
     // Build invoice line items
     const lineItems = [
       this.createProrationCreditLineItem(prorationCredit),
       this.createProrationChargeLineItem(prorationCharge),
     ];
-    
+
     // Generate invoice
-    const invoice = await this.invoiceGenerator.generateInvoice(
-      subscription,
-      lineItems,
-      { dueDate: options.effectiveDate, immediateCharge: options.chargeImmediately }
-    );
-    
+    const invoice = await this.invoiceGenerator.generateInvoice(subscription, lineItems, {
+      dueDate: options.effectiveDate,
+      immediateCharge: options.chargeImmediately,
+    });
+
     // Update subscription
     subscription.planId = newPlanId;
     await this.subscriptionRepository.save(subscription);
-    
+
     // Everything succeeds or everything rolls back
     return { subscription, invoice };
   }
@@ -787,11 +827,11 @@ async getSubscription(id: string) {
 
 Each module must use its DataSource name:
 
-| Module | Connection Name | Example |
-|--------|----------------|---------|
-| `@billing/` | `'billing'` | `@Transactional({ connectionName: 'billing' })` |
-| `@content/` | `'content'` | `@Transactional({ connectionName: 'content' })` |
-| `@identity/` | `'identity'` | `@Transactional({ connectionName: 'identity' })` |
+| Module       | Connection Name | Example                                          |
+| ------------ | --------------- | ------------------------------------------------ |
+| `@billing/`  | `'billing'`     | `@Transactional({ connectionName: 'billing' })`  |
+| `@content/`  | `'content'`     | `@Transactional({ connectionName: 'content' })`  |
+| `@identity/` | `'identity'`    | `@Transactional({ connectionName: 'identity' })` |
 
 ### Setup Requirements
 
@@ -815,7 +855,7 @@ import { addTransactionalDataSource } from 'typeorm-transactional';
           throw new Error('Invalid options passed');
         }
         return addTransactionalDataSource({
-          name: options.name,  // Must match connectionName in @Transactional
+          name: options.name, // Must match connectionName in @Transactional
           dataSource: new DataSource(options),
         });
       },
@@ -831,15 +871,15 @@ export class BillingPersistenceModule {}
 describe('SubscriptionBillingService', () => {
   it('should rollback all changes if invoice generation fails', async () => {
     // Arrange
-    jest.spyOn(invoiceGenerator, 'generateInvoice').mockRejectedValue(new Error('Failed'));
-    
+    jest
+      .spyOn(invoiceGenerator, 'generateInvoice')
+      .mockRejectedValue(new Error('Failed'));
+
     const initialPlanId = subscription.planId;
-    
+
     // Act
-    await expect(
-      service.changePlan(userId, newPlanId, {})
-    ).rejects.toThrow();
-    
+    await expect(service.changePlan(userId, newPlanId, {})).rejects.toThrow();
+
     // Assert - subscription should not be updated due to rollback
     const unchangedSubscription = await subscriptionRepo.findById(subscription.id);
     expect(unchangedSubscription.planId).toBe(initialPlanId);
@@ -849,12 +889,12 @@ describe('SubscriptionBillingService', () => {
 
 ### Detection Commands
 
-```bash
-# Find methods with write operations but no @Transactional
-grep -r "\.save\|\.create\|\.update\|\.delete" packages/*/core/service/*.ts | \
-  grep -v "@Transactional"
+**See [IMPLEMENTATION-CHECKLIST.md](./IMPLEMENTATION-CHECKLIST.md#detection-commands) for all detection commands.**
 
-# Find @Transactional without connectionName
+**Quick checks for transactions**:
+
+```bash
+# @Transactional without connectionName
 grep -r "@Transactional()" packages/
 
 # Check if dataSourceFactory is configured
