@@ -1,5 +1,6 @@
 # Construindo Aplicações Enterprise - Repositório Base (Lab)
 [![CI](https://github.com/tech-leads-club/fakeflix/actions/workflows/main.yml/badge.svg)](https://github.com/tech-leads-club/fakeflix/actions/workflows/main.yml)
+
 Esse é o repositório base do curso Consturindo Aplicações Enterprise, ele é usado para experimentos e referência do código que sera utilizado no curso.
 
 📦 Este repositório contém a arquitetura modular do **Fakeflix**, um serviço de streaming fictício, desenvolvido com **NestJS** e gerenciado através do **Nx Monorepo**. O projeto adota uma abordagem modular para garantir escalabilidade, separação de domínios e reutilização de código.
