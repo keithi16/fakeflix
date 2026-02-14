@@ -1,31 +1,30 @@
-import { Injectable, BadRequestException } from '@nestjs/common';
-import { Transactional } from 'typeorm-transactional';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { AppLogger } from '@tlc/shared-module/logger';
-import { Subscription } from '../../persistence/entity/subscription.entity';
-import { Plan } from '../../persistence/entity/plan.entity';
-import { Invoice } from '../../persistence/entity/invoice.entity';
+import { Transactional } from 'typeorm-transactional';
 import { InvoiceLineItem } from '../../persistence/entity/invoice-line-item.entity';
+import { Invoice } from '../../persistence/entity/invoice.entity';
+import { Plan } from '../../persistence/entity/plan.entity';
 import { SubscriptionAddOn } from '../../persistence/entity/subscription-add-on.entity';
-import { SubscriptionRepository } from '../../persistence/repository/subscription.repository';
+import { Subscription } from '../../persistence/entity/subscription.entity';
 import { PlanRepository } from '../../persistence/repository/plan.repository';
-import { ProrationCalculatorService } from './proration-calculator.service';
-import { UsageBillingService } from './usage-billing.service';
-import { TaxCalculatorService } from './tax-calculator.service';
-import { DiscountEngineService } from './discount-engine.service';
-import { InvoiceGeneratorService } from './invoice-generator.service';
-import { CreditManagerService } from './credit-manager.service';
-import { AddOnManagerService } from './add-on-manager.service';
+import { SubscriptionRepository } from '../../persistence/repository/subscription.repository';
 import { ChargeType } from '../enum/charge-type.enum';
-import { SubscriptionStatus } from '../enum/subscription-status.enum';
 import { TaxProvider } from '../enum/tax-provider.enum';
 import { TaxConfiguration } from '../interface/tax-calculation.interface';
+import { AddOnManagerService } from './add-on-manager.service';
+import { CreditManagerService } from './credit-manager.service';
+import { DiscountEngineService } from './discount-engine.service';
+import { InvoiceGeneratorService } from './invoice-generator.service';
+import { ProrationCalculatorService } from './proration-calculator.service';
+import { TaxCalculatorService } from './tax-calculator.service';
+import { UsageBillingService } from './usage-billing.service';
 
 /**
  * SUBSCRIPTION BILLING SERVICE
- * 
+ *
  * Main orchestrator for all subscription billing operations.
  * Inspired by bill-test.service.ts but adapted for streaming subscriptions.
- * 
+ *
  * Coordinates complex operations:
  * - Plan changes with proration
  * - Add-on management
@@ -34,7 +33,7 @@ import { TaxConfiguration } from '../interface/tax-calculation.interface';
  * - Discount application
  * - Credit management
  * - Invoice generation
- * 
+ *
  * This service demonstrates production-grade complexity while being
  * educational for course material.
  */
@@ -50,12 +49,12 @@ export class SubscriptionBillingService {
     private readonly invoiceGeneratorService: InvoiceGeneratorService,
     private readonly creditManagerService: CreditManagerService,
     private readonly addOnManagerService: AddOnManagerService,
-    private readonly appLogger: AppLogger,
+    private readonly appLogger: AppLogger
   ) {}
 
   /**
    * Change subscription plan with complex proration logic
-   * 
+   *
    * This is the most complex operation, involving:
    * 1. Validate plan change is allowed
    * 2. Calculate proration credit from old plan
@@ -69,7 +68,7 @@ export class SubscriptionBillingService {
    * 10. Generate invoice
    * 11. Update subscription state
    * 12. Emit events for downstream systems
-   * 
+   *
    * @param userId - User ID
    * @param newPlanId - New plan ID to switch to
    * @param options - Options (effective date, charge immediately, keep add-ons)
@@ -91,10 +90,9 @@ export class SubscriptionBillingService {
     nextBillingDate: Date;
   }> {
     // Step 1: Load subscription and validate
-    const subscription = await this.subscriptionRepository.findOne({
-      where: { userId, status: SubscriptionStatus.Active },
-      relations: ['plan', 'addOns', 'addOns.addOn', 'discounts', 'discounts.discount'],
-    });
+    const subscription = await this.subscriptionRepository.findActiveByUserIdWithDetails(
+      userId
+    );
 
     if (!subscription) {
       throw new BadRequestException('No active subscription found');
@@ -112,19 +110,21 @@ export class SubscriptionBillingService {
     const effectiveDate = options.effectiveDate || new Date();
 
     // Step 2: Calculate proration credit from old plan
-    const prorationCredit = await this.prorationCalculatorService.calculateProrationCredit(
-      subscription,
-      new Date(),
-      effectiveDate
-    );
+    const prorationCredit =
+      await this.prorationCalculatorService.calculateProrationCredit(
+        subscription,
+        new Date(),
+        effectiveDate
+      );
 
     // Step 3: Calculate proration charge for new plan
     const currentPeriodEnd = subscription.currentPeriodEnd || new Date();
-    const prorationCharge = await this.prorationCalculatorService.calculateProrationCharge(
-      newPlan,
-      effectiveDate,
-      currentPeriodEnd
-    );
+    const prorationCharge =
+      await this.prorationCalculatorService.calculateProrationCharge(
+        newPlan,
+        effectiveDate,
+        currentPeriodEnd
+      );
 
     // Step 4: Migrate add-ons
     const addOnChanges = await this.addOnManagerService.migrateAddOns(
@@ -145,58 +145,64 @@ export class SubscriptionBillingService {
 
     // Add proration credit lines
     for (const creditLine of prorationCredit.breakdown) {
-      lineItems.push(new InvoiceLineItem({
-        description: creditLine.description,
-        chargeType: ChargeType.Proration,
-        quantity: 1,
-        unitPrice: creditLine.amount,
-        amount: creditLine.amount,
-        taxAmount: 0,
-        taxRate: 0,
-        discountAmount: 0,
-        totalAmount: creditLine.amount,
-        periodStart: creditLine.periodStart,
-        periodEnd: creditLine.periodEnd,
-        prorationRate: creditLine.prorationRate,
-        metadata: null,
-      }));
+      lineItems.push(
+        new InvoiceLineItem({
+          description: creditLine.description,
+          chargeType: ChargeType.Proration,
+          quantity: 1,
+          unitPrice: creditLine.amount,
+          amount: creditLine.amount,
+          taxAmount: 0,
+          taxRate: 0,
+          discountAmount: 0,
+          totalAmount: creditLine.amount,
+          periodStart: creditLine.periodStart,
+          periodEnd: creditLine.periodEnd,
+          prorationRate: creditLine.prorationRate,
+          metadata: null,
+        })
+      );
     }
 
     // Add proration charge lines
     for (const chargeLine of prorationCharge.breakdown) {
-      lineItems.push(new InvoiceLineItem({
-        description: chargeLine.description,
-        chargeType: ChargeType.Proration,
-        quantity: 1,
-        unitPrice: chargeLine.amount,
-        amount: chargeLine.amount,
-        taxAmount: 0,
-        taxRate: 0,
-        discountAmount: 0,
-        totalAmount: chargeLine.amount,
-        periodStart: chargeLine.periodStart,
-        periodEnd: chargeLine.periodEnd,
-        prorationRate: chargeLine.prorationRate,
-        metadata: null,
-      }));
+      lineItems.push(
+        new InvoiceLineItem({
+          description: chargeLine.description,
+          chargeType: ChargeType.Proration,
+          quantity: 1,
+          unitPrice: chargeLine.amount,
+          amount: chargeLine.amount,
+          taxAmount: 0,
+          taxRate: 0,
+          discountAmount: 0,
+          totalAmount: chargeLine.amount,
+          periodStart: chargeLine.periodStart,
+          periodEnd: chargeLine.periodEnd,
+          prorationRate: chargeLine.prorationRate,
+          metadata: null,
+        })
+      );
     }
 
     // Add usage charge lines
     for (const usageCharge of usageCharges) {
-      lineItems.push(new InvoiceLineItem({
-        description: usageCharge.description,
-        chargeType: ChargeType.Usage,
-        quantity: usageCharge.quantity,
-        unitPrice: usageCharge.amount / usageCharge.quantity,
-        amount: usageCharge.amount,
-        taxAmount: 0,
-        taxRate: 0,
-        discountAmount: 0,
-        totalAmount: usageCharge.amount,
-        periodStart: subscription.currentPeriodStart,
-        periodEnd: effectiveDate,
-        metadata: { tiers: usageCharge.tiers },
-      }));
+      lineItems.push(
+        new InvoiceLineItem({
+          description: usageCharge.description,
+          chargeType: ChargeType.Usage,
+          quantity: usageCharge.quantity,
+          unitPrice: usageCharge.amount / usageCharge.quantity,
+          amount: usageCharge.amount,
+          taxAmount: 0,
+          taxRate: 0,
+          discountAmount: 0,
+          totalAmount: usageCharge.amount,
+          periodStart: subscription.currentPeriodStart,
+          periodEnd: effectiveDate,
+          metadata: { tiers: usageCharge.tiers },
+        })
+      );
     }
 
     // Step 7: Calculate taxes for each line item
@@ -215,18 +221,16 @@ export class SubscriptionBillingService {
     );
 
     // Step 8: Apply discounts
-    const discounts = subscription.discounts.map(sd => sd.discount);
-    await this.discountEngineService.applyDiscounts(
-      lineItems,
-      discounts,
-      {
-        cascading: true,
-        excludeUsageCharges: false,
-      }
-    );
+    const discounts = subscription.discounts.map((sd) => sd.discount);
+    await this.discountEngineService.applyDiscounts(lineItems, discounts, {
+      cascading: true,
+      excludeUsageCharges: false,
+    });
 
     // Step 9: Get available credits
-    const availableCredits = await this.creditManagerService.getUserAvailableCredits(userId);
+    const availableCredits = await this.creditManagerService.getUserAvailableCredits(
+      userId
+    );
 
     // Step 10: Generate invoice
     const invoice = await this.invoiceGeneratorService.generateInvoice(
@@ -274,10 +278,10 @@ export class SubscriptionBillingService {
 
   /**
    * Change plan for a user with ownership validation
-   * 
+   *
    * Validates that the subscription belongs to the user before changing the plan.
    * This method is suitable for use in controllers where user context is available.
-   * 
+   *
    * @param userId - User ID
    * @param subscriptionId - Subscription ID
    * @param newPlanId - New plan ID
@@ -306,10 +310,11 @@ export class SubscriptionBillingService {
     addOnsRemoved: number;
   }> {
     // Step 1: Load subscription with ownership validation
-    const subscription = await this.subscriptionRepository.findOne({
-      where: { id: subscriptionId, userId, status: SubscriptionStatus.Active },
-      relations: ['plan', 'addOns', 'addOns.addOn', 'discounts', 'discounts.discount'],
-    });
+    const subscription =
+      await this.subscriptionRepository.findActiveByIdAndUserIdWithDetails(
+        subscriptionId,
+        userId
+      );
 
     if (!subscription) {
       throw new BadRequestException('Subscription not found or does not belong to user');
@@ -329,19 +334,21 @@ export class SubscriptionBillingService {
     const effectiveDate = options.effectiveDate || new Date();
 
     // Step 2: Calculate proration credit from old plan
-    const prorationCredit = await this.prorationCalculatorService.calculateProrationCredit(
-      subscription,
-      new Date(),
-      effectiveDate
-    );
+    const prorationCredit =
+      await this.prorationCalculatorService.calculateProrationCredit(
+        subscription,
+        new Date(),
+        effectiveDate
+      );
 
     // Step 3: Calculate proration charge for new plan
     const currentPeriodEnd = subscription.currentPeriodEnd || new Date();
-    const prorationCharge = await this.prorationCalculatorService.calculateProrationCharge(
-      newPlan,
-      effectiveDate,
-      currentPeriodEnd
-    );
+    const prorationCharge =
+      await this.prorationCalculatorService.calculateProrationCharge(
+        newPlan,
+        effectiveDate,
+        currentPeriodEnd
+      );
 
     // Step 4: Migrate add-ons
     const addOnChanges = await this.addOnManagerService.migrateAddOns(
@@ -362,58 +369,64 @@ export class SubscriptionBillingService {
 
     // Add proration credit lines
     for (const creditLine of prorationCredit.breakdown) {
-      lineItems.push(new InvoiceLineItem({
-        description: creditLine.description,
-        chargeType: ChargeType.Proration,
-        quantity: 1,
-        unitPrice: creditLine.amount,
-        amount: creditLine.amount,
-        taxAmount: 0,
-        taxRate: 0,
-        discountAmount: 0,
-        totalAmount: creditLine.amount,
-        periodStart: creditLine.periodStart,
-        periodEnd: creditLine.periodEnd,
-        prorationRate: creditLine.prorationRate,
-        metadata: null,
-      }));
+      lineItems.push(
+        new InvoiceLineItem({
+          description: creditLine.description,
+          chargeType: ChargeType.Proration,
+          quantity: 1,
+          unitPrice: creditLine.amount,
+          amount: creditLine.amount,
+          taxAmount: 0,
+          taxRate: 0,
+          discountAmount: 0,
+          totalAmount: creditLine.amount,
+          periodStart: creditLine.periodStart,
+          periodEnd: creditLine.periodEnd,
+          prorationRate: creditLine.prorationRate,
+          metadata: null,
+        })
+      );
     }
 
     // Add proration charge lines
     for (const chargeLine of prorationCharge.breakdown) {
-      lineItems.push(new InvoiceLineItem({
-        description: chargeLine.description,
-        chargeType: ChargeType.Proration,
-        quantity: 1,
-        unitPrice: chargeLine.amount,
-        amount: chargeLine.amount,
-        taxAmount: 0,
-        taxRate: 0,
-        discountAmount: 0,
-        totalAmount: chargeLine.amount,
-        periodStart: chargeLine.periodStart,
-        periodEnd: chargeLine.periodEnd,
-        prorationRate: chargeLine.prorationRate,
-        metadata: null,
-      }));
+      lineItems.push(
+        new InvoiceLineItem({
+          description: chargeLine.description,
+          chargeType: ChargeType.Proration,
+          quantity: 1,
+          unitPrice: chargeLine.amount,
+          amount: chargeLine.amount,
+          taxAmount: 0,
+          taxRate: 0,
+          discountAmount: 0,
+          totalAmount: chargeLine.amount,
+          periodStart: chargeLine.periodStart,
+          periodEnd: chargeLine.periodEnd,
+          prorationRate: chargeLine.prorationRate,
+          metadata: null,
+        })
+      );
     }
 
     // Add usage charge lines
     for (const usageCharge of usageCharges) {
-      lineItems.push(new InvoiceLineItem({
-        description: usageCharge.description,
-        chargeType: ChargeType.Usage,
-        quantity: usageCharge.quantity,
-        unitPrice: usageCharge.amount / usageCharge.quantity,
-        amount: usageCharge.amount,
-        taxAmount: 0,
-        taxRate: 0,
-        discountAmount: 0,
-        totalAmount: usageCharge.amount,
-        periodStart: subscription.currentPeriodStart,
-        periodEnd: effectiveDate,
-        metadata: { tiers: usageCharge.tiers },
-      }));
+      lineItems.push(
+        new InvoiceLineItem({
+          description: usageCharge.description,
+          chargeType: ChargeType.Usage,
+          quantity: usageCharge.quantity,
+          unitPrice: usageCharge.amount / usageCharge.quantity,
+          amount: usageCharge.amount,
+          taxAmount: 0,
+          taxRate: 0,
+          discountAmount: 0,
+          totalAmount: usageCharge.amount,
+          periodStart: subscription.currentPeriodStart,
+          periodEnd: effectiveDate,
+          metadata: { tiers: usageCharge.tiers },
+        })
+      );
     }
 
     // Step 7: Calculate taxes for each line item
@@ -432,18 +445,16 @@ export class SubscriptionBillingService {
     );
 
     // Step 8: Apply discounts
-    const discounts = subscription.discounts.map(sd => sd.discount);
-    await this.discountEngineService.applyDiscounts(
-      lineItems,
-      discounts,
-      {
-        cascading: true,
-        excludeUsageCharges: false,
-      }
-    );
+    const discounts = subscription.discounts.map((sd) => sd.discount);
+    await this.discountEngineService.applyDiscounts(lineItems, discounts, {
+      cascading: true,
+      excludeUsageCharges: false,
+    });
 
     // Step 9: Get available credits
-    const availableCredits = await this.creditManagerService.getUserAvailableCredits(userId);
+    const availableCredits = await this.creditManagerService.getUserAvailableCredits(
+      userId
+    );
 
     // Step 10: Generate invoice
     const invoice = await this.invoiceGeneratorService.generateInvoice(
@@ -502,7 +513,7 @@ export class SubscriptionBillingService {
 
   /**
    * Add an add-on to subscription
-   * 
+   *
    * @param subscriptionId - Subscription ID
    * @param addOnId - Add-on ID to add
    * @param options - Options (quantity, effective date)
@@ -519,16 +530,19 @@ export class SubscriptionBillingService {
     subscriptionAddOn: SubscriptionAddOn;
     charge: number;
   }> {
-    const subscription = await this.subscriptionRepository.findOne({
-      where: { id: subscriptionId },
-      relations: ['plan', 'addOns'],
-    });
+    const subscription = await this.subscriptionRepository.findByIdWithPlanAndAddOns(
+      subscriptionId
+    );
 
     if (!subscription) {
       throw new BadRequestException('Subscription not found');
     }
 
-    const result = await this.addOnManagerService.addAddOn(subscription, addOnId, options);
+    const result = await this.addOnManagerService.addAddOn(
+      subscription,
+      addOnId,
+      options
+    );
 
     return {
       subscriptionAddOn: result.subscriptionAddOn,
@@ -538,17 +552,16 @@ export class SubscriptionBillingService {
 
   /**
    * Generate monthly invoice for subscription
-   * 
+   *
    * Called at the end of each billing period to consolidate all charges.
-   * 
+   *
    * @param subscriptionId - Subscription ID
    * @returns Generated invoice
    */
   async generateMonthlyInvoice(subscriptionId: string): Promise<Invoice> {
-    const subscription = await this.subscriptionRepository.findOne({
-      where: { id: subscriptionId },
-      relations: ['plan', 'addOns', 'addOns.addOn', 'discounts', 'discounts.discount'],
-    });
+    const subscription = await this.subscriptionRepository.findByIdWithFullDetails(
+      subscriptionId
+    );
 
     if (!subscription) {
       throw new BadRequestException('Subscription not found');
@@ -557,33 +570,37 @@ export class SubscriptionBillingService {
     const lineItems: InvoiceLineItem[] = [];
 
     // Base subscription charge
-    lineItems.push(new InvoiceLineItem({
-      description: `${subscription.plan.name} subscription`,
-      chargeType: ChargeType.Subscription,
-      quantity: 1,
-      unitPrice: subscription.plan.amount,
-      amount: subscription.plan.amount,
-      taxAmount: 0,
-      taxRate: 0,
-      discountAmount: 0,
-      totalAmount: subscription.plan.amount,
-      metadata: null,
-    }));
-
-    // Add-on charges
-    for (const subscriptionAddOn of subscription.addOns.filter(a => !a.endDate)) {
-      lineItems.push(new InvoiceLineItem({
-        description: `${subscriptionAddOn.addOn.name} add-on`,
-        chargeType: ChargeType.AddOn,
-        quantity: subscriptionAddOn.quantity,
-        unitPrice: subscriptionAddOn.addOn.price,
-        amount: subscriptionAddOn.addOn.price * subscriptionAddOn.quantity,
+    lineItems.push(
+      new InvoiceLineItem({
+        description: `${subscription.plan.name} subscription`,
+        chargeType: ChargeType.Subscription,
+        quantity: 1,
+        unitPrice: subscription.plan.amount,
+        amount: subscription.plan.amount,
         taxAmount: 0,
         taxRate: 0,
         discountAmount: 0,
-        totalAmount: subscriptionAddOn.addOn.price * subscriptionAddOn.quantity,
+        totalAmount: subscription.plan.amount,
         metadata: null,
-      }));
+      })
+    );
+
+    // Add-on charges
+    for (const subscriptionAddOn of subscription.addOns.filter((a) => !a.endDate)) {
+      lineItems.push(
+        new InvoiceLineItem({
+          description: `${subscriptionAddOn.addOn.name} add-on`,
+          chargeType: ChargeType.AddOn,
+          quantity: subscriptionAddOn.quantity,
+          unitPrice: subscriptionAddOn.addOn.price,
+          amount: subscriptionAddOn.addOn.price * subscriptionAddOn.quantity,
+          taxAmount: 0,
+          taxRate: 0,
+          discountAmount: 0,
+          totalAmount: subscriptionAddOn.addOn.price * subscriptionAddOn.quantity,
+          metadata: null,
+        })
+      );
     }
 
     // Usage charges
@@ -594,18 +611,20 @@ export class SubscriptionBillingService {
     );
 
     for (const usageCharge of usageCharges) {
-      lineItems.push(new InvoiceLineItem({
-        description: usageCharge.description,
-        chargeType: ChargeType.Usage,
-        quantity: usageCharge.quantity,
-        unitPrice: usageCharge.amount / usageCharge.quantity,
-        amount: usageCharge.amount,
-        taxAmount: 0,
-        taxRate: 0,
-        discountAmount: 0,
-        totalAmount: usageCharge.amount,
-        metadata: { tiers: usageCharge.tiers },
-      }));
+      lineItems.push(
+        new InvoiceLineItem({
+          description: usageCharge.description,
+          chargeType: ChargeType.Usage,
+          quantity: usageCharge.quantity,
+          unitPrice: usageCharge.amount / usageCharge.quantity,
+          amount: usageCharge.amount,
+          taxAmount: 0,
+          taxRate: 0,
+          discountAmount: 0,
+          totalAmount: usageCharge.amount,
+          metadata: { tiers: usageCharge.tiers },
+        })
+      );
     }
 
     // Calculate taxes
@@ -624,14 +643,16 @@ export class SubscriptionBillingService {
     );
 
     // Apply discounts
-    const discounts = subscription.discounts.map(sd => sd.discount);
+    const discounts = subscription.discounts.map((sd) => sd.discount);
     await this.discountEngineService.applyDiscounts(lineItems, discounts, {
       cascading: true,
       excludeUsageCharges: false,
     });
 
     // Apply credits
-    const credits = await this.creditManagerService.getUserAvailableCredits(subscription.userId);
+    const credits = await this.creditManagerService.getUserAvailableCredits(
+      subscription.userId
+    );
 
     // Generate invoice
     const invoice = await this.invoiceGeneratorService.generateInvoice(
@@ -653,11 +674,14 @@ export class SubscriptionBillingService {
 
   /**
    * Validate plan change is allowed
-   * 
+   *
    * @param subscription - Current subscription
    * @param newPlan - New plan
    */
-  private async validatePlanChange(subscription: Subscription, newPlan: Plan): Promise<void> {
+  private async validatePlanChange(
+    subscription: Subscription,
+    newPlan: Plan
+  ): Promise<void> {
     // Prevent changing to same plan
     if (subscription.planId === newPlan.id) {
       throw new BadRequestException('Already on this plan');
@@ -671,7 +695,7 @@ export class SubscriptionBillingService {
 
   /**
    * Get tax configuration for user
-   * 
+   *
    * @param _userId - User ID (reserved for future use)
    * @returns Tax configuration
    */
@@ -692,4 +716,3 @@ export class SubscriptionBillingService {
     };
   }
 }
-

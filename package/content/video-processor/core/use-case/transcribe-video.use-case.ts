@@ -26,9 +26,7 @@ export class TranscribeVideoUseCase {
       videoId: video.id,
     });
 
-    const metadata = await this.videoMetadataRepository.findOne({
-      where: { video },
-    });
+    const metadata = await this.videoMetadataRepository.findByVideo(video);
 
     if (metadata) {
       metadata.transcript = transcript;

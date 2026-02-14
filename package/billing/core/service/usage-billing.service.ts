@@ -1,12 +1,11 @@
-import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
-import { Transactional } from 'typeorm-transactional';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { AppLogger } from '@tlc/shared-module/logger';
 import Decimal from 'decimal.js';
-import { Between, IsNull } from 'typeorm';
+import { Transactional } from 'typeorm-transactional';
 import { Subscription } from '../../persistence/entity/subscription.entity';
 import { UsageRecord } from '../../persistence/entity/usage-record.entity';
-import { UsageRecordRepository } from '../../persistence/repository/usage-record.repository';
 import { SubscriptionRepository } from '../../persistence/repository/subscription.repository';
+import { UsageRecordRepository } from '../../persistence/repository/usage-record.repository';
 import { UsageType } from '../enum/usage-type.enum';
 import {
   PricingTier,
@@ -19,23 +18,23 @@ import { UsageSummary } from '../interface/usage-summary.interface';
 
 /**
  * USAGE BILLING SERVICE
- * 
+ *
  * Implements metered/usage-based billing for streaming services.
  * Users are charged based on actual consumption above included quotas.
- * 
+ *
  * Key features:
  * - Tiered pricing (progressive rates as usage increases)
  * - Usage multipliers (4K = 2x, downloads = 1.5x)
  * - Included quotas per plan
  * - Usage aggregation and forecasting
  * - Warning events when approaching limits
- * 
+ *
  * Example pricing:
  * StreamingHours:
  *   - 0-100 hours: Included in plan
  *   - 101-500 hours: $0.10/hour
  *   - 501+ hours: $0.05/hour
- * 
+ *
  * 4K Streaming counts as 2x hours (bandwidth intensive)
  * Offline downloads count as 1.5x (storage cost)
  */
@@ -44,18 +43,18 @@ export class UsageBillingService {
   constructor(
     private readonly usageRecordRepository: UsageRecordRepository,
     private readonly subscriptionRepository: SubscriptionRepository,
-    private readonly appLogger: AppLogger,
+    private readonly appLogger: AppLogger
   ) {}
 
   /**
    * Record a usage event
-   * 
+   *
    * Called when user performs an action that should be metered:
    * - Watches content (streaming hours)
    * - Downloads content for offline (download count)
    * - Streams in 4K (bandwidth)
    * - Makes API calls
-   * 
+   *
    * @param subscriptionId - Subscription ID
    * @param usageType - Type of usage
    * @param quantity - Amount of usage
@@ -70,10 +69,9 @@ export class UsageBillingService {
     metadata?: Record<string, unknown>
   ): Promise<UsageRecord> {
     // Validate subscription exists and is active
-    const subscription = await this.subscriptionRepository.findOne({
-      where: { id: subscriptionId },
-      relations: ['plan'],
-    });
+    const subscription = await this.subscriptionRepository.findByIdWithPlan(
+      subscriptionId
+    );
 
     if (!subscription) {
       throw new BadRequestException('Subscription not found');
@@ -103,10 +101,10 @@ export class UsageBillingService {
 
   /**
    * Calculate usage charges for a billing period
-   * 
+   *
    * Aggregates all usage for the period and applies tiered pricing.
    * Each usage type has its own pricing structure.
-   * 
+   *
    * @param subscription - Subscription to calculate for
    * @param periodStart - Start of billing period
    * @param periodEnd - End of billing period
@@ -118,47 +116,41 @@ export class UsageBillingService {
     periodEnd: Date
   ): Promise<UsageCharge[]> {
     // Fetch all usage records for period
-    const usageRecords = await this.usageRecordRepository.find({
-      where: {
-        subscriptionId: subscription.id,
-        timestamp: Between(periodStart, periodEnd),
-        billedInInvoiceId: IsNull(), // Only unbilled usage
-      },
-      order: { timestamp: 'ASC' },
-    });
+    const usageRecords =
+      await this.usageRecordRepository.findUnbilledBySubscriptionIdAndPeriod(
+        subscription.id,
+        periodStart,
+        periodEnd
+      );
 
     // Aggregate usage by type
     const aggregated = this.aggregateUsageByType(usageRecords);
-    
+
     // Calculate charges for each type
     const charges: UsageCharge[] = [];
-    
+
     for (const [usageType, records] of aggregated.entries()) {
       // Get pricing tiers for this usage type and plan
       const pricingTiers = await this.getUsagePricingTiers(
         subscription.plan.id,
         usageType
       );
-      
+
       // Calculate total usage including multipliers
       const totalUsage = records.reduce(
-        (sum, record) => sum + (record.quantity * record.multiplier),
+        (sum, record) => sum + record.quantity * record.multiplier,
         0
       );
-      
+
       // Get included quota for this usage type
       const includedQuota = subscription.plan.includedUsageQuotas?.[usageType] || 0;
-      
+
       // Calculate tiered charge
-      const chargeResult = this.calculateTieredUsageCharge(
-        totalUsage,
-        pricingTiers,
-        {
-          includedQuantity: includedQuota,
-          multiplier: 1, // Already applied to totalUsage
-        }
-      );
-      
+      const chargeResult = this.calculateTieredUsageCharge(totalUsage, pricingTiers, {
+        includedQuantity: includedQuota,
+        multiplier: 1, // Already applied to totalUsage
+      });
+
       if (chargeResult.amount > 0) {
         charges.push({
           type: usageType,
@@ -175,22 +167,22 @@ export class UsageBillingService {
 
   /**
    * Calculate tiered usage charge
-   * 
+   *
    * Implements progressive tier pricing:
    * - First N units at rate A
    * - Next M units at rate B (usually lower)
    * - Remaining units at rate C (even lower)
-   * 
+   *
    * Example:
    * Usage: 600 hours
    * Included: 100 hours
    * Billable: 500 hours
-   * 
+   *
    * Tier 1 (0-100): 100 hours @ $0.00 = $0.00 (included)
    * Tier 2 (101-500): 400 hours @ $0.10 = $40.00
    * Tier 3 (501+): 100 hours @ $0.05 = $5.00
    * Total: $45.00
-   * 
+   *
    * @param usage - Total usage quantity
    * @param tiers - Pricing tiers configuration
    * @param options - Included quota and multiplier
@@ -223,15 +215,15 @@ export class UsageBillingService {
 
       // Calculate capacity of this tier
       const tierCapacity = tier.upTo - tier.from;
-      
+
       // How much usage falls in this tier
       const usedInTier = Math.min(remainingUsage, tierCapacity);
-      
+
       // Calculate charge for this tier
       const tierCharge = new Decimal(usedInTier).times(tier.pricePerUnit);
 
       totalCharge = totalCharge.plus(tierCharge);
-      
+
       tiersUsed.push({
         from: tier.from,
         upTo: tier.upTo,
@@ -252,14 +244,14 @@ export class UsageBillingService {
 
   /**
    * Get usage multiplier based on type and metadata
-   * 
+   *
    * Different usage types have different costs:
    * - 4K streaming: 2.0x (higher bandwidth)
    * - HD streaming: 1.0x (baseline)
    * - SD streaming: 0.5x (lower bandwidth)
    * - Offline download: 1.5x (storage + transfer)
    * - API calls: 1.0x
-   * 
+   *
    * @param usageType - Type of usage
    * @param metadata - Additional context (quality, etc)
    * @returns Multiplier to apply
@@ -277,16 +269,16 @@ export class UsageBillingService {
         if (quality === 'SD') return 0.5;
         return 1.0; // Default HD
       }
-      
+
       case UsageType.Bandwidth4K:
         return 2.0;
-      
+
       case UsageType.DownloadCount:
         return 1.5;
-      
+
       case UsageType.ApiCalls:
         return 1.0;
-      
+
       default:
         return 1.0;
     }
@@ -294,32 +286,30 @@ export class UsageBillingService {
 
   /**
    * Aggregate usage records by type
-   * 
+   *
    * Groups all usage records by their type for easier calculation.
-   * 
+   *
    * @param records - Usage records to aggregate
    * @returns Map of usage type to records
    */
-  private aggregateUsageByType(
-    records: UsageRecord[]
-  ): Map<UsageType, UsageRecord[]> {
+  private aggregateUsageByType(records: UsageRecord[]): Map<UsageType, UsageRecord[]> {
     const aggregation = new Map<UsageType, UsageRecord[]>();
-    
+
     for (const record of records) {
       const existing = aggregation.get(record.usageType) || [];
       existing.push(record);
       aggregation.set(record.usageType, existing);
     }
-    
+
     return aggregation;
   }
 
   /**
    * Get pricing tiers for a specific usage type and plan
-   * 
+   *
    * In a real system, this would query a pricing configuration table.
    * For now, returns hardcoded progressive pricing.
-   * 
+   *
    * @param planId - Plan ID
    * @param usageType - Usage type
    * @returns Array of pricing tiers
@@ -330,32 +320,32 @@ export class UsageBillingService {
   ): Promise<PricingTier[]> {
     // TODO: Load from database configuration
     // For now, return example tiered pricing
-    
+
     switch (usageType) {
       case UsageType.StreamingHours:
         return [
-          { from: 0, upTo: 500, pricePerUnit: 0.10 },
+          { from: 0, upTo: 500, pricePerUnit: 0.1 },
           { from: 500, upTo: Infinity, pricePerUnit: 0.05 },
         ];
-      
+
       case UsageType.DownloadCount:
         return [
           { from: 0, upTo: 100, pricePerUnit: 0.15 },
           { from: 100, upTo: Infinity, pricePerUnit: 0.08 },
         ];
-      
+
       case UsageType.Bandwidth4K:
         return [
-          { from: 0, upTo: 200, pricePerUnit: 0.20 },
-          { from: 200, upTo: Infinity, pricePerUnit: 0.10 },
+          { from: 0, upTo: 200, pricePerUnit: 0.2 },
+          { from: 200, upTo: Infinity, pricePerUnit: 0.1 },
         ];
-      
+
       case UsageType.ApiCalls:
         return [
           { from: 0, upTo: 10000, pricePerUnit: 0.001 },
           { from: 10000, upTo: Infinity, pricePerUnit: 0.0005 },
         ];
-      
+
       default:
         return [];
     }
@@ -363,7 +353,7 @@ export class UsageBillingService {
 
   /**
    * Generate human-readable description for usage charge
-   * 
+   *
    * @param usageType - Usage type
    * @param chargeResult - Calculation result
    * @returns Description string
@@ -378,21 +368,21 @@ export class UsageBillingService {
       [UsageType.Bandwidth4K]: '4K Bandwidth Usage',
       [UsageType.ApiCalls]: 'API Calls',
     };
-    
+
     const typeName = typeNames[usageType] || usageType;
     const quantity = chargeResult.quantity.toFixed(2);
-    
+
     return `${typeName} - ${quantity} units`;
   }
 
   /**
    * Check if user is approaching quota limits and emit warnings
-   * 
+   *
    * Sends events when user reaches:
    * - 75% of quota (warning)
    * - 90% of quota (urgent warning)
    * - 100% of quota (overage started)
-   * 
+   *
    * @param subscription - Subscription to check
    * @param usageType - Usage type to check
    */
@@ -401,25 +391,25 @@ export class UsageBillingService {
     usageType: UsageType
   ): Promise<void> {
     const includedQuota = subscription.plan.includedUsageQuotas?.[usageType];
-    
+
     if (!includedQuota) return; // No quota limits for this type
-    
+
     // Calculate current period usage
-    const currentPeriodUsage = await this.usageRecordRepository.find({
-      where: {
-        subscriptionId: subscription.id,
+    const currentPeriodUsage =
+      await this.usageRecordRepository.findBySubscriptionIdAndUsageTypeAndPeriod(
+        subscription.id,
         usageType,
-        timestamp: Between(subscription.currentPeriodStart, new Date()),
-      },
-    });
-    
+        subscription.currentPeriodStart,
+        new Date()
+      );
+
     const totalUsage = currentPeriodUsage.reduce(
-      (sum, record) => sum + (record.quantity * record.multiplier),
+      (sum, record) => sum + record.quantity * record.multiplier,
       0
     );
-    
+
     const percentUsed = (totalUsage / includedQuota) * 100;
-    
+
     // Emit warnings at thresholds
     // TODO: Implement event emission
     if (percentUsed >= 100) {
@@ -448,42 +438,41 @@ export class UsageBillingService {
 
   /**
    * Get usage summary for a subscription
-   * 
+   *
    * Returns aggregated usage data with billable amounts for the current billing period.
    * Used by controllers to display usage information to users.
-   * 
+   *
    * @param subscriptionId - Subscription ID
    * @returns Array of usage summaries by type
    */
   async getUsageSummaryForSubscription(subscriptionId: string): Promise<UsageSummary[]> {
-    const subscription = await this.subscriptionRepository.findOne({
-      where: { id: subscriptionId },
-      relations: ['plan'],
-    });
-    
+    const subscription = await this.subscriptionRepository.findByIdWithPlan(
+      subscriptionId
+    );
+
     if (!subscription) {
       throw new NotFoundException('Subscription not found');
     }
-    
+
     // Get usage aggregation for current period
     const aggregation = await this.usageRecordRepository.aggregateUsageByType(
       subscriptionId,
       subscription.currentPeriodStart,
       new Date()
     );
-    
+
     const summaries: UsageSummary[] = [];
-    
+
     for (const [usageType, totalQuantity] of aggregation.entries()) {
       const includedQuota = subscription.plan.includedUsageQuotas?.[usageType] || 0;
       const billableQuantity = Math.max(0, totalQuantity - includedQuota);
-      
+
       // Calculate estimated cost using tier pricing
       const estimatedCost = this.calculateEstimatedCostForUsageType(
         billableQuantity,
         usageType
       );
-      
+
       summaries.push({
         subscriptionId,
         usageType,
@@ -493,20 +482,23 @@ export class UsageBillingService {
         estimatedCost,
       });
     }
-    
+
     return summaries;
   }
 
   /**
    * Calculate estimated cost for a usage type
-   * 
+   *
    * Uses simple pricing model. In production, this should use tier pricing.
-   * 
+   *
    * @param quantity - Billable quantity
    * @param usageType - Type of usage
    * @returns Estimated cost
    */
-  private calculateEstimatedCostForUsageType(quantity: number, usageType: UsageType): number {
+  private calculateEstimatedCostForUsageType(
+    quantity: number,
+    usageType: UsageType
+  ): number {
     // Simple flat rate pricing for estimation
     // TODO: Replace with actual tier pricing logic
     const unitPrice = this.getUnitPrice(usageType);
@@ -515,14 +507,14 @@ export class UsageBillingService {
 
   /**
    * Get unit price for a usage type
-   * 
+   *
    * @param usageType - Type of usage
    * @returns Price per unit
    */
   private getUnitPrice(usageType: UsageType): number {
     switch (usageType) {
       case UsageType.StreamingHours:
-        return 0.10;
+        return 0.1;
       case UsageType.DownloadCount:
         return 0.25;
       case UsageType.Bandwidth4K:
@@ -530,8 +522,7 @@ export class UsageBillingService {
       case UsageType.ApiCalls:
         return 0.001;
       default:
-        return 0.10;
+        return 0.1;
     }
   }
 }
-

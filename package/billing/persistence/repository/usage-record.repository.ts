@@ -2,8 +2,8 @@ import { Injectable } from '@nestjs/common';
 import { InjectDataSource } from '@nestjs/typeorm';
 import { DefaultTypeOrmRepository } from '@tlc/shared-module/typeorm';
 import { Between, DataSource, IsNull } from 'typeorm';
-import { UsageRecord } from '../entity/usage-record.entity';
 import { UsageType } from '../../core/enum/usage-type.enum';
+import { UsageRecord } from '../entity/usage-record.entity';
 
 @Injectable()
 export class UsageRecordRepository extends DefaultTypeOrmRepository<UsageRecord> {
@@ -57,19 +57,52 @@ export class UsageRecordRepository extends DefaultTypeOrmRepository<UsageRecord>
     startDate: Date,
     endDate: Date
   ): Promise<Map<UsageType, number>> {
-    const records = await this.findBySubscriptionIdAndPeriod(subscriptionId, startDate, endDate);
-    
+    const records = await this.findBySubscriptionIdAndPeriod(
+      subscriptionId,
+      startDate,
+      endDate
+    );
+
     const aggregation = new Map<UsageType, number>();
-    
+
     for (const record of records) {
       const currentTotal = aggregation.get(record.usageType) || 0;
       aggregation.set(
         record.usageType,
-        currentTotal + (record.quantity * record.multiplier)
+        currentTotal + record.quantity * record.multiplier
       );
     }
-    
+
     return aggregation;
   }
-}
 
+  async findUnbilledBySubscriptionIdAndPeriod(
+    subscriptionId: string,
+    periodStart: Date,
+    periodEnd: Date
+  ): Promise<UsageRecord[]> {
+    return this.find({
+      where: {
+        subscriptionId,
+        timestamp: Between(periodStart, periodEnd),
+        billedInInvoiceId: IsNull(),
+      },
+      order: { timestamp: 'ASC' },
+    });
+  }
+
+  async findBySubscriptionIdAndUsageTypeAndPeriod(
+    subscriptionId: string,
+    usageType: UsageType,
+    startDate: Date,
+    endDate: Date
+  ): Promise<UsageRecord[]> {
+    return this.find({
+      where: {
+        subscriptionId,
+        usageType,
+        timestamp: Between(startDate, endDate),
+      },
+    });
+  }
+}

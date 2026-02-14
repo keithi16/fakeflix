@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectDataSource } from '@nestjs/typeorm';
 import { DefaultTypeOrmRepository } from '@tlc/shared-module/typeorm';
 import { DataSource } from 'typeorm';
+import { SubscriptionStatus } from '../../core/enum/subscription-status.enum';
 import { Subscription } from '../entity/subscription.entity';
 
 @Injectable()
@@ -18,6 +19,44 @@ export class SubscriptionRepository extends DefaultTypeOrmRepository<Subscriptio
       where: {
         userId,
       },
+    });
+  }
+
+  async findActiveByUserIdWithDetails(userId: string): Promise<Subscription | null> {
+    return this.findOne({
+      where: { userId, status: SubscriptionStatus.Active },
+      relations: ['plan', 'addOns', 'addOns.addOn', 'discounts', 'discounts.discount'],
+    });
+  }
+
+  async findActiveByIdAndUserIdWithDetails(
+    subscriptionId: string,
+    userId: string
+  ): Promise<Subscription | null> {
+    return this.findOne({
+      where: { id: subscriptionId, userId, status: SubscriptionStatus.Active },
+      relations: ['plan', 'addOns', 'addOns.addOn', 'discounts', 'discounts.discount'],
+    });
+  }
+
+  async findByIdWithPlanAndAddOns(subscriptionId: string): Promise<Subscription | null> {
+    return this.findOne({
+      where: { id: subscriptionId },
+      relations: ['plan', 'addOns'],
+    });
+  }
+
+  async findByIdWithFullDetails(subscriptionId: string): Promise<Subscription | null> {
+    return this.findOne({
+      where: { id: subscriptionId },
+      relations: ['plan', 'addOns', 'addOns.addOn', 'discounts', 'discounts.discount'],
+    });
+  }
+
+  async findByIdWithPlan(subscriptionId: string): Promise<Subscription | null> {
+    return this.findOne({
+      where: { id: subscriptionId },
+      relations: ['plan'],
     });
   }
 }

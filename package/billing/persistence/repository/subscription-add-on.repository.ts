@@ -38,5 +38,14 @@ export class SubscriptionAddOnRepository extends DefaultTypeOrmRepository<Subscr
       order: { startDate: 'DESC' },
     });
   }
-}
 
+  async findActiveBySubscriptionIdAndAddOnId(
+    subscriptionId: string,
+    addOnId: string
+  ): Promise<SubscriptionAddOn | null> {
+    return this.findOne({
+      where: { subscriptionId, addOnId, endDate: IsNull() },
+      relations: ['addOn'],
+    });
+  }
+}

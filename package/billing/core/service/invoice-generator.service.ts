@@ -1,19 +1,19 @@
 import { Injectable } from '@nestjs/common';
-import { Transactional } from 'typeorm-transactional';
-import { Subscription } from '../../persistence/entity/subscription.entity';
-import { Invoice } from '../../persistence/entity/invoice.entity';
-import { InvoiceLineItem } from '../../persistence/entity/invoice-line-item.entity';
-import { InvoiceRepository } from '../../persistence/repository/invoice.repository';
-import { InvoiceStatus } from '../enum/invoice-status.enum';
-import { InvoiceTotals, CreditApplication } from '../interface/invoice-totals.interface';
 import { addDays } from 'date-fns';
 import Decimal from 'decimal.js';
+import { Transactional } from 'typeorm-transactional';
+import { InvoiceLineItem } from '../../persistence/entity/invoice-line-item.entity';
+import { Invoice } from '../../persistence/entity/invoice.entity';
+import { Subscription } from '../../persistence/entity/subscription.entity';
+import { InvoiceRepository } from '../../persistence/repository/invoice.repository';
+import { InvoiceStatus } from '../enum/invoice-status.enum';
+import { CreditApplication, InvoiceTotals } from '../interface/invoice-totals.interface';
 
 /**
  * INVOICE GENERATOR SERVICE
- * 
+ *
  * Consolidates charges into invoices and manages invoice lifecycle.
- * 
+ *
  * Invoice generation process:
  * 1. Aggregate all line items (subscription, add-ons, usage, prorations)
  * 2. Calculate subtotals and taxes
@@ -22,7 +22,7 @@ import Decimal from 'decimal.js';
  * 5. Calculate final amount due
  * 6. Generate unique invoice number
  * 7. Set due date based on payment terms
- * 
+ *
  * Invoice states:
  * - Draft: Being built, not yet finalized
  * - Open: Finalized and awaiting payment
@@ -32,13 +32,11 @@ import Decimal from 'decimal.js';
  */
 @Injectable()
 export class InvoiceGeneratorService {
-  constructor(
-    private readonly invoiceRepository: InvoiceRepository,
-  ) {}
+  constructor(private readonly invoiceRepository: InvoiceRepository) {}
 
   /**
    * Generate invoice from line items
-   * 
+   *
    * @param subscription - Subscription being invoiced
    * @param lineItems - All line items for invoice
    * @param options - Additional options (due date, immediate charge, etc)
@@ -56,13 +54,13 @@ export class InvoiceGeneratorService {
   ): Promise<Invoice> {
     // Generate unique invoice number
     const invoiceNumber = await this.generateInvoiceNumber(subscription);
-    
+
     // Calculate totals
     const totals = this.calculateInvoiceTotals(lineItems, options.credits || []);
-    
+
     // Set due date (default: 7 days)
     const dueDate = options.dueDate || addDays(new Date(), 7);
-    
+
     // Create invoice
     const invoice = new Invoice({
       invoiceNumber,
@@ -84,54 +82,54 @@ export class InvoiceGeneratorService {
 
     // Save invoice
     const savedInvoice = await this.invoiceRepository.save(invoice);
-    
+
     // Associate line items with invoice
     for (const lineItem of lineItems) {
       lineItem.invoiceId = savedInvoice.id;
     }
-    
+
     savedInvoice.invoiceLines = lineItems;
-    
+
     return savedInvoice;
   }
 
   /**
    * Generate unique invoice number
-   * 
+   *
    * Format: INV-{YYYYMM}-{userId}-{sequence}
    * Example: INV-202501-user123-001
-   * 
+   *
    * @param subscription - Subscription for invoice
    * @returns Unique invoice number
    */
   async generateInvoiceNumber(subscription: Subscription): Promise<string> {
     const now = new Date();
-    const yearMonth = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}`;
+    const yearMonth = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(
+      2,
+      '0'
+    )}`;
     const userPrefix = subscription.userId.substring(0, 8);
-    
+
     // Find existing invoices for this user this month
-    const existingInvoices = await this.invoiceRepository.find({
-      where: {
-        userId: subscription.userId,
-      },
-      order: { createdAt: 'DESC' },
-    });
-    
+    const existingInvoices = await this.invoiceRepository.findByUserId(
+      subscription.userId
+    );
+
     // Filter invoices from this month
-    const thisMonthInvoices = existingInvoices.filter(inv => 
+    const thisMonthInvoices = existingInvoices.filter((inv) =>
       inv.invoiceNumber.startsWith(`INV-${yearMonth}`)
     );
-    
+
     // Get next sequence number
     const sequence = thisMonthInvoices.length + 1;
     const sequenceStr = String(sequence).padStart(3, '0');
-    
+
     return `INV-${yearMonth}-${userPrefix}-${sequenceStr}`;
   }
 
   /**
    * Calculate invoice totals
-   * 
+   *
    * @param lineItems - Line items to total
    * @param credits - Credits to apply
    * @returns Invoice totals
@@ -143,26 +141,26 @@ export class InvoiceGeneratorService {
     let subtotal = new Decimal(0);
     let totalTax = new Decimal(0);
     let totalDiscount = new Decimal(0);
-    
+
     // Sum up all line items
     for (const line of lineItems) {
       subtotal = subtotal.plus(line.amount);
       totalTax = totalTax.plus(line.taxAmount);
       totalDiscount = totalDiscount.plus(line.discountAmount);
     }
-    
+
     // Calculate total before credits
     const total = subtotal.plus(totalTax).minus(totalDiscount);
-    
+
     // Apply credits
     const totalCredit = credits.reduce(
       (sum, credit) => sum.plus(credit.amount),
       new Decimal(0)
     );
-    
+
     // Calculate final amount due
     const amountDue = Decimal.max(0, total.minus(totalCredit));
-    
+
     return {
       subtotal: subtotal.toNumber(),
       totalTax: totalTax.toNumber(),
@@ -175,21 +173,20 @@ export class InvoiceGeneratorService {
 
   /**
    * Finalize invoice (make it official and send for payment)
-   * 
+   *
    * @param invoiceId - Invoice ID to finalize
    * @returns Finalized invoice
    */
   async finalizeInvoice(invoiceId: string): Promise<Invoice> {
     const invoice = await this.invoiceRepository.findById(invoiceId);
-    
+
     if (!invoice) {
       throw new Error('Invoice not found');
     }
-    
+
     // Mark as Open (ready for payment)
     invoice.status = InvoiceStatus.Open;
-    
+
     return await this.invoiceRepository.save(invoice);
   }
 }
-

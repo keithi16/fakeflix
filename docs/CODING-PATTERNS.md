@@ -42,6 +42,7 @@ This document provides technical implementation patterns for repositories, contr
 ## Table of Contents
 
 - [Repository Pattern & ORM Encapsulation](#repository-pattern--orm-encapsulation)
+- [ORM Leakage Prevention](#orm-leakage-prevention)
 - [Controller Responsibilities & Lean Pattern](#controller-responsibilities--lean-pattern)
 - [Transaction Management & Named Connections](#transaction-management--named-connections)
 
@@ -182,6 +183,112 @@ const mockRepo = {
 };
 
 // No need to mock 50+ TypeORM methods
+```
+
+---
+
+## ORM Leakage Prevention
+
+### Definition
+
+Services MUST NEVER use TypeORM syntax directly. All `where`, `relations`, and operators (`Between`, `IsNull`) MUST be encapsulated in repository methods with business-meaningful names.
+
+### Rules
+
+- ✅ **DO**: Create repository methods with business-meaningful names
+- ✅ **DO**: Keep TypeORM imports ONLY in repositories
+- ❌ **DON'T**: Use `where:` or `relations:` syntax in services
+- ❌ **DON'T**: Import TypeORM operators in services (`Between`, `IsNull`, etc.)
+
+### Examples
+
+#### ❌ BAD: Service uses TypeORM syntax
+
+```typescript
+// Service is coupled to TypeORM
+const subscription = await this.subscriptionRepository.findOne({
+  where: { id: subscriptionId, userId, status: SubscriptionStatus.Active },
+  relations: ['plan', 'addOns', 'addOns.addOn', 'discounts'],
+});
+
+// Service imports TypeORM operators
+import { Between, IsNull } from 'typeorm';
+
+const records = await this.usageRecordRepository.find({
+  where: {
+    subscriptionId,
+    timestamp: Between(periodStart, periodEnd),
+    billedInInvoiceId: IsNull(),
+  },
+});
+```
+
+#### ✅ GOOD: Repository encapsulates TypeORM
+
+```typescript
+// Repository encapsulates query with business-meaningful name
+@Injectable()
+export class SubscriptionRepository extends DefaultTypeOrmRepository<Subscription> {
+  async findActiveByIdAndUserIdWithDetails(
+    subscriptionId: string,
+    userId: string
+  ): Promise<Subscription | null> {
+    return this.findOne({
+      where: { id: subscriptionId, userId, status: SubscriptionStatus.Active },
+      relations: ['plan', 'addOns', 'addOns.addOn', 'discounts'],
+    });
+  }
+}
+
+// Service uses clean, business-domain method
+const subscription = await this.subscriptionRepository.findActiveByIdAndUserIdWithDetails(
+  subscriptionId,
+  userId
+);
+```
+
+```typescript
+// Repository encapsulates TypeORM operators
+@Injectable()
+export class UsageRecordRepository extends DefaultTypeOrmRepository<UsageRecord> {
+  async findUnbilledBySubscriptionIdAndPeriod(
+    subscriptionId: string,
+    periodStart: Date,
+    periodEnd: Date
+  ): Promise<UsageRecord[]> {
+    return this.find({
+      where: {
+        subscriptionId,
+        timestamp: Between(periodStart, periodEnd),
+        billedInInvoiceId: IsNull(),
+      },
+      order: { timestamp: 'ASC' },
+    });
+  }
+}
+
+// Service has NO TypeORM imports - clean and testable
+const records = await this.usageRecordRepository.findUnbilledBySubscriptionIdAndPeriod(
+  subscriptionId,
+  periodStart,
+  periodEnd
+);
+```
+
+### Method Naming
+
+Express business intent, not technical implementation:
+
+```typescript
+// ✅ Good - business intent is clear
+findActiveByUserIdWithDetails(userId);
+findUnbilledBySubscriptionIdAndPeriod(subId, start, end);
+findActiveBySubscriptionIdAndAddOnId(subId, addOnId);
+
+// ❌ Bad - exposes technical details
+findOneWithRelations(id, relations);
+queryWithWhereClause(params);
+findWithOptions(options);
 ```
 
 ---
@@ -908,6 +1015,7 @@ grep -r "dataSourceFactory" packages/*/persistence/*.module.ts
 ### Quick Reference
 
 - **Repositories**: Extend `DefaultTypeOrmRepository`, use named DataSource injection
+- **ORM Encapsulation**: Never use `where:`, `relations:`, or TypeORM operators in services
 - **Controllers**: Keep lean (<20 lines), only call services, no business logic
 - **Transactions**: Use `@Transactional({ connectionName: 'moduleName' })` for write operations
 
@@ -915,6 +1023,9 @@ grep -r "dataSourceFactory" packages/*/persistence/*.module.ts
 
 - [ ] No repository extends TypeORM `Repository` directly
 - [ ] All repositories use `@InjectDataSource('moduleName')`
+- [ ] No services use `where:`, `relations:`, or TypeORM operators (`Between`, `IsNull`, etc.)
+- [ ] No services import from `'typeorm'` (except `typeorm-transactional`)
+- [ ] All repository methods have business-meaningful names
 - [ ] No controllers have repository injections
 - [ ] All controller methods are under 20 lines
 - [ ] All write operations use `@Transactional()` with connectionName
