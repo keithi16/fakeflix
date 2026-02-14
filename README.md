@@ -416,7 +416,6 @@ Estamos sempre explorando novos patterns e abordagens. Áreas atuais de interess
 ### Conceitos-Chave para Estudar
 
 - **Domain-Driven Design (DDD)**
-- **Clean Architecture**
 - **Modular Monoliths**
 - **Event-Driven Architecture**
 - **Microservices Patterns**
@@ -427,39 +426,6 @@ Estamos sempre explorando novos patterns e abordagens. Áreas atuais de interess
 - [Nx Console](https://marketplace.visualstudio.com/items?itemName=nrwl.angular-console) - VS Code extension
 - [NestJS Devtools](https://docs.nestjs.com/devtools/overview)
 - [Docker Desktop](https://www.docker.com/products/docker-desktop)
-
----
-
-## 🏗️ Roadmap e Experimentos
-
-### ✅ Implementado
-
-- [x] Arquitetura modular base (billing, content, identity)
-- [x] Event-driven communication entre módulos
-- [x] Testes E2E e unitários
-- [x] CI/CD com GitHub Actions
-- [x] TypeORM migrations automatizadas
-- [x] Logging estruturado com Winston
-- [x] Docker Compose para ambiente local
-
-### 🔬 Em Experimentação
-
-- [ ] Distributed tracing com OpenTelemetry
-- [ ] Cache distribuído com Redis
-- [ ] Message queue com RabbitMQ/SQS
-- [ ] API Gateway pattern
-- [ ] CQRS para módulos específicos
-- [ ] GraphQL Federation
-
-### 💭 Ideias Futuras
-
-- [ ] Contract testing entre módulos
-- [ ] Chaos engineering experiments
-- [ ] Performance benchmarks automatizados
-- [ ] Feature flags system
-- [ ] Multi-tenancy implementation
-
-> **Nota**: Este roadmap reflete experimentos em andamento. Prioridades podem mudar conforme aprendemos e testamos novas abordagens.
 
 ---
 
