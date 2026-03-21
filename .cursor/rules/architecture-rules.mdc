@@ -21,59 +21,35 @@ alwaysApply: true
 **10 Key Principles:**
 
 1. Well-defined boundaries | 2. Composability | 3. Independence | 4. Individual scale | 5. Explicit communication
-2. Replaceability | 7. Deployment independence | 8. State isolation ⚠️ | 9. Observability | 10. Fail independence
+6. Replaceability | 7. Deployment independence | 8. State isolation ⚠️ | 9. Observability | 10. Fail independence
 
 ---
 
 ## 📚 Progressive Documentation Loading
 
-**CRITICAL**: Only load documents relevant to your current task. Do NOT load all documentation at once (saves ~51k tokens).
+**CRITICAL**: Only load documents relevant to your current task. Do NOT load all documentation at once.
 
 ### Decision Tree: What to Read (Priority Order)
 
-**Start here for navigation:**
+**Implementation tasks (writing code):**
 
-- **Understanding overall architecture or starting new work** → `docs/ARCHITECTURE-OVERVIEW.md` (navigation hub, ~12KB)
+- **Creating controllers, services, or repositories** → `docs/coding-patterns.md`
+  - Repository pattern, lean controllers, transaction management, entity naming, state isolation
+- **Integrating external APIs, third-party services, observability** → `docs/integration-patterns.md`
+  - Client encapsulation, injection patterns, logging, metrics, circuit breakers, event systems
 
-**Database & Entities (CRITICAL - most violated):**
-
-- **Creating/modifying entities, migrations, or TypeORM** → `docs/STATE-ISOLATION.md` ⚠️ (~16KB)
-  - Always check for duplicate entity names before creating entities
-  - Required before any database work
-
-**Implementation Patterns:**
-
-- **Creating controllers, services, or repositories** → `docs/CODING-PATTERNS.md` (~28KB)
-  - Repository pattern, lean controllers, transaction management
-- **Organizing code within a package** → See `docs/IMPLEMENTATION-CHECKLIST.md` (File Organization section)
-
-**Module Design & Communication:**
-
-- **Creating new modules, boundaries, or inter-module communication** → `docs/MODULAR-PRINCIPLES.md` (~20KB)
-  - Principles 1-7: boundaries, composability, independence, communication
-
-**Resilience & Observability:**
-
-- **Logging, metrics, error handling, circuit breakers** → `docs/RESILIENCE-OBSERVABILITY.md` (~20KB)
-  - Principles 9-10: observability, fail independence
-
-**External Integrations:**
-
-- **Integrating external APIs, third-party services, HTTP clients** → `docs/THIRD-PARTY-INTEGRATION.md` (~16KB)
-  - Mock/HTTP/SDK patterns, client encapsulation, injection patterns
-
-**Verification & Compliance:**
-
-- **Pre-commit checks, architecture verification, detection commands** → `docs/IMPLEMENTATION-CHECKLIST.md` (~20KB)
-  - Detection commands, verification steps, anti-patterns
+**Architecture/design tasks** → handled automatically by the `modular-architecture` skill:
+- Creating modules, evaluating module boundaries, assessing compliance, maturity assessments
 
 ### Quick Reference by Task Type
 
-| Task Type                 | Primary Doc                                | Secondary Docs              |
-| ------------------------- | ------------------------------------------ | --------------------------- |
-| New entity/migration      | STATE-ISOLATION.md                         | ARCHITECTURE-OVERVIEW.md    |
-| New controller/service    | CODING-PATTERNS.md                         | IMPLEMENTATION-CHECKLIST.md |
-| New module                | MODULAR-PRINCIPLES.md + STATE-ISOLATION.md | ARCHITECTURE-OVERVIEW.md    |
-| External API integration  | THIRD-PARTY-INTEGRATION.md                 | RESILIENCE-OBSERVABILITY.md |
-| Error handling/logging    | RESILIENCE-OBSERVABILITY.md                | CODING-PATTERNS.md          |
-| Architecture verification | IMPLEMENTATION-CHECKLIST.md                | (run detection commands)    |
+| Task Type | Primary Doc | Notes |
+| --- | --- | --- |
+| New entity/migration | `docs/coding-patterns.md` | Entity naming section |
+| New controller/service/repository | `docs/coding-patterns.md` | Full patterns doc |
+| External API integration | `docs/integration-patterns.md` | Client encapsulation section |
+| Logging/metrics/circuit breakers | `docs/integration-patterns.md` | Resilience sections |
+| Create new module | `modular-architecture` skill | Auto-triggered |
+| Evaluate module boundaries | `modular-architecture` skill | Auto-triggered |
+| Architecture compliance check | `modular-architecture` skill | Auto-triggered |
+| Maturity assessment | `modular-architecture` skill | Auto-triggered |

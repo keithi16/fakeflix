@@ -1376,10 +1376,8 @@ Add references to architecture docs:
 ```markdown
 ## References
 
-- [Architecture Overview](../../docs/ARCHITECTURE-OVERVIEW.md)
-- [State Isolation Principles](../../docs/STATE-ISOLATION.md)
-- [Coding Patterns](../../docs/CODING-PATTERNS.md)
-- [Implementation Checklist](../../docs/IMPLEMENTATION-CHECKLIST.md)
+- [Coding Patterns](../../docs/coding-patterns.md)
+- [Integration Patterns](../../docs/integration-patterns.md)
 
 **Related Modules**:
 
@@ -1565,8 +1563,6 @@ We'll deploy and hope it works.
 - [Architecture Decision Records](https://adr.github.io/)
 
 ### Fakeflix Architecture
-- [Architecture Overview](../../docs/ARCHITECTURE-OVERVIEW.md)
-- [Modular Principles](../../docs/MODULAR-PRINCIPLES.md)
-- [State Isolation](../../docs/STATE-ISOLATION.md)
-- [Coding Patterns](../../docs/CODING-PATTERNS.md)
+- [Coding Patterns](../../docs/coding-patterns.md)
+- [Integration Patterns](../../docs/integration-patterns.md)
 ```

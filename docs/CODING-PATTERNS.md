@@ -1,96 +1,26 @@
-# Coding Patterns for Modular Architecture
+# Coding Patterns
 
-This document provides technical implementation patterns for repositories, controllers, and transaction management in our modular architecture.
-
-> **Navigation**: Return to [ARCHITECTURE-OVERVIEW.md](./ARCHITECTURE-OVERVIEW.md) | See also [STATE-ISOLATION.md](./STATE-ISOLATION.md) | [MODULAR-PRINCIPLES.md](./MODULAR-PRINCIPLES.md)
-
-## Quick Reference (For LLMs)
-
-**When to use this doc**: Implementing repositories, controllers, services, or transaction management
-
-**Key rules**:
-
-- ✅ DO: Extend `DefaultTypeOrmRepository<Entity>` for repositories
-- ✅ DO: Keep controllers lean (<20 lines), only call services
-- ✅ DO: Use `@Transactional({ connectionName: 'moduleName' })` for write operations
-- ❌ DON'T: Extend TypeORM `Repository` directly
-- ❌ DON'T: Put business logic in controllers or call repositories from controllers
-
-**Detection**: See [IMPLEMENTATION-CHECKLIST.md](./IMPLEMENTATION-CHECKLIST.md#detection-commands) for detection commands
-
-**See also**:
-
-- [STATE-ISOLATION.md](./STATE-ISOLATION.md) - Entity naming and database patterns
-- [IMPLEMENTATION-CHECKLIST.md](./IMPLEMENTATION-CHECKLIST.md) - Verification steps
-
-## When to Read This Document
-
-**Read this document when:**
-
-- [ ] Creating or modifying repositories
-- [ ] Creating or modifying controllers
-- [ ] Implementing transaction management
-- [ ] Refactoring fat controllers to lean controllers
-- [ ] Setting up database connections in services
-
-**Skip this document if:**
-
-- You're only working with entities (see [STATE-ISOLATION.md](./STATE-ISOLATION.md))
-- You're only integrating external APIs (see [THIRD-PARTY-INTEGRATION.md](./THIRD-PARTY-INTEGRATION.md))
-- You're only adding logging/monitoring (see [RESILIENCE-OBSERVABILITY.md](./RESILIENCE-OBSERVABILITY.md))
-
-## Table of Contents
-
-- [Repository Pattern & ORM Encapsulation](#repository-pattern--orm-encapsulation)
-- [ORM Leakage Prevention](#orm-leakage-prevention)
-- [Controller Responsibilities & Lean Pattern](#controller-responsibilities--lean-pattern)
-- [Transaction Management & Named Connections](#transaction-management--named-connections)
+Implementation reference for repositories, controllers, services, entities, and database configuration.
 
 ---
 
 ## Repository Pattern & ORM Encapsulation
 
-### Definition
+Repositories MUST encapsulate all ORM-specific logic and never expose internal TypeORM APIs to the domain layer.
 
-Repositories MUST encapsulate all ORM-specific logic and never expose internal TypeORM APIs directly to the domain layer.
+**Rules:**
+- ✅ Extend `DefaultTypeOrmRepository<Entity>` for all repositories
+- ✅ Use `@InjectDataSource('moduleName')` for named data source injection
+- ✅ Pass `dataSource.manager` to super constructor
+- ✅ Add custom query methods with business-meaningful names
+- ❌ Never extend TypeORM's `Repository` class directly
+- ❌ Never expose query builder or raw methods to services
+- ❌ Never use `dataSource.createEntityManager()` in constructors
 
-### Rules for AI Agents
-
-- ✅ **DO**: Extend `DefaultTypeOrmRepository<Entity>` for all repositories
-- ✅ **DO**: Use `@InjectDataSource('moduleName')` for named data source injection
-- ✅ **DO**: Pass `dataSource.manager` to super constructor
-- ✅ **DO**: Add custom query methods as needed
-- ❌ **DON'T**: Extend TypeORM's `Repository` class directly
-- ❌ **DON'T**: Expose TypeORM query builder or raw methods to services
-- ❌ **DON'T**: Use `dataSource.createEntityManager()` in constructors
-
-### Why DefaultTypeOrmRepository?
-
-TypeORM's `Repository` class exposes 50+ methods including:
-
-- `query()`, `createQueryBuilder()` - raw SQL access
-- `increment()`, `decrement()` - direct column manipulation
-- Internal methods that leak ORM implementation details
-
-`DefaultTypeOrmRepository` uses **composition over inheritance**:
-
-- Wraps TypeORM Repository as private property
-- Exposes only safe, controlled methods: `save`, `findOne`, `find`, `exists`
-- Prevents domain services from coupling to ORM internals
-- Makes it easier to replace/mock in tests
-- Enforces explicit query methods for complex queries
-
-### Code Examples
+`DefaultTypeOrmRepository` uses composition over inheritance — it wraps TypeORM's `Repository` as a private property and exposes only: `save`, `findOne`, `find`, `exists`. This prevents domain services from coupling to ORM internals and makes repositories easy to mock.
 
 ```typescript
-// ✅ GOOD: Proper repository encapsulation
-// packages/billing/persistence/repository/invoice.repository.ts
-import { Injectable } from '@nestjs/common';
-import { InjectDataSource } from '@nestjs/typeorm';
-import { DefaultTypeOrmRepository } from '@tlc/shared-module/typeorm';
-import { DataSource } from 'typeorm';
-import { Invoice } from '../entity/invoice.entity';
-
+// ✅ GOOD
 @Injectable()
 export class InvoiceRepository extends DefaultTypeOrmRepository<Invoice> {
   constructor(
@@ -100,133 +30,44 @@ export class InvoiceRepository extends DefaultTypeOrmRepository<Invoice> {
     super(Invoice, dataSource.manager);
   }
 
-  // Custom query methods with business meaning
   async findByUserId(userId: string): Promise<Invoice[]> {
-    return this.find({
-      where: { userId },
-      order: { createdAt: 'DESC' },
-    });
+    return this.find({ where: { userId }, order: { createdAt: 'DESC' } });
   }
 
   async findByInvoiceNumber(invoiceNumber: string): Promise<Invoice | null> {
-    return this.findOne({
-      where: { invoiceNumber },
-      relations: ['lineItems', 'payments'],
-    });
+    return this.findOne({ where: { invoiceNumber }, relations: ['lineItems'] });
   }
 }
 
-// ❌ BAD: Direct TypeORM Repository extension
-import { Repository } from 'typeorm';
-
-@Injectable()
+// ❌ BAD: Extends TypeORM Repository directly — exposes 50+ methods
 export class InvoiceRepository extends Repository<Invoice> {
   constructor(private dataSource: DataSource) {
     super(Invoice, dataSource.createEntityManager());
   }
-
-  // Exposes all TypeORM methods like query(), increment(), etc.
-  // Domain services can now call repo.query('RAW SQL') - coupling!
 }
-
-// ❌ BAD: Exposing query builder to services
-@Injectable()
-export class InvoiceService {
-  async getInvoices(filters: any) {
-    // Service now coupled to TypeORM API
-    return this.invoiceRepo
-      .createQueryBuilder('invoice')
-      .where('invoice.status = :status', { status: filters.status })
-      .getMany();
-  }
-}
-
-// ✅ GOOD: Service uses repository abstraction
-@Injectable()
-export class InvoiceService {
-  async getInvoices(status: string) {
-    // Service only knows about domain methods
-    return this.invoiceRepo.findByStatus(status);
-  }
-}
-```
-
-### Named DataSource Injection
-
-Always use named data sources for module-specific database connections:
-
-```typescript
-// ✅ GOOD: Named injection
-constructor(
-  @InjectDataSource('billing')
-  dataSource: DataSource
-) {
-  super(Entity, dataSource.manager);
-}
-
-// ❌ BAD: Default injection (ambiguous in multi-database apps)
-constructor(
-  dataSource: DataSource
-) {
-  super(Entity, dataSource.manager);
-}
-```
-
-### Testing Benefits
-
-```typescript
-// Easy to mock with controlled interface
-const mockRepo = {
-  findOne: jest.fn(),
-  save: jest.fn(),
-  find: jest.fn(),
-};
-
-// No need to mock 50+ TypeORM methods
 ```
 
 ---
 
 ## ORM Leakage Prevention
 
-### Definition
-
 Services MUST NEVER use TypeORM syntax directly. All `where`, `relations`, and operators (`Between`, `IsNull`) MUST be encapsulated in repository methods with business-meaningful names.
 
-### Rules
-
-- ✅ **DO**: Create repository methods with business-meaningful names
-- ✅ **DO**: Keep TypeORM imports ONLY in repositories
-- ❌ **DON'T**: Use `where:` or `relations:` syntax in services
-- ❌ **DON'T**: Import TypeORM operators in services (`Between`, `IsNull`, etc.)
-
-### Examples
-
-#### ❌ BAD: Service uses TypeORM syntax
+**Rules:**
+- ✅ Create repository methods with business-meaningful names
+- ✅ Keep TypeORM imports ONLY in repositories
+- ❌ Never use `where:` or `relations:` syntax in services
+- ❌ Never import TypeORM operators in services (`Between`, `IsNull`, etc.)
 
 ```typescript
-// Service is coupled to TypeORM
+// ❌ BAD: Service coupled to TypeORM
 const subscription = await this.subscriptionRepository.findOne({
   where: { id: subscriptionId, userId, status: SubscriptionStatus.Active },
-  relations: ['plan', 'addOns', 'addOns.addOn', 'discounts'],
+  relations: ['plan', 'addOns'],
 });
+import { Between, IsNull } from 'typeorm'; // ❌ Never in services
 
-// Service imports TypeORM operators
-import { Between, IsNull } from 'typeorm';
-
-const records = await this.usageRecordRepository.find({
-  where: {
-    subscriptionId,
-    timestamp: Between(periodStart, periodEnd),
-    billedInInvoiceId: IsNull(),
-  },
-});
-```
-
-#### ✅ GOOD: Repository encapsulates TypeORM
-
-```typescript
-// Repository encapsulates query with business-meaningful name
+// ✅ GOOD: Repository encapsulates TypeORM details
 @Injectable()
 export class SubscriptionRepository extends DefaultTypeOrmRepository<Subscription> {
   async findActiveByIdAndUserIdWithDetails(
@@ -235,108 +76,58 @@ export class SubscriptionRepository extends DefaultTypeOrmRepository<Subscriptio
   ): Promise<Subscription | null> {
     return this.findOne({
       where: { id: subscriptionId, userId, status: SubscriptionStatus.Active },
-      relations: ['plan', 'addOns', 'addOns.addOn', 'discounts'],
+      relations: ['plan', 'addOns', 'addOns.addOn'],
     });
   }
-}
 
-// Service uses clean, business-domain method
-const subscription = await this.subscriptionRepository.findActiveByIdAndUserIdWithDetails(
-  subscriptionId,
-  userId
-);
-```
-
-```typescript
-// Repository encapsulates TypeORM operators
-@Injectable()
-export class UsageRecordRepository extends DefaultTypeOrmRepository<UsageRecord> {
   async findUnbilledBySubscriptionIdAndPeriod(
     subscriptionId: string,
     periodStart: Date,
     periodEnd: Date
   ): Promise<UsageRecord[]> {
     return this.find({
-      where: {
-        subscriptionId,
-        timestamp: Between(periodStart, periodEnd),
-        billedInInvoiceId: IsNull(),
-      },
-      order: { timestamp: 'ASC' },
+      where: { subscriptionId, timestamp: Between(periodStart, periodEnd), billedInInvoiceId: IsNull() },
     });
   }
 }
 
-// Service has NO TypeORM imports - clean and testable
-const records = await this.usageRecordRepository.findUnbilledBySubscriptionIdAndPeriod(
-  subscriptionId,
-  periodStart,
-  periodEnd
-);
+// ✅ Service uses clean domain methods — zero TypeORM imports
+const subscription = await this.subscriptionRepository.findActiveByIdAndUserIdWithDetails(subscriptionId, userId);
 ```
 
-### Method Naming
-
-Express business intent, not technical implementation:
-
+**Method naming**: Express business intent, not technical implementation:
 ```typescript
-// ✅ Good - business intent is clear
+// ✅ Good
 findActiveByUserIdWithDetails(userId);
 findUnbilledBySubscriptionIdAndPeriod(subId, start, end);
-findActiveBySubscriptionIdAndAddOnId(subId, addOnId);
 
-// ❌ Bad - exposes technical details
+// ❌ Bad
 findOneWithRelations(id, relations);
 queryWithWhereClause(params);
-findWithOptions(options);
 ```
 
 ---
 
-## Controller Responsibilities & Lean Pattern
+## Lean Controller Pattern
 
-### Definition
+Controllers MUST be lean and only handle HTTP concerns. All business logic, orchestration, and data access MUST live in services.
 
-Controllers MUST be lean and only handle HTTP concerns (input/output). All business logic, orchestration, and data access MUST live in services.
+**Rules:**
+- ✅ Keep controllers under 20 lines per method
+- ✅ Only call services (never repositories)
+- ✅ Only handle: request validation, service calls, response mapping
+- ✅ Use DTOs for request/response transformation
+- ❌ Never put business logic in controllers
+- ❌ Never call repositories directly from controllers
+- ❌ Never perform calculations or data aggregation in controllers
 
-### Rules for AI Agents
-
-- ✅ **DO**: Keep controllers under 20 lines per method
-- ✅ **DO**: Only call services (never repositories)
-- ✅ **DO**: Only handle: request validation, service calls, response mapping
-- ✅ **DO**: Use DTOs for request/response transformation
-- ❌ **DON'T**: Put business logic in controllers
-- ❌ **DON'T**: Call repositories directly from controllers
-- ❌ **DON'T**: Perform calculations or data aggregation in controllers
-- ❌ **DON'T**: Handle entity relationships in controllers
-
-### Why Lean Controllers?
-
-**Fat controllers lead to:**
-
-- Untestable business logic (requires HTTP context)
-- Duplicated logic across endpoints
-- Tight coupling to HTTP framework
-- Difficult to reuse logic (CLI, queues, events)
-- Poor separation of concerns
-
-**Lean controllers provide:**
-
-- Framework-agnostic business logic
-- Reusable services across contexts (HTTP, CLI, queues)
-- Easy unit testing of business logic
-- Clear separation: HTTP ↔ Application ↔ Domain
-
-### Controller Responsibilities (ONLY)
-
-1. **Extract request data** (params, body, query, headers)
-2. **Validate request** (via DTOs and ValidationPipe)
-3. **Extract user context** (from ClsService or request)
-4. **Call service method** (single call, pass primitives/DTOs)
-5. **Transform response** (entity → DTO using plainToInstance)
-6. **Handle HTTP errors** (translate domain exceptions to HTTP)
-
-### Code Examples
+**Controller responsibilities (ONLY):**
+1. Extract request data (params, body, query, headers)
+2. Validate request (via DTOs and ValidationPipe)
+3. Extract user context (from ClsService)
+4. Call service method (single call, pass primitives/DTOs)
+5. Transform response (entity → DTO using `plainToInstance`)
+6. Handle HTTP errors (translate domain exceptions to HTTP)
 
 ```typescript
 // ✅ GOOD: Lean controller (8 lines of logic)
@@ -352,619 +143,178 @@ export class InvoiceController {
   async getUserInvoices(): Promise<InvoiceResponseDto[]> {
     const userId = this.clsService.get('userId');
     const invoices = await this.invoiceService.getUserInvoices(userId);
-
     return invoices.map((invoice) =>
-      plainToInstance(InvoiceResponseDto, invoice, {
-        excludeExtraneousValues: true,
-      })
+      plainToInstance(InvoiceResponseDto, invoice, { excludeExtraneousValues: true })
     );
   }
 }
 
-// ❌ BAD: Fat controller with business logic (50+ lines)
+// ❌ BAD: Fat controller with business logic, repository injection, and 50+ lines
 @Controller('usage')
 export class UsageController {
   constructor(
-    private readonly usageRecordRepository: UsageRecordRepository, // ❌ Repository injection
-    private readonly subscriptionRepository: SubscriptionRepository
+    private readonly usageRecordRepository: UsageRecordRepository, // ❌
+    private readonly subscriptionRepository: SubscriptionRepository  // ❌
   ) {}
 
   @Get('subscription/:subscriptionId')
   async getUsageSummary(@Param('subscriptionId') subscriptionId: string) {
-    // ❌ Direct repository call
-    const subscription = await this.subscriptionRepository.findOne({
-      where: { id: subscriptionId },
-      relations: ['plan'],
-    });
-
-    if (!subscription) {
-      throw new NotFoundException('Subscription not found');
-    }
-
-    // ❌ Direct repository call
-    const usageRecords = await this.usageRecordRepository.findBySubscriptionIdAndPeriod(
-      subscriptionId,
-      subscription.currentPeriodStart,
-      new Date()
-    );
-
-    // ❌ Business logic in controller
-    const aggregation = await this.usageRecordRepository.aggregateUsageByType(
-      subscriptionId,
-      subscription.currentPeriodStart,
-      new Date()
-    );
-
-    const summaries = [];
-
-    // ❌ Data transformation and calculation logic
-    for (const [usageType, totalQuantity] of aggregation.entries()) {
-      const includedQuota = subscription.plan.includedUsageQuotas?.[usageType] || 0;
-      const billableQuantity = Math.max(0, totalQuantity - includedQuota);
-      const estimatedCost = billableQuantity * 0.1; // ❌ Business rule
-
-      summaries.push({
-        subscriptionId,
-        usageType,
-        totalQuantity,
-        includedQuota,
-        billableQuantity,
-        estimatedCost,
-      });
-    }
-
-    return summaries; // 50+ lines of logic!
-  }
-}
-
-// ✅ GOOD: Same logic in service
-@Injectable()
-export class UsageBillingService {
-  constructor(
-    private readonly usageRecordRepository: UsageRecordRepository,
-    private readonly subscriptionRepository: SubscriptionRepository
-  ) {}
-
-  async getUsageSummaryForSubscription(subscriptionId: string): Promise<UsageSummary[]> {
-    const subscription = await this.subscriptionRepository.findOne({
-      where: { id: subscriptionId },
-      relations: ['plan'],
-    });
-
-    if (!subscription) {
-      throw new NotFoundException('Subscription not found');
-    }
-
-    const aggregation = await this.usageRecordRepository.aggregateUsageByType(
-      subscriptionId,
-      subscription.currentPeriodStart,
-      new Date()
-    );
-
-    const summaries: UsageSummary[] = [];
-
-    for (const [usageType, totalQuantity] of aggregation.entries()) {
-      const includedQuota = subscription.plan.includedUsageQuotas?.[usageType] || 0;
-      const billableQuantity = Math.max(0, totalQuantity - includedQuota);
-      const estimatedCost = this.calculateEstimatedCost(billableQuantity, usageType);
-
-      summaries.push({
-        subscriptionId,
-        usageType,
-        totalQuantity,
-        includedQuota,
-        billableQuantity,
-        estimatedCost,
-      });
-    }
-
-    return summaries;
-  }
-
-  private calculateEstimatedCost(quantity: number, usageType: UsageType): number {
-    // Business logic encapsulated in service
-    return quantity * this.getUnitPrice(usageType);
-  }
-}
-
-// ✅ GOOD: Lean controller using service
-@Controller('usage')
-export class UsageController {
-  constructor(private readonly usageBillingService: UsageBillingService) {}
-
-  @Get('subscription/:subscriptionId')
-  async getUsageSummary(
-    @Param('subscriptionId') subscriptionId: string
-  ): Promise<UsageSummaryResponseDto[]> {
-    const summaries = await this.usageBillingService.getUsageSummaryForSubscription(
-      subscriptionId
-    );
-
-    return summaries.map((summary) =>
-      plainToInstance(UsageSummaryResponseDto, summary, {
-        excludeExtraneousValues: true,
-      })
-    );
+    const subscription = await this.subscriptionRepository.findOne({ where: { id: subscriptionId }, relations: ['plan'] }); // ❌
+    // ... 50 more lines of business logic ❌
   }
 }
 ```
 
-### Service vs Controller Responsibilities
+**Service vs Controller responsibilities:**
 
-| Responsibility                | Service | Controller |
-| ----------------------------- | ------- | ---------- |
-| Business Logic                | ✅ YES  | ❌ NO      |
-| Data Validation (domain)      | ✅ YES  | ❌ NO      |
-| Repository Calls              | ✅ YES  | ❌ NO      |
-| Calculations                  | ✅ YES  | ❌ NO      |
-| Orchestration                 | ✅ YES  | ❌ NO      |
-| Entity Relationships          | ✅ YES  | ❌ NO      |
-| Request Validation (DTO)      | ❌ NO   | ✅ YES     |
-| HTTP Status Codes             | ❌ NO   | ✅ YES     |
-| Response Mapping (Entity→DTO) | ❌ NO   | ✅ YES     |
-| User Context Extraction       | ❌ NO   | ✅ YES     |
-
-### Common Violations
-
-#### 1. Direct Repository Calls
-
-```typescript
-// ❌ BAD
-@Controller('subscription')
-export class SubscriptionController {
-  constructor(private readonly subscriptionRepo: Repository<Subscription>) {}
-
-  @Get(':id')
-  async getSubscription(@Param('id') id: string) {
-    return this.subscriptionRepo.findOne({ where: { id } });
-  }
-}
-
-// ✅ GOOD
-@Controller('subscription')
-export class SubscriptionController {
-  constructor(private readonly subscriptionService: SubscriptionService) {}
-
-  @Get(':id')
-  async getSubscription(@Param('id') id: string) {
-    return this.subscriptionService.getSubscriptionById(id);
-  }
-}
-```
-
-#### 2. Business Validation in Controller
-
-```typescript
-// ❌ BAD
-@Post(':id/change-plan')
-async changePlan(@Param('id') subscriptionId: string, @Body() dto: ChangePlanDto) {
-  const subscription = await this.subscriptionRepo.findOne({ where: { id: subscriptionId } });
-
-  // ❌ Business validation in controller
-  if (!subscription) {
-    throw new BadRequestException('Subscription not found');
-  }
-
-  // ❌ Ownership check in controller
-  if (subscription.userId !== userId) {
-    throw new ForbiddenException('Not your subscription');
-  }
-
-  return this.subscriptionService.changePlan(subscription.id, dto.newPlanId);
-}
-
-// ✅ GOOD
-@Post(':id/change-plan')
-async changePlan(@Param('id') subscriptionId: string, @Body() dto: ChangePlanDto) {
-  const userId = this.clsService.get('userId');
-
-  // Service handles all validation and business logic
-  return this.subscriptionService.changePlanForUser(userId, subscriptionId, dto.newPlanId);
-}
-```
-
-#### 3. Data Transformation Logic
-
-```typescript
-// ❌ BAD
-@Get('summary')
-async getSummary() {
-  const data = await this.service.getData();
-
-  // ❌ Complex transformation in controller
-  return data.map(item => ({
-    ...item,
-    total: item.price * item.quantity,
-    discount: item.discountPercent ? item.price * item.discountPercent / 100 : 0,
-    final: (item.price * item.quantity) - (item.discountPercent ? item.price * item.discountPercent / 100 : 0),
-  }));
-}
-
-// ✅ GOOD
-@Get('summary')
-async getSummary() {
-  const summary = await this.service.getSummaryWithCalculations();
-
-  return plainToInstance(SummaryResponseDto, summary, {
-    excludeExtraneousValues: true,
-  });
-}
-```
-
-### Testing Benefits
-
-```typescript
-// ✅ Service is easily testable without HTTP context
-describe('UsageBillingService', () => {
-  it('should calculate usage summary', async () => {
-    const summary = await service.getUsageSummaryForSubscription('sub-123');
-    expect(summary[0].billableQuantity).toBe(25);
-  });
-});
-
-// ❌ Fat controller requires HTTP test setup
-describe('UsageController', () => {
-  it('should return usage summary', async () => {
-    // Need to setup entire HTTP stack just to test business logic
-    return request(app.getHttpServer()).get('/usage/subscription/sub-123').expect(200);
-  });
-});
-```
-
-### Migration Checklist
-
-When refactoring fat controllers:
-
-1. **Identify logic**: Find business logic, calculations, validations
-2. **Create service method**: Move logic to appropriate service
-3. **Update controller**: Replace logic with single service call
-4. **Remove dependencies**: Remove repository injections from controller
-5. **Update tests**: Move business logic tests to service tests
-6. **Verify**: Controller should be <20 lines per method
-
-### Detection Commands
-
-**See [IMPLEMENTATION-CHECKLIST.md](./IMPLEMENTATION-CHECKLIST.md#detection-commands) for all detection commands.**
-
-**Quick checks for coding patterns**:
-
-```bash
-# Controllers with repository injections (violation)
-grep -r "Repository" packages/*/http/rest/controller/*.ts
-
-# Write operations without @Transactional
-grep -r "\.save\|\.create\|\.update\|\.delete" packages/*/core/service/*.ts | grep -v "@Transactional"
-```
+| Responsibility | Service | Controller |
+| --- | --- | --- |
+| Business Logic | ✅ | ❌ |
+| Repository Calls | ✅ | ❌ |
+| Calculations | ✅ | ❌ |
+| Orchestration | ✅ | ❌ |
+| Request Validation (DTO) | ❌ | ✅ |
+| HTTP Status Codes | ❌ | ✅ |
+| Response Mapping (Entity→DTO) | ❌ | ✅ |
+| User Context Extraction | ❌ | ✅ |
 
 ---
 
 ## Transaction Management & Named Connections
 
-### Definition
+Services that perform write operations MUST use `@Transactional()` with explicit `connectionName`.
 
-Services that perform database write operations (create, update, delete) MUST use the `@Transactional()` decorator with explicit `connectionName` to ensure data consistency and proper transaction isolation across modules.
-
-### Rules for AI Agents
-
-- ✅ **DO**: Use `@Transactional({ connectionName: 'moduleName' })` on all public methods that perform write operations
-- ✅ **DO**: Use explicit connectionName matching your module's DataSource name
-- ✅ **DO**: Apply decorator to methods that orchestrate multiple write operations
-- ✅ **DO**: Apply decorator to methods that must maintain data consistency
-- ❌ **DON'T**: Use `@Transactional()` without connectionName in multi-database apps
-- ❌ **DON'T**: Nest `@Transactional()` methods (call from transactional to non-transactional only)
-- ❌ **DON'T**: Add decorator to read-only methods
-
-### Why Named Connections?
-
-**Without connectionName** (ambiguous):
+**Rules:**
+- ✅ Use `@Transactional({ connectionName: 'moduleName' })` on all methods that perform write operations
+- ✅ Apply to methods that orchestrate multiple writes
+- ✅ Apply to methods that must maintain data consistency
+- ❌ Never use `@Transactional()` without connectionName in multi-database apps
+- ❌ Never nest `@Transactional()` methods
+- ❌ Never add decorator to read-only methods
 
 ```typescript
-@Transactional()  // Which database? Default? Billing? Content?
+// ❌ Ambiguous — which database?
+@Transactional()
 async createSubscription() { }
-```
 
-**With connectionName** (explicit):
-
-```typescript
-@Transactional({ connectionName: 'billing' })  // Clear: uses billing database
-async createSubscription() { }
-```
-
-In monorepo apps with multiple modules and databases:
-
-- Each module has its own named DataSource (`'billing'`, `'content'`, `'identity'`)
-- TypeORM needs to know which connection to use for transaction
-- Explicit naming prevents ambiguity and connection errors
-
-### When to Use @Transactional()
-
-**Always use for:**
-
-1. **Single write operation** - Ensures atomicity
-2. **Multiple write operations** - All-or-nothing semantics
-3. **Read-then-write** - Prevents race conditions
-4. **Cross-entity operations** - Maintains referential integrity
-
-**Examples:**
-
-```typescript
-// ✅ Single write - ensures atomic save
+// ✅ Explicit
 @Transactional({ connectionName: 'billing' })
-async createCredit(userId: string, amount: number) {
-  const credit = new Credit({ userId, amount });
-  return this.creditRepository.save(credit);
-}
+async createSubscription() { }
+```
 
-// ✅ Multiple writes - all succeed or all fail
+**When to use:**
+- Single write: ensures atomicity
+- Multiple writes: all-or-nothing semantics
+- Read-then-write: prevents race conditions
+- Cross-entity operations: maintains referential integrity
+
+```typescript
+// ✅ Multiple writes — all succeed or all rollback
 @Transactional({ connectionName: 'billing' })
 async addAddOn(subscription: Subscription, addOnId: string) {
-  const subscriptionAddOn = new SubscriptionAddOn({
-    subscriptionId: subscription.id,
-    addOnId,
-    startDate: new Date(),
-  });
-
+  const subscriptionAddOn = new SubscriptionAddOn({ subscriptionId: subscription.id, addOnId, startDate: new Date() });
   await this.subscriptionAddOnRepository.save(subscriptionAddOn);
-
   subscription.addOns.push(subscriptionAddOn);
   await this.subscriptionRepository.save(subscription);
-
-  return subscriptionAddOn; // Both saves succeed or both rollback
+  return subscriptionAddOn;
 }
 
-// ✅ Complex orchestration - maintains consistency
+// ✅ Complex orchestration — all atomic
 @Transactional({ connectionName: 'billing' })
 async changePlan(userId: string, newPlanId: string) {
-  // 1. Calculate proration
   const proration = await this.calculateProration(userId);
-
-  // 2. Create invoice
-  const invoice = await this.invoiceRepository.save(new Invoice({
-    userId,
-    amount: proration.amount,
-  }));
-
-  // 3. Update subscription
+  const invoice = await this.invoiceRepository.save(new Invoice({ userId, amount: proration.amount }));
   const subscription = await this.subscriptionRepository.findByUserId(userId);
   subscription.planId = newPlanId;
   await this.subscriptionRepository.save(subscription);
-
-  // 4. Apply credits
-  await this.creditRepository.save(new Credit({
-    userId,
-    amount: proration.credit,
-  }));
-
-  return { invoice, subscription }; // All operations atomic
+  await this.creditRepository.save(new Credit({ userId, amount: proration.credit }));
+  return { invoice, subscription };
 }
 
-// ❌ Read-only - no transaction needed
-async getSubscription(id: string) {
-  return this.subscriptionRepository.findById(id);
-}
-
-// ❌ Multiple independent reads - no transaction needed
-async getUserDashboard(userId: string) {
-  const subscription = await this.subscriptionRepository.findByUserId(userId);
-  const invoices = await this.invoiceRepository.findByUserId(userId);
-  return { subscription, invoices };
-}
-```
-
-### Code Examples from Billing Module
-
-#### Example 1: Single Write Operation
-
-```typescript
-// package/billing/core/service/usage-billing.service.ts
-import { Transactional } from 'typeorm-transactional';
-
-@Injectable()
-export class UsageBillingService {
-  @Transactional({ connectionName: 'billing' })
-  async recordUsage(
-    subscriptionId: string,
-    usageType: UsageType,
-    quantity: number,
-    metadata?: Record<string, unknown>
-  ): Promise<UsageRecord> {
-    const usageRecord = new UsageRecord({
-      subscriptionId,
-      usageType,
-      quantity,
-      timestamp: new Date(),
-      metadata,
-    });
-
-    return this.usageRecordRepository.save(usageRecord);
-  }
-}
-```
-
-#### Example 2: Multiple Related Writes
-
-```typescript
-// package/billing/core/service/add-on-manager.service.ts
-@Injectable()
-export class AddOnManagerService {
-  @Transactional({ connectionName: 'billing' })
-  async addAddOn(
-    subscription: Subscription,
-    addOnId: string,
-    options: { quantity?: number; effectiveDate?: Date }
-  ): Promise<{ subscriptionAddOn: SubscriptionAddOn; prorationCharge: number }> {
-    // 1. Validate add-on exists
-    const addOn = await this.addOnRepository.findById(addOnId);
-
-    // 2. Create subscription-add-on relationship
-    const subscriptionAddOn = new SubscriptionAddOn({
-      subscriptionId: subscription.id,
-      addOnId,
-      quantity: options.quantity ?? 1,
-      startDate: options.effectiveDate ?? new Date(),
-    });
-
-    await this.subscriptionAddOnRepository.save(subscriptionAddOn);
-
-    // 3. Calculate prorated charge
-    const prorationCharge = await this.calculateAddOnCharge(
-      subscription,
-      addOn,
-      options.effectiveDate
-    );
-
-    // 4. Update subscription
-    subscription.addOns.push(subscriptionAddOn);
-    await this.subscriptionRepository.save(subscription);
-
-    // All operations are atomic - if any fails, all rollback
-    return { subscriptionAddOn, prorationCharge };
-  }
-}
-```
-
-#### Example 3: Complex Multi-Step Operation
-
-```typescript
-// package/billing/core/service/subscription-billing.service.ts
-@Injectable()
-export class SubscriptionBillingService {
-  @Transactional({ connectionName: 'billing' })
-  async changePlan(
-    userId: string,
-    newPlanId: string,
-    options: { effectiveDate?: Date; chargeImmediately?: boolean }
-  ): Promise<{ subscription: Subscription; invoice: Invoice }> {
-    // Load subscription
-    const subscription = await this.subscriptionRepository.findByUserId(userId);
-
-    // Calculate proration credit from old plan
-    const prorationCredit = await this.prorationCalculator.calculateCredit(
-      subscription,
-      new Date()
-    );
-
-    // Calculate proration charge for new plan
-    const prorationCharge = await this.prorationCalculator.calculateCharge(
-      newPlanId,
-      options.effectiveDate ?? new Date()
-    );
-
-    // Build invoice line items
-    const lineItems = [
-      this.createProrationCreditLineItem(prorationCredit),
-      this.createProrationChargeLineItem(prorationCharge),
-    ];
-
-    // Generate invoice
-    const invoice = await this.invoiceGenerator.generateInvoice(subscription, lineItems, {
-      dueDate: options.effectiveDate,
-      immediateCharge: options.chargeImmediately,
-    });
-
-    // Update subscription
-    subscription.planId = newPlanId;
-    await this.subscriptionRepository.save(subscription);
-
-    // Everything succeeds or everything rolls back
-    return { subscription, invoice };
-  }
-}
-```
-
-### Anti-Patterns to Avoid
-
-#### ❌ Missing connectionName
-
-```typescript
-// BAD: Ambiguous which database to use
-@Transactional()
-async createSubscription() {
-  // May fail in multi-database setup
-}
-
-// GOOD: Explicit connection
-@Transactional({ connectionName: 'billing' })
-async createSubscription() {
-  // Clear which database
-}
-```
-
-#### ❌ Nested Transactional Methods
-
-```typescript
-// BAD: Calling transactional from transactional
-@Transactional({ connectionName: 'billing' })
-async outerMethod() {
-  await this.innerMethod(); // innerMethod is also @Transactional
-}
-
-@Transactional({ connectionName: 'billing' })
-async innerMethod() {
-  // Nested transaction - problematic
-}
-
-// GOOD: Only outer method has decorator
-@Transactional({ connectionName: 'billing' })
-async outerMethod() {
-  await this.innerMethod(); // innerMethod is plain async
-}
-
-async innerMethod() {
-  // Runs in outer transaction context
-}
-```
-
-#### ❌ Transaction on Read-Only Method
-
-```typescript
-// BAD: Unnecessary transaction overhead
-@Transactional({ connectionName: 'billing' })
-async getSubscription(id: string) {
-  return this.subscriptionRepository.findById(id);
-}
-
-// GOOD: No transaction for reads
+// ❌ Read-only — no transaction needed
 async getSubscription(id: string) {
   return this.subscriptionRepository.findById(id);
 }
 ```
 
-### Connection Name Mapping
+**Setup:** The persistence module must configure `dataSourceFactory`:
+```typescript
+TypeOrmPersistenceModule.forRoot({
+  name: 'billing',
+  // ...
+  dataSourceFactory: async (options) => {
+    return addTransactionalDataSource({ name: options.name, dataSource: new DataSource(options) });
+  },
+})
+```
 
-Each module must use its DataSource name:
+**Connection name mapping:**
 
-| Module       | Connection Name | Example                                          |
-| ------------ | --------------- | ------------------------------------------------ |
-| `@billing/`  | `'billing'`     | `@Transactional({ connectionName: 'billing' })`  |
-| `@content/`  | `'content'`     | `@Transactional({ connectionName: 'content' })`  |
-| `@identity/` | `'identity'`    | `@Transactional({ connectionName: 'identity' })` |
+| Module | Connection Name |
+| --- | --- |
+| `@billing/` | `'billing'` |
+| `@content/` | `'content'` |
+| `@identity/` | `'identity'` |
 
-### Setup Requirements
+---
 
-For `@Transactional()` to work, the module's persistence module must configure `dataSourceFactory`:
+## Entity Naming and State Isolation
+
+⚠️ **CRITICAL**: Entity names MUST be prefixed with module name. This is the most frequently violated principle.
+
+**Rules:**
+- ✅ Give each module its own database connection/schema
+- ✅ Prefix ALL entity names with module name (e.g., `BillingPlan`, not `Plan`)
+- ✅ Use events or APIs for cross-module data needs
+- ❌ NEVER use duplicate `@Entity({ name: 'X' })` across modules — CRITICAL VIOLATION
+- ❌ Never share database tables between modules
+- ❌ Never access other modules' data directly
+- ❌ Never use foreign keys across module boundaries
 
 ```typescript
-// package/billing/persistence/billing-persistence.module.ts
-import { DataSource } from 'typeorm';
-import { addTransactionalDataSource } from 'typeorm-transactional';
+// ❌ CRITICAL VIOLATION: Same entity name in different modules
+// packages/billing/persistence/entity/plan.entity.ts
+@Entity({ name: 'Plan' }) // ❌
+export class Plan extends DefaultEntity<Plan> { }
 
+// packages/content/persistence/entity/plan.entity.ts
+@Entity({ name: 'Plan' }) // ❌ CONFLICT: both write to same table!
+export class Plan extends DefaultEntity<Plan> { }
+
+// ✅ CORRECT: Module-prefixed names
+@Entity({ name: 'BillingPlan' })      // packages/billing/
+@Entity({ name: 'ContentPlan' })      // packages/content/
+@Entity({ name: 'BillingSubscription' })
+@Entity({ name: 'BillingInvoice' })
+@Entity({ name: 'ContentItem' })
+@Entity({ name: 'ContentVideo' })
+@Entity({ name: 'IdentityUser' })
+@Entity({ name: 'IdentitySession' })
+```
+
+---
+
+## DB Configuration Patterns
+
+Each module must have its own named DataSource:
+
+```typescript
+// packages/billing/persistence/billing-persistence.module.ts
 @Module({
   imports: [
     TypeOrmPersistenceModule.forRoot({
       name: 'billing',
       inject: [ConfigService],
-      useFactory: (configService: ConfigService<BillingConfig>) => {
-        return dataSourceOptionsFactory(configService);
-      },
+      useFactory: (configService: ConfigService<BillingConfig>) => ({
+        type: 'postgres',
+        host: configService.get('billing.database.host'),
+        database: configService.get('billing.database.database'),
+        entities: [Plan, Subscription],
+        migrations: ['dist/packages/billing/migrations/*.js'],
+        migrationsTableName: 'billing_migrations',
+      }),
       dataSourceFactory: async (options) => {
-        if (!options) {
-          throw new Error('Invalid options passed');
-        }
-        return addTransactionalDataSource({
-          name: options.name, // Must match connectionName in @Transactional
-          dataSource: new DataSource(options),
-        });
+        return addTransactionalDataSource({ name: options.name, dataSource: new DataSource(options) });
       },
     }),
   ],
@@ -972,75 +322,85 @@ import { addTransactionalDataSource } from 'typeorm-transactional';
 export class BillingPersistenceModule {}
 ```
 
-### Testing Transactions
+**Same server, different databases is allowed:**
+```bash
+# ✅ GOOD: Same host, different DB
+BILLING_DATABASE_HOST=postgres.prod.com
+BILLING_DATABASE_NAME=billing_db
+
+CONTENT_DATABASE_HOST=postgres.prod.com   # same host OK
+CONTENT_DATABASE_NAME=content_db          # different DB required
+```
+
+---
+
+## Cross-Module Data Access Patterns
+
+Modules MUST communicate via APIs, not direct database access.
 
 ```typescript
-describe('SubscriptionBillingService', () => {
-  it('should rollback all changes if invoice generation fails', async () => {
-    // Arrange
-    jest
-      .spyOn(invoiceGenerator, 'generateInvoice')
-      .mockRejectedValue(new Error('Failed'));
+// ❌ BAD: Direct cross-module DB access
+@Injectable()
+export class BillingService {
+  constructor(
+    @InjectRepository(UserEntity, 'identity') // ❌ Wrong module!
+    private userRepository: Repository<UserEntity>
+  ) {}
+}
 
-    const initialPlanId = subscription.planId;
+// ✅ GOOD: Cross-module data via HTTP client
+@Injectable()
+export class BillingSubscriptionHttpClient implements BillingSubscriptionStatusApi {
+  async isUserSubscriptionActive(userId: string): Promise<boolean> {
+    const url = `${this.configService.get('billingApi').url}/subscription/user/${userId}/active`;
+    const { isActive } = await this.httpClient.get<...>(url);
+    return isActive;
+  }
+}
 
-    // Act
-    await expect(service.changePlan(userId, newPlanId, {})).rejects.toThrow();
-
-    // Assert - subscription should not be updated due to rollback
-    const unchangedSubscription = await subscriptionRepo.findById(subscription.id);
-    expect(unchangedSubscription.planId).toBe(initialPlanId);
-  });
-});
-```
-
-### Detection Commands
-
-**See [IMPLEMENTATION-CHECKLIST.md](./IMPLEMENTATION-CHECKLIST.md#detection-commands) for all detection commands.**
-
-**Quick checks for transactions**:
-
-```bash
-# @Transactional without connectionName
-grep -r "@Transactional()" packages/
-
-# Check if dataSourceFactory is configured
-grep -r "dataSourceFactory" packages/*/persistence/*.module.ts
+// ✅ GOOD: String references instead of foreign keys
+@Entity({ name: 'BillingSubscription' })
+export class Subscription {
+  userId: string;        // String reference, not FK
+  userEmail: string;     // Replicated data for billing needs
+  userName: string;      // Replicated data for invoices
+}
 ```
 
 ---
 
-## Summary
+## Naming Conventions
 
-### Quick Reference
-
-- **Repositories**: Extend `DefaultTypeOrmRepository`, use named DataSource injection
-- **ORM Encapsulation**: Never use `where:`, `relations:`, or TypeORM operators in services
-- **Controllers**: Keep lean (<20 lines), only call services, no business logic
-- **Transactions**: Use `@Transactional({ connectionName: 'moduleName' })` for write operations
-
-### Common Violations Checklist
-
-- [ ] No repository extends TypeORM `Repository` directly
-- [ ] All repositories use `@InjectDataSource('moduleName')`
-- [ ] No services use `where:`, `relations:`, or TypeORM operators (`Between`, `IsNull`, etc.)
-- [ ] No services import from `'typeorm'` (except `typeorm-transactional`)
-- [ ] All repository methods have business-meaningful names
-- [ ] No controllers have repository injections
-- [ ] All controller methods are under 20 lines
-- [ ] All write operations use `@Transactional()` with connectionName
-- [ ] No nested `@Transactional()` methods
-- [ ] No read-only methods have `@Transactional()`
+| Category | Convention | Examples |
+| --- | --- | --- |
+| Folders | kebab-case | `core/service`, `http/rest/controller` |
+| Files | kebab-case with suffix | `customer.service.ts`, `customer.controller.ts` |
+| Classes | PascalCase | `CustomerService`, `CustomerRepository` |
+| Interfaces | PascalCase | `CustomerApi`, `BillingSubscriptionStatusApi` |
+| Enums | PascalCase | `CustomerStatus`, `SubscriptionStatus` |
+| Variables | camelCase | `customerId`, `customerService` |
+| Constants | UPPER_SNAKE_CASE | `MAX_RETRY_ATTEMPTS`, `QUEUE_NAME` |
+| Env variables | UPPER_SNAKE_CASE with module prefix | `BILLING_DATABASE_HOST` |
+| Config keys | camelCase nested | `billing.database.host` |
+| Entity table names | ModulePrefix + EntityName | `BillingCustomer`, `ContentVideo` |
+| DataSource name | camelCase module name | `'billing'`, `'content'` |
 
 ---
 
-## Next Steps
+## Common Anti-Patterns
 
-- **State Isolation**: See [STATE-ISOLATION.md](./STATE-ISOLATION.md) for database and entity guidelines
-- **Resilience**: See [RESILIENCE-OBSERVABILITY.md](./RESILIENCE-OBSERVABILITY.md) for monitoring patterns
-- **Implementation**: See [IMPLEMENTATION-CHECKLIST.md](./IMPLEMENTATION-CHECKLIST.md) for verification
-
----
-
-**Last Updated**: January 2026  
-**Maintained By**: Architecture Team
+| Anti-Pattern | Fix |
+| --- | --- |
+| `extends Repository<T>` in repositories | `extends DefaultTypeOrmRepository<T>` |
+| TypeORM operators (`Between`, `IsNull`) in services | Encapsulate in repository methods |
+| Repository injected in controllers | Inject services only |
+| Controller methods > 20 lines with business logic | Move logic to service |
+| `@Transactional()` without connectionName | `@Transactional({ connectionName: 'moduleName' })` |
+| `@Transactional()` on read-only methods | Remove decorator |
+| Nested `@Transactional()` methods | Only outer method gets decorator |
+| `@Entity({ name: 'Plan' })` in multiple modules | `@Entity({ name: 'BillingPlan' })`, `@Entity({ name: 'ContentPlan' })` |
+| `@InjectRepository(UserEntity, 'identity')` in billing | Use HTTP client |
+| Shared database tables between modules | Each module owns its own tables |
+| Cross-module entity imports | Use string references or HTTP clients |
+| Exporting services/repositories from module index | Export only facades and module class |
+| Global shared mutable state | Module-specific cache/state |
