@@ -15,6 +15,7 @@ import {
   UsedTier,
 } from '../interface/usage-calculation.interface';
 import { UsageSummary } from '../interface/usage-summary.interface';
+import { SubscriptionStateMachineService } from './subscription-state-machine.service';
 
 /**
  * USAGE BILLING SERVICE
@@ -43,6 +44,7 @@ export class UsageBillingService {
   constructor(
     private readonly usageRecordRepository: UsageRecordRepository,
     private readonly subscriptionRepository: SubscriptionRepository,
+    private readonly subscriptionStateMachine: SubscriptionStateMachineService,
     private readonly appLogger: AppLogger
   ) {}
 
@@ -76,6 +78,8 @@ export class UsageBillingService {
     if (!subscription) {
       throw new BadRequestException('Subscription not found');
     }
+
+    this.subscriptionStateMachine.assertCanRecordUsage(subscription);
 
     // Apply usage multiplier based on type
     const multiplier = this.getUsageMultiplier(usageType, metadata);

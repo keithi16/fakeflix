@@ -3,9 +3,11 @@
   "files": [],
   "include": [],
   "references": [
-    { "path": "../shared/lib" },
-    { "path": "../shared/module" },
-    { "path": "./tsconfig.lib.json" },
-    { "path": "./tsconfig.spec.json" }
+    {
+      "path": "./tsconfig.lib.json"
+    },
+    {
+      "path": "./tsconfig.spec.json"
+    }
   ]
 }

@@ -14,8 +14,10 @@ import { TaxConfiguration } from '../interface/tax-calculation.interface';
 import { AddOnManagerService } from './add-on-manager.service';
 import { CreditManagerService } from './credit-manager.service';
 import { DiscountEngineService } from './discount-engine.service';
+import { DunningManagerService } from './dunning-manager.service';
 import { InvoiceGeneratorService } from './invoice-generator.service';
 import { ProrationCalculatorService } from './proration-calculator.service';
+import { SubscriptionStateMachineService } from './subscription-state-machine.service';
 import { TaxCalculatorService } from './tax-calculator.service';
 import { UsageBillingService } from './usage-billing.service';
 
@@ -49,6 +51,8 @@ export class SubscriptionBillingService {
     private readonly invoiceGeneratorService: InvoiceGeneratorService,
     private readonly creditManagerService: CreditManagerService,
     private readonly addOnManagerService: AddOnManagerService,
+    private readonly dunningManagerService: DunningManagerService,
+    private readonly subscriptionStateMachine: SubscriptionStateMachineService,
     private readonly appLogger: AppLogger
   ) {}
 
@@ -343,6 +347,8 @@ export class SubscriptionBillingService {
       throw new BadRequestException('Subscription not found');
     }
 
+    this.subscriptionStateMachine.assertCanPerformBillingOperation(subscription, 'generate-invoice');
+
     const lineItems: InvoiceLineItem[] = [];
 
     // Base subscription charge
@@ -444,6 +450,13 @@ export class SubscriptionBillingService {
 
     invoice.totalCredit = creditApplications.reduce((sum, c) => sum + c.amount, 0);
     invoice.amountDue = Math.max(0, invoice.total - invoice.totalCredit);
+
+    if (invoice.amountDue > 0) {
+      const paymentSucceeded = Math.random() > 0.5; // TODO: delegate to payment gateway
+      if (!paymentSucceeded) {
+        await this.dunningManagerService.scheduleDunningAttempts(invoice);
+      }
+    }
 
     return invoice;
   }

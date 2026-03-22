@@ -36,7 +36,7 @@ jobs:
       - name: Extract Jira ticket ID
         id: jira
         run: |
-          TICKET_ID=$(echo "$BRANCH" | grep -oE '[A-Z]+-[0-9]+' | head -1 || true)
+          TICKET_ID=$(echo "$BRANCH" | grep -oiE '[A-Z]+-[0-9]+' | head -1 | tr '[:lower:]' '[:upper:]' || true)
           echo "ticket_id=$TICKET_ID" >> $GITHUB_OUTPUT
           if [ -n "$TICKET_ID" ]; then
             echo "Found Jira ticket: $TICKET_ID"

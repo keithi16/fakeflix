@@ -1,18 +1,21 @@
 import { Injectable } from '@nestjs/common';
+import { addDays } from 'date-fns';
 import { Transactional } from 'typeorm-transactional';
-import { Invoice } from '../../persistence/entity/invoice.entity';
 import { DunningAttempt } from '../../persistence/entity/dunning-attempt.entity';
+import { Invoice } from '../../persistence/entity/invoice.entity';
 import { DunningAttemptRepository } from '../../persistence/repository/dunning-attempt.repository';
+import { SubscriptionRepository } from '../../persistence/repository/subscription.repository';
 import { DunningStage } from '../enum/dunning-stage.enum';
 import { PaymentStatus } from '../enum/payment-status.enum';
+import { SubscriptionStatus } from '../enum/subscription-status.enum';
 import { DunningAttemptResult, DunningSchedule } from '../interface/dunning-schedule.interface';
-import { addDays } from 'date-fns';
+import { SubscriptionStateMachineService } from './subscription-state-machine.service';
 
 /**
  * DUNNING MANAGER SERVICE
- * 
+ *
  * Handles payment retry logic when payments fail.
- * 
+ *
  * Dunning schedule:
  * - Day 1: Immediate retry
  * - Day 3: Retry + email notification
@@ -24,6 +27,8 @@ import { addDays } from 'date-fns';
 export class DunningManagerService {
   constructor(
     private readonly dunningAttemptRepository: DunningAttemptRepository,
+    private readonly subscriptionRepository: SubscriptionRepository,
+    private readonly subscriptionStateMachine: SubscriptionStateMachineService
   ) {}
 
   private readonly DUNNING_SCHEDULE: DunningSchedule[] = [
@@ -37,10 +42,19 @@ export class DunningManagerService {
   @Transactional({ connectionName: 'billing' })
   async scheduleDunningAttempts(invoice: Invoice): Promise<void> {
     const firstFailureDate = new Date();
-    
+
+    const subscription = await this.subscriptionRepository.findOne({
+      where: { id: invoice.subscriptionId },
+    });
+
+    if (subscription && subscription.status !== SubscriptionStatus.PastDue) {
+      this.subscriptionStateMachine.transition(subscription, SubscriptionStatus.PastDue);
+      await this.subscriptionRepository.save(subscription);
+    }
+
     for (const schedule of this.DUNNING_SCHEDULE) {
       const attemptDate = addDays(firstFailureDate, schedule.daysFromFirstFailure);
-      
+
       const dunningAttempt = new DunningAttempt({
         subscriptionId: invoice.subscriptionId,
         invoiceId: invoice.id,
@@ -51,7 +65,7 @@ export class DunningManagerService {
         status: PaymentStatus.Pending,
         errorMessage: null,
       });
-      
+
       await this.dunningAttemptRepository.save(dunningAttempt);
     }
   }
@@ -59,19 +73,31 @@ export class DunningManagerService {
   @Transactional({ connectionName: 'billing' })
   async processDunningAttempt(attemptId: string): Promise<DunningAttemptResult> {
     const attempt = await this.dunningAttemptRepository.findById(attemptId);
-    
+
     if (!attempt) {
       throw new Error('Dunning attempt not found');
     }
-    
+
     // TODO: Retry payment via payment gateway
     const paymentSuccess = Math.random() > 0.5; // Mock 50% success rate
-    
+
     attempt.status = paymentSuccess ? PaymentStatus.Succeeded : PaymentStatus.Failed;
     attempt.attemptedAt = new Date();
-    
+
     await this.dunningAttemptRepository.save(attempt);
-    
+
+    const subscription = attempt.subscription;
+    if (subscription) {
+      if (paymentSuccess) {
+        this.subscriptionStateMachine.transition(subscription, SubscriptionStatus.Active);
+        await this.subscriptionRepository.save(subscription);
+      } else if (attempt.stage === DunningStage.Cancel) {
+        this.subscriptionStateMachine.transition(subscription, SubscriptionStatus.Suspended);
+        subscription.endDate = new Date();
+        await this.subscriptionRepository.save(subscription);
+      }
+    }
+
     return {
       success: paymentSuccess,
       status: attempt.status,

@@ -40,4 +40,9 @@ export class SubscriptionResponseDto extends DefaultResponseDto {
   @Expose()
   @IsNotEmpty()
   readonly autoRenew: boolean;
+
+  @IsDateString()
+  @Expose()
+  @IsOptional()
+  readonly trialEndsAt: Date | null;
 }

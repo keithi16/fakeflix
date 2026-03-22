@@ -56,7 +56,7 @@ describe('Subscription e2e test', () => {
     module.close();
   });
 
-  it('creates a subscription', async () => {
+  it('creates a subscription in Trialing status when plan has a trial period', async () => {
     const plan = planFactory.build({
       name: 'Basic',
       description: 'Basic montly plan',
@@ -80,10 +80,12 @@ describe('Subscription e2e test', () => {
       endDate: null,
       userId: fakeUserId,
       planId: plan.id,
-      status: SubscriptionStatus.Active,
+      status: SubscriptionStatus.Trialing,
       startDate: expect.any(String),
+      trialEndsAt: expect.any(String),
       autoRenew: true,
     });
+    expect(res.body.trialEndsAt.slice(0, 10)).toBe('2023-01-08');
   });
 
   it('throws error if the plan does not exist', async () => {

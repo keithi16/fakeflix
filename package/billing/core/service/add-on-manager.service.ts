@@ -8,6 +8,7 @@ import { AddOnRepository } from '../../persistence/repository/add-on.repository'
 import { SubscriptionAddOnRepository } from '../../persistence/repository/subscription-add-on.repository';
 import { SubscriptionRepository } from '../../persistence/repository/subscription.repository';
 import { ProrationCalculatorService } from './proration-calculator.service';
+import { SubscriptionStateMachineService } from './subscription-state-machine.service';
 
 /**
  * ADD-ON MANAGER SERVICE
@@ -35,7 +36,8 @@ export class AddOnManagerService {
     private readonly addOnRepository: AddOnRepository,
     private readonly subscriptionAddOnRepository: SubscriptionAddOnRepository,
     private readonly subscriptionRepository: SubscriptionRepository,
-    private readonly prorationCalculatorService: ProrationCalculatorService
+    private readonly prorationCalculatorService: ProrationCalculatorService,
+    private readonly subscriptionStateMachine: SubscriptionStateMachineService
   ) {}
 
   /**
@@ -63,6 +65,8 @@ export class AddOnManagerService {
     subscriptionAddOn: SubscriptionAddOn;
     prorationCharge: number;
   }> {
+    this.subscriptionStateMachine.assertCanPerformBillingOperation(subscription, 'add-on');
+
     // Load add-on
     const addOn = await this.addOnRepository.findById(addOnId);
     if (!addOn) {

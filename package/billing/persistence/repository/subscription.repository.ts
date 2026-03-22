@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectDataSource } from '@nestjs/typeorm';
 import { DefaultTypeOrmRepository } from '@tlc/shared-module/typeorm';
-import { DataSource } from 'typeorm';
+import { DataSource, In, LessThanOrEqual } from 'typeorm';
 import { SubscriptionStatus } from '../../core/enum/subscription-status.enum';
 import { Subscription } from '../entity/subscription.entity';
 
@@ -34,7 +34,11 @@ export class SubscriptionRepository extends DefaultTypeOrmRepository<Subscriptio
     userId: string
   ): Promise<Subscription | null> {
     return this.findOne({
-      where: { id: subscriptionId, userId, status: SubscriptionStatus.Active },
+      where: {
+        id: subscriptionId,
+        userId,
+        status: In([SubscriptionStatus.Active, SubscriptionStatus.Trialing]),
+      },
       relations: ['plan', 'addOns', 'addOns.addOn', 'discounts', 'discounts.discount'],
     });
   }
@@ -57,6 +61,15 @@ export class SubscriptionRepository extends DefaultTypeOrmRepository<Subscriptio
     return this.findOne({
       where: { id: subscriptionId },
       relations: ['plan'],
+    });
+  }
+
+  async findExpiredTrials(asOf: Date = new Date()): Promise<Subscription[]> {
+    return this.find({
+      where: {
+        status: SubscriptionStatus.Trialing,
+        trialEndsAt: LessThanOrEqual(asOf),
+      },
     });
   }
 }

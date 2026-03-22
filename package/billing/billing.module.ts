@@ -11,6 +11,7 @@ import { InvoiceService } from './core/service/invoice.service';
 import { ProrationCalculatorService } from './core/service/proration-calculator.service';
 import { SubscriptionBillingService } from './core/service/subscription-billing.service';
 import { SubscriptionService } from './core/service/subscription.service';
+import { SubscriptionStateMachineService } from './core/service/subscription-state-machine.service';
 import { TaxCalculatorService } from './core/service/tax-calculator.service';
 import { UsageBillingService } from './core/service/usage-billing.service';
 import { AccountingIntegrationClient } from './http/client/accounting-api/accounting-integration.client';
@@ -25,6 +26,7 @@ import { BillingPersistenceModule } from './persistence/billing-persistence.modu
 import { BillingFacade } from './public-api/facade/billing.facade';
 
 const coreServices = [
+  SubscriptionStateMachineService,
   SubscriptionService,
   SubscriptionBillingService,
   ProrationCalculatorService,
