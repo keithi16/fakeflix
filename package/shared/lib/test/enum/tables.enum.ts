@@ -22,4 +22,11 @@ export enum Tables {
   DunningAttempt = 'BillingDunningAttempt',
   TaxCalculationSummary = 'BillingTaxCalculationSummary',
   TaxCalculationError = 'BillingTaxCalculationError',
+  AnalyticsViewEvent = 'AnalyticsViewEvent',
+  AnalyticsHeartbeat = 'AnalyticsHeartbeat',
+  AnalyticsUserWatchHistory = 'AnalyticsUserWatchHistory',
+  AnalyticsContentPerformance = 'AnalyticsContentPerformance',
+  AnalyticsTrendingContent = 'AnalyticsTrendingContent',
+  AnalyticsBingeSession = 'AnalyticsBingeSession',
+  AnalyticsGenreAffinity = 'AnalyticsGenreAffinity',
 }

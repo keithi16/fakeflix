@@ -19,25 +19,51 @@ When creating e2e tests, follow this workflow:
 
 ## File Location Pattern
 
-Tests must be placed in:
+The correct location depends on whether the package is **flat** or **subdomain-based**.
+
+### Detection rule
+
+Look at the package folder structure:
+- **Flat module** — no subdomain folders at the package root (e.g., `billing/`, `identity/`). The module has a single business area with one top-level module file.
+- **Subdomain-based module** — contains named subdomain folders such as `ingestion/`, `aggregation/`, `reporting/`, `admin/`, `public-api/` (e.g., `analytics/`, `content/`).
+
+### Flat modules (`billing`, `identity`, …)
 
 ```
 package/{module}/__test__/e2e/{feature}/{feature}.spec.ts
 ```
 
-- Module: The package name (e.g., `billing`, `identity`, `content`)
-- Feature: Kebab-case feature name (e.g., `subscription`, `user-management`)
-- File name: `{feature}.spec.ts` (kebab-case)
-
-Reference: See `folderStructure.mjs` lines 323-345 for the exact structure.
+- Module import: `'../../../{module}.module'` (3 levels up = package root)
+- Config import: `'../../../config'` (3 levels up = package root)
+- Factory import: `'../../factory/{factory}.test-factory'` (2 levels up = `__test__/`)
 
 **Example locations:**
 - `package/billing/__test__/e2e/subscription/subscription.spec.ts`
 - `package/identity/__test__/e2e/auth/authentication.spec.ts`
 
+### Subdomain-based modules (`analytics`, `content`, …)
+
+```
+package/{module}/{subdomain}/__test__/e2e/{feature}/{feature}.spec.ts
+```
+
+- Module import: `'../../../../{module}.module'` (4 levels up = package root)
+- Config import: `'../../../../config'` (4 levels up = package root)
+- Shared enum/service import: `'../../../../shared/...'` (4 levels up = package root)
+- Factory import: `'../../../../__test__/factory/{factory}.test-factory'` (shared factories live at the package root `__test__/factory/`)
+
+**Example locations:**
+- `package/analytics/ingestion/__test__/e2e/ingestion/ingestion.spec.ts`
+- `package/analytics/aggregation/__test__/e2e/aggregation/aggregation.spec.ts`
+- `package/analytics/reporting/__test__/e2e/reporting/reporting.spec.ts`
+- `package/analytics/public-api/__test__/e2e/facade/facade.spec.ts`
+- `package/content/admin/__test__/e2e/admin/admin-movie.spec.ts`
+
+Reference: See `folderStructure.mjs` lines 323-345 for the exact structure.
+
 ## Required Imports Template
 
-Every e2e test needs these standard imports:
+### Flat module
 
 ```typescript
 import { faker } from '@faker-js/faker';
@@ -54,10 +80,27 @@ import { ModuleConfig } from '../../../config';
 import { featureFactory } from '../../factory/feature.test-factory';
 ```
 
+### Subdomain-based module
+
+```typescript
+import { faker } from '@faker-js/faker';
+import { HttpStatus, INestApplication } from '@nestjs/common';
+import { TestingModule } from '@nestjs/testing';
+import { createNestApp, Tables } from '@tlc/shared-lib/test';
+import { ConfigModule, ConfigService } from '@tlc/shared-module/config';
+import { randomUUID } from 'crypto';
+import knex, { Knex } from 'knex';
+import nock, { cleanAll } from 'nock';
+import request from 'supertest';
+import { moduleConfigFactory, ModuleName } from '../../../../module-name.module';
+import { ModuleConfig } from '../../../../config';
+import { featureFactory } from '../../../../__test__/factory/feature.test-factory';
+```
+
 Replace:
-- `moduleConfigFactory` with your module's config factory (e.g., `billingConfigFactory`)
-- `ModuleName` with your module class (e.g., `BillingModule`)
-- `ModuleConfig` with your config type (e.g., `BillingConfig`)
+- `moduleConfigFactory` with your module's config factory (e.g., `analyticsConfigFactory`)
+- `ModuleName` with your module class (e.g., `AnalyticsModule`)
+- `ModuleConfig` with your config type (e.g., `AnalyticsConfig`)
 - `feature.test-factory` with your test factory
 
 ## Setup Pattern (beforeAll)

@@ -130,6 +130,7 @@
   "nx": {},
   "workspaces": [
     "app/*",
+    "package/analytics",
     "package/billing",
     "package/content",
     "package/identity",

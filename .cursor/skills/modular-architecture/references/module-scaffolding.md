@@ -66,14 +66,12 @@ package/{module-name}/
 ```
 package/{module-name}/
 ├── {subdomain-1}/
-│   ├── {subdomain}.module.ts
-│   ├── core/
-│   │   ├── use-case/
-│   │   └── service/
+│   ├── {subdomain}.module.ts                       # Exports only the subdomain facade
+│   ├── core/service/                               # Internal services + query services
 │   ├── http/rest/
 │   │   ├── controller/
 │   │   └── dto/
-│   └── persistence/repository/
+│   └── public-api/facade/{subdomain}.facade.ts     # Pure delegation to internal services
 ├── {subdomain-2}/
 ├── shared/
 │   ├── core/enum/, exception/, guard/
@@ -84,7 +82,8 @@ package/{module-name}/
 │   │   ├── typeorm-datasource.ts
 │   │   └── typeorm-datasource.factory.ts
 │   └── {module}-shared.module.ts
-├── {module}.module.ts
+├── public-api/facade/{module}.facade.ts            # Composes subdomain facades — pure delegation
+├── {module}.module.ts                              # Provides + exports package-level facade
 ├── config.ts
 └── index.ts
 ```
@@ -127,6 +126,43 @@ export const factory = (): z.infer<typeof configSchema> => {
   if (result.success) return result.data;
   throw new ConfigException(`Invalid configuration: ${result.error.message}`);
 };
+```
+
+## Facade Rules
+
+The pattern is always **Facade → Service → Repository**. Facades only delegate; services own the logic.
+
+1. **A facade is pure delegation only** — it injects a service and returns the result. No querying, no mapping, no business logic.
+2. **A subdomain never exports internal services** — only its facade. Consumers must not access services or repositories directly.
+3. **The package-level facade only composes subdomain facades** — no repository or internal service injection.
+4. **The root module provides + exports the package-level facade directly** — no separate `PublicApiModule` is needed for subdomain-based packages.
+
+### Subdomain Facade Example
+
+```typescript
+// package/{module}/{subdomain}/public-api/facade/{subdomain}.facade.ts
+@Injectable()
+export class {Subdomain}Facade {
+  constructor(private readonly queryService: {Subdomain}QueryService) {}
+
+  getSomeData(id: string): Promise<SomeData | null> {
+    return this.queryService.getSomeData(id);   // pure delegation — no logic
+  }
+}
+```
+
+### Package-Level Facade Example
+
+```typescript
+// package/{module}/public-api/facade/{module}.facade.ts
+@Injectable()
+export class {Module}Facade implements {Module}Api {
+  constructor(private readonly {subdomain}Facade: {Subdomain}Facade) {}
+
+  getSomeData(id: string): Promise<SomeData | null> {
+    return this.{subdomain}Facade.getSomeData(id);  // pure delegation — no logic
+  }
+}
 ```
 
 ## Component Implementation
@@ -215,6 +251,9 @@ export default {
 - [ ] `nx lint:check {moduleName}` passes
 - [ ] `nx build {moduleName}` passes
 - [ ] `nx db:generate {moduleName}` creates migration
+- [ ] Facades contain only delegation — no querying, mapping, or business logic
+- [ ] Subdomain modules export only their facade — no internal services or repositories
+- [ ] Package-level facade injects subdomain facades only — no repositories or internal services
 
 ---
 

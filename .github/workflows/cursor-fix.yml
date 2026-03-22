@@ -79,11 +79,15 @@ jobs:
           4. Skip any comment whose body contains [RESOLVED] -- those are already addressed
           5. Read the relevant source files for each eligible comment
           6. Apply the minimal, targeted fix for each eligible issue
-          7. Do NOT commit or push -- only modify files on disk
+          7. For each comment you successfully fixed, reply to it with:
+             gh api repos/${{ github.repository }}/pulls/comments/{comment_id}/replies \
+               -X POST -f body="[RESOLVED] Applied fix: <one sentence describing what was changed>"
+          8. Do NOT commit or push -- only modify files on disk
 
           Rules:
           - ✅ in a comment BODY means resolved by the reviewer -- do NOT fix those
           - 👍 (+1) as a GitHub REACTION added by a human user means the user wants it fixed
+          - Only reply [RESOLVED] if you actually changed the file -- do not mark as resolved if no fix was needed
           - Make minimal, surgical changes -- do not refactor beyond the issue scope
           - Do NOT run git commit or git push (the workflow handles this)
           - Do NOT modify .cursor/cli.json or any workflow files"

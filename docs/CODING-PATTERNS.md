@@ -387,6 +387,35 @@ export class Subscription {
 
 ---
 
+## Enum Usage
+
+Always use enum members instead of raw string or number literals for any value that belongs to a finite, named set of options (event types, content types, statuses, window types, etc.).
+
+**Rules:**
+- ✅ Always reference enum members (`AnalyticsContentType.MOVIE`, `SubscriptionStatus.Active`)
+- ✅ Import the enum in every file that needs one of its values
+- ✅ Use the enum as the field/parameter type — never `string` when an enum applies
+- ❌ Never use raw string literals where an enum value exists (`'MOVIE'`, `'DAILY'`, `'ACTIVE'`)
+- ❌ Never cast to an enum type to silence a compiler error caused by a raw string (`windowType as AnalyticsTrendingWindowType`)
+- ❌ Never use `??` fallback string literals when an enum default is available
+
+```typescript
+// ❌ BAD: raw string literals
+const windowType = query.windowType ?? 'DAILY';
+const jobData = { contentType: 'MOVIE', eventType: 'COMPLETE' };
+
+// ✅ GOOD: enum members everywhere
+const windowType = query.windowType ?? AnalyticsTrendingWindowType.DAILY;
+const jobData = {
+  contentType: AnalyticsContentType.MOVIE,
+  eventType: AnalyticsEventType.COMPLETE,
+};
+```
+
+This applies equally to test files — factory helpers and seed inserts must use enum members, not string literals.
+
+---
+
 ## Common Anti-Patterns
 
 | Anti-Pattern | Fix |
@@ -404,3 +433,5 @@ export class Subscription {
 | Cross-module entity imports | Use string references or HTTP clients |
 | Exporting services/repositories from module index | Export only facades and module class |
 | Global shared mutable state | Module-specific cache/state |
+| Raw string literals instead of enum members (`'MOVIE'`, `'DAILY'`) | Use enum members (`AnalyticsContentType.MOVIE`, `AnalyticsTrendingWindowType.DAILY`) |
+| Casting to enum type to suppress a string mismatch (`x as MyEnum`) | Fix the source: assign an enum member, not a raw string |

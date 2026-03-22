@@ -47,13 +47,15 @@ package/{module-name}/                # Bounded Context (e.g., billing, content,
 | 9 | **Observability** | High | Module-specific logging, metrics, health checks |
 | 10 | **Fail Independence** | High | Circuit breakers; failures don't cascade |
 
-## Top 5 Critical Violations
+## Top 7 Critical Violations
 
 1. 🔴 **Duplicate entity names** — `@Entity({ name: 'Plan' })` in multiple modules → use `BillingPlan`, `ContentPlan`
 2. 🔴 **Cross-module database access** — `@InjectRepository(UserEntity, 'identity')` in billing module
 3. 🟠 **Fat controllers** — business logic in controllers instead of services
 4. 🟠 **Repository injection in controllers** — controllers must only inject services
 5. 🟠 **Missing `@Transactional({ connectionName })` on writes** — always name the connection
+6. 🟠 **Exporting internal services** — subdomains must expose only facades, never services or repositories
+7. 🟠 **Facade containing logic** — facades must be pure delegation to services; all querying and mapping belongs in services
 
 ## Decision Tree: Which Reference to Load
 

@@ -1,0 +1,54 @@
+{
+  "name": "analytics",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "package/analytics",
+  "projectType": "library",
+  "tags": [],
+  "targets": {
+    "lint:check": {
+      "executor": "@nx/eslint:lint",
+      "outputs": ["{options.outputFile}"],
+      "options": {
+        "lintFilePatterns": ["package/analytics/**/*.ts"]
+      }
+    },
+    "lint:fix": {
+      "executor": "@nx/eslint:lint",
+      "outputs": ["{options.outputFile}"],
+      "options": {
+        "lintFilePatterns": ["package/analytics/**/*.ts"],
+        "fix": true
+      }
+    },
+    "test:e2e": {
+      "executor": "@nx/jest:jest",
+      "outputs": ["{workspaceRoot}/coverage/{projectRoot}"],
+      "options": {
+        "jestConfig": "package/analytics/jest.config.ts",
+        "passWithNoTests": true,
+        "runInBand": true
+      }
+    },
+    "db:generate": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "ts-node -r tsconfig-paths/register -P {projectRoot}/tsconfig.lib.json ./node_modules/typeorm/cli.js migration:generate {projectRoot}/shared/persistence/migration/migration",
+        "args": ["-d {projectRoot}/shared/persistence/typeorm-datasource.ts"]
+      }
+    },
+    "db:migrate": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "ts-node -r tsconfig-paths/register -P {projectRoot}/tsconfig.lib.json ./node_modules/typeorm/cli.js migration:run",
+        "args": ["-d {projectRoot}/shared/persistence/typeorm-datasource.ts"]
+      }
+    },
+    "db:drop": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "ts-node -r tsconfig-paths/register -P {projectRoot}/tsconfig.lib.json ./node_modules/typeorm/cli.js schema:drop",
+        "args": ["-d {projectRoot}/shared/persistence/typeorm-datasource.ts"]
+      }
+    }
+  }
+}
