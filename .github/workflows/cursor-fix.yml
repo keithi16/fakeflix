@@ -63,8 +63,8 @@ jobs:
       - name: Cursor - Apply fixes
         timeout-minutes: 15
         run: |
-          agent -p --force --model claude-4.6-sonnet-medium-thinking --output-format text \
-          "You are an automated code fixer running in GitHub Actions. The gh CLI is available and authenticated.
+          cat > /tmp/fix-prompt.txt << 'PROMPT'
+          You are an automated code fixer running in GitHub Actions. The gh CLI is available and authenticated.
 
           Context:
           - Repo: ${{ github.repository }}
@@ -80,17 +80,18 @@ jobs:
           5. Read the relevant source files for each eligible comment
           6. Apply the minimal, targeted fix for each eligible issue
           7. For each comment you successfully fixed, reply to it with:
-             gh api repos/${{ github.repository }}/pulls/comments/{comment_id}/replies \
-               -X POST -f body="[RESOLVED] Applied fix: <one sentence describing what was changed>"
+             gh api repos/${{ github.repository }}/pulls/comments/{comment_id}/replies -X POST -f body="[RESOLVED] Applied fix: <describe what was changed>"
           8. Do NOT commit or push -- only modify files on disk
 
           Rules:
-          - ✅ in a comment BODY means resolved by the reviewer -- do NOT fix those
-          - 👍 (+1) as a GitHub REACTION added by a human user means the user wants it fixed
-          - Only reply [RESOLVED] if you actually changed the file -- do not mark as resolved if no fix was needed
+          - [RESOLVED] in a comment body means already fixed -- skip it
+          - 👍 (+1) as a GitHub reaction by a human means the user wants it fixed
+          - Only reply [RESOLVED] if you actually changed a file
           - Make minimal, surgical changes -- do not refactor beyond the issue scope
           - Do NOT run git commit or git push (the workflow handles this)
-          - Do NOT modify .cursor/cli.json or any workflow files"
+          - Do NOT modify .cursor/cli.json or any workflow files
+          PROMPT
+          agent -p --force --model claude-4.6-sonnet-medium-thinking --output-format text "$(cat /tmp/fix-prompt.txt)"
 
       - name: Commit and push fixes
         env:
