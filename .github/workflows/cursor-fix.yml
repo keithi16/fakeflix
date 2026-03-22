@@ -7,6 +7,7 @@ on:
 permissions:
   pull-requests: write
   contents: write
+  issues: write
 
 jobs:
   fix:
@@ -18,13 +19,19 @@ jobs:
     runs-on: ubuntu-latest
     env:
       CURSOR_API_KEY: ${{ secrets.CURSOR_API_KEY }}
+      GH_TOKEN: ${{ github.token }}
       PR_NUMBER: ${{ github.event.issue.number }}
 
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
       - name: Checkout PR branch
-        run: |
-          gh repo clone ${{ github.repository }} .
-          gh pr checkout "$PR_NUMBER"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh pr checkout "$PR_NUMBER"
 
       - name: Install Cursor CLI
         run: |
@@ -47,6 +54,8 @@ jobs:
           EOF
 
       - name: React to comment (acknowledged)
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           gh api repos/${{ github.repository }}/issues/comments/${{ github.event.comment.id }}/reactions \
             -X POST -f content=eyes
@@ -54,7 +63,7 @@ jobs:
       - name: Cursor - Apply fixes
         timeout-minutes: 15
         run: |
-          cursor agent -p --force --trust --model auto --output-format text \
+          agent -p --force --model claude-4.6-sonnet-medium-thinking --output-format text \
           "You are an automated code fixer running in GitHub Actions. The gh CLI is available and authenticated.
 
           Context:
@@ -62,20 +71,26 @@ jobs:
           - PR Number: $PR_NUMBER
 
           Objectives:
-          1. Fetch existing review comments: gh api repos/${{ github.repository }}/pulls/$PR_NUMBER/reviews
-          2. Also fetch inline review comments: gh api repos/${{ github.repository }}/pulls/$PR_NUMBER/comments
-          3. Identify all comments labeled 🚨 Critical or 🔒 Security
-          4. Read the relevant source files for each issue
-          5. Apply the minimal, targeted fix for each critical or security issue
-          6. Do NOT commit or push -- only modify files on disk
+          1. Fetch inline review comments: gh api repos/${{ github.repository }}/pulls/$PR_NUMBER/comments
+          2. For each comment, fetch its reactions: gh api repos/${{ github.repository }}/pulls/comments/{comment_id}/reactions
+          3. A comment is eligible for fixing if ANY of these is true:
+             a) Its body contains 🚨 or 🔒 (critical or security issue flagged by the reviewer)
+             b) A non-bot user (login does not end in [bot]) has added a 👍 (+1) reaction to it
+          4. Skip any comment whose body contains [RESOLVED] -- those are already addressed
+          5. Read the relevant source files for each eligible comment
+          6. Apply the minimal, targeted fix for each eligible issue
+          7. Do NOT commit or push -- only modify files on disk
 
           Rules:
-          - Fix only 🚨 Critical and 🔒 Security issues
+          - ✅ in a comment BODY means resolved by the reviewer -- do NOT fix those
+          - 👍 (+1) as a GitHub REACTION added by a human user means the user wants it fixed
           - Make minimal, surgical changes -- do not refactor beyond the issue scope
           - Do NOT run git commit or git push (the workflow handles this)
           - Do NOT modify .cursor/cli.json or any workflow files"
 
       - name: Commit and push fixes
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
@@ -90,6 +105,8 @@ jobs:
 
       - name: React to comment (done)
         if: always()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           gh api repos/${{ github.repository }}/issues/comments/${{ github.event.comment.id }}/reactions \
             -X POST -f content=rocket
