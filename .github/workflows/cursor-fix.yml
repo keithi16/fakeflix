@@ -1,0 +1,95 @@
+name: Cursor Fix
+
+on:
+  issue_comment:
+    types: [created]
+
+permissions:
+  pull-requests: write
+  contents: write
+
+jobs:
+  fix:
+    name: AI Auto-fix
+    if: |
+      github.event.issue.pull_request != null &&
+      contains(github.event.comment.body, '/fix') &&
+      github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    env:
+      CURSOR_API_KEY: ${{ secrets.CURSOR_API_KEY }}
+      PR_NUMBER: ${{ github.event.issue.number }}
+
+    steps:
+      - name: Checkout PR branch
+        run: |
+          gh repo clone ${{ github.repository }} .
+          gh pr checkout "$PR_NUMBER"
+
+      - name: Install Cursor CLI
+        run: |
+          curl https://cursor.com/install -fsS | bash
+          echo "$HOME/.cursor/bin" >> $GITHUB_PATH
+
+      - name: Override CLI permissions for file writes
+        run: |
+          cat > .cursor/cli.json << 'EOF'
+          {
+            "permissions": {
+              "allow": [],
+              "deny": [
+                "Shell(git push)",
+                "Shell(git commit)",
+                "Shell(gh pr create)"
+              ]
+            }
+          }
+          EOF
+
+      - name: React to comment (acknowledged)
+        run: |
+          gh api repos/${{ github.repository }}/issues/comments/${{ github.event.comment.id }}/reactions \
+            -X POST -f content=eyes
+
+      - name: Cursor - Apply fixes
+        timeout-minutes: 15
+        run: |
+          cursor agent -p --force --trust --model auto --output-format text \
+          "You are an automated code fixer running in GitHub Actions. The gh CLI is available and authenticated.
+
+          Context:
+          - Repo: ${{ github.repository }}
+          - PR Number: $PR_NUMBER
+
+          Objectives:
+          1. Fetch existing review comments: gh api repos/${{ github.repository }}/pulls/$PR_NUMBER/reviews
+          2. Also fetch inline review comments: gh api repos/${{ github.repository }}/pulls/$PR_NUMBER/comments
+          3. Identify all comments labeled 🚨 Critical or 🔒 Security
+          4. Read the relevant source files for each issue
+          5. Apply the minimal, targeted fix for each critical or security issue
+          6. Do NOT commit or push -- only modify files on disk
+
+          Rules:
+          - Fix only 🚨 Critical and 🔒 Security issues
+          - Make minimal, surgical changes -- do not refactor beyond the issue scope
+          - Do NOT run git commit or git push (the workflow handles this)
+          - Do NOT modify .cursor/cli.json or any workflow files"
+
+      - name: Commit and push fixes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          if ! git diff --quiet; then
+            git add -A
+            git commit -m "fix: auto-fix critical issues from Cursor review"
+            git push
+            gh pr comment "$PR_NUMBER" --body "🤖 Applied auto-fixes for 🚨 Critical and 🔒 Security issues. Please review the changes."
+          else
+            gh pr comment "$PR_NUMBER" --body "✅ No changes needed -- all critical issues appear already resolved."
+          fi
+
+      - name: React to comment (done)
+        if: always()
+        run: |
+          gh api repos/${{ github.repository }}/issues/comments/${{ github.event.comment.id }}/reactions \
+            -X POST -f content=rocket

@@ -1,0 +1,151 @@
+name: Cursor PR Review
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  pull-requests: write
+  contents: read
+
+jobs:
+  review:
+    name: AI Code Review
+    runs-on: ubuntu-latest
+    env:
+      CURSOR_API_KEY: ${{ secrets.CURSOR_API_KEY }}
+      JIRA_BASE_URL: ${{ secrets.JIRA_BASE_URL }}
+      JIRA_USER: ${{ secrets.JIRA_USER }}
+      JIRA_API_TOKEN: ${{ secrets.JIRA_API_TOKEN }}
+      BLOCKING_REVIEW: false
+      PR_NUMBER: ${{ github.event.pull_request.number }}
+      BRANCH: ${{ github.head_ref }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install Cursor CLI
+        run: |
+          curl https://cursor.com/install -fsS | bash
+          echo "$HOME/.cursor/bin" >> $GITHUB_PATH
+
+      - name: Extract Jira ticket ID
+        id: jira
+        run: |
+          TICKET_ID=$(echo "$BRANCH" | grep -oE '[A-Z]+-[0-9]+' | head -1 || true)
+          echo "ticket_id=$TICKET_ID" >> $GITHUB_OUTPUT
+          if [ -n "$TICKET_ID" ]; then
+            echo "Found Jira ticket: $TICKET_ID"
+          else
+            echo "No Jira ticket found in branch name: $BRANCH"
+          fi
+
+      - name: Fetch Jira requirements
+        if: steps.jira.outputs.ticket_id != ''
+        run: |
+          TICKET_ID="${{ steps.jira.outputs.ticket_id }}"
+          curl -s -u "$JIRA_USER:$JIRA_API_TOKEN" \
+            "$JIRA_BASE_URL/rest/api/2/issue/$TICKET_ID?fields=summary,description" \
+            -H "Accept: application/json" > /tmp/jira-ticket.json
+          JIRA_REQUIREMENTS=$(cat /tmp/jira-ticket.json)
+          echo "JIRA_REQUIREMENTS<<EOF" >> $GITHUB_ENV
+          echo "$JIRA_REQUIREMENTS" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
+
+      - name: Warn no Jira ticket
+        if: steps.jira.outputs.ticket_id == ''
+        env:
+          TICKET_ID: ${{ steps.jira.outputs.ticket_id }}
+        run: |
+          gh pr comment "$PR_NUMBER" --body "⚠️ **No Jira ticket found in branch name.**
+
+          Requirements cannot be verified against this PR. Please ensure your branch name contains a Jira ticket ID (e.g. \`KAN-123-my-feature\`) so the AI reviewer can validate the implementation against the requirements."
+
+      - name: Cursor - Code Quality Review
+        timeout-minutes: 10
+        run: |
+          cursor agent -p --force --trust --model auto --output-format text \
+          "You are an automated code reviewer running in GitHub Actions. The gh CLI is available and authenticated.
+
+          Context:
+          - Repo: ${{ github.repository }}
+          - PR Number: $PR_NUMBER
+          - PR Head SHA: ${{ github.event.pull_request.head.sha }}
+          - PR Base SHA: ${{ github.event.pull_request.base.sha }}
+
+          Objectives:
+          1. Check existing review comments: gh pr view $PR_NUMBER --json reviews,comments
+          2. For previously reported issues that appear fixed, reply with: ✅ This issue appears to be resolved by the recent changes
+          3. Get the PR diff: gh pr diff $PR_NUMBER
+          4. Review for bugs, security vulnerabilities, performance issues, and code quality based on the project's architecture and coding patterns.
+          5. Use sub agents to span the review in parallel and optimize context.
+          5. Post inline comments only on changed lines using the GitHub Reviews API
+          6. Post a concise summary review comment
+
+          Severity labels to use:
+          - 🚨 Critical -- bugs or logic errors that will cause failures
+          - 🔒 Security -- security vulnerabilities or data exposure
+          - ⚡ Performance -- significant performance concerns
+          - ⚠️ Warning -- code smells or maintainability issues
+          - 💡 Suggestion -- optional improvements
+
+          Rules:
+          - Max 10 inline comments total; prioritize the most critical issues
+          - One issue per comment placed on the exact changed line
+          - Be specific and actionable; natural tone
+          - Avoid duplicates: skip if similar feedback already exists on or near the same lines
+          - Submit via: gh pr review $PR_NUMBER --comment
+          - Do NOT use: gh pr review --approve or --request-changes
+          - Do NOT modify any files"
+
+      - name: Cursor - Requirements Review
+        if: steps.jira.outputs.ticket_id != ''
+        timeout-minutes: 10
+        env:
+          TICKET_ID: ${{ steps.jira.outputs.ticket_id }}
+        run: |
+          cursor agent -p --force --trust --model auto --output-format text \
+          "You are an automated requirements reviewer running in GitHub Actions. The gh CLI is available and authenticated.
+
+          Context:
+          - Repo: ${{ github.repository }}
+          - PR Number: $PR_NUMBER
+          - Jira Ticket: $TICKET_ID
+
+          Jira requirements (may be in Atlassian Document Format - ADF):
+          $JIRA_REQUIREMENTS
+
+          Objectives:
+          1. Parse the Jira ticket requirements (summary and description fields)
+          2. Get the PR diff: gh pr diff $PR_NUMBER
+          3. Compare the implementation against the requirements
+          4. Post a requirements coverage summary using: gh pr comment $PR_NUMBER --body '...'
+
+          Format your summary comment as:
+          ## 📋 Requirements Review: $TICKET_ID
+
+          ### ✅ Implemented
+          - List each requirement that is correctly implemented
+
+          ### ❌ Missing or Incomplete
+          - List each requirement not addressed by this PR
+
+          ### 💬 Notes
+          - Any clarifications or assumptions
+
+          Rules:
+          - Be factual; only flag things clearly missing vs the stated requirements
+          - Do NOT modify any files
+          - Do NOT approve or request changes via gh pr review"
+
+      - name: Blocking check
+        if: env.BLOCKING_REVIEW == 'true'
+        run: |
+          REVIEW_BODY=$(gh pr view "$PR_NUMBER" --json reviews --jq '[.reviews[].body] | join("\n")')
+          if echo "$REVIEW_BODY" | grep -qE '🚨|🔒'; then
+            echo "Critical or security issues found. Failing pipeline."
+            exit 1
+          fi
