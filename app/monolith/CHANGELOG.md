@@ -1,3 +1,13 @@
+# 1.0.0 (2026-03-24)
+
+### Features
+
+- add analytics module and stress test agentic code review ([#83](https://github.com/tech-leads-club/fakeflix/pull/83))
+
+### ❤️ Thank You
+
+- Waldemar Neto @waldemarnt
+
 ## 0.3.0 (2025-06-17)
 
 ### Features
