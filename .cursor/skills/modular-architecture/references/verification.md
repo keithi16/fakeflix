@@ -33,6 +33,24 @@ done
 
 **Expected for all state isolation checks**: Empty output (no violations)
 
+## Subdomain Persistence Ownership (Subdomain-Based Modules)
+
+```bash
+# 1. Shared persistence module exporting repositories (VIOLATION in subdomain modules)
+rg "exports:.*Repository" package/*/shared/persistence/*.module.ts
+
+# 2. Subdomain services importing from shared persistence repos
+rg "from.*shared/persistence/repository" package/*/*/core/service/
+
+# 3. Cross-subdomain direct imports (subdomain A importing B's persistence)
+rg "from.*\.\./\.\./\.\./(?!shared)" package/*/*/core/service/
+
+# 4. Queue contract types defined inside a subdomain (should be in shared/contract/)
+rg "export interface.*JobData" package/*/*/queue/
+```
+
+**Expected**: Empty output for checks 1-3. Check 4 shows contracts only in `shared/contract/`.
+
 ## Controller Pattern Violations (Principle 1, Lean Controllers)
 
 ```bash
@@ -128,6 +146,9 @@ grep -r "export.*Service\|export.*Repository" packages/*/index.ts
 □ Direct Repository → extend DefaultTypeOrmRepository, named DataSource
 □ Missing Transactions → add @Transactional({ connectionName })
 □ ORM leakage → move where/relations to repository methods
+□ Shared persistence anti-pattern → move repos to owning subdomains
+□ Cross-subdomain direct imports → add internal facades
+□ Queue contracts in subdomain → move to shared/contract/
 □ Run detection commands (still clean after refactor)
 □ All tests pass
 ```

@@ -1,10 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { AppLogger } from '@tlc/shared-module/logger';
 import { Transactional } from 'typeorm-transactional';
+import { IngestionReadFacade } from '../../../ingestion/public-api/facade/ingestion-read.facade';
 import { AnalyticsContentType } from '../../../shared/enum/analytics-content-type.enum';
 import { AnalyticsTrendingWindowType } from '../../../shared/enum/analytics-trending-window-type.enum';
-import { TrendingContentRepository } from '../../../shared/persistence/repository/trending-content.repository';
-import { ViewEventRepository } from '../../../shared/persistence/repository/view-event.repository';
+import { TrendingContentRepository } from '../../persistence/repository/trending-content.repository';
 
 interface ContentMetrics {
   contentId: string;
@@ -18,7 +18,7 @@ interface ContentMetrics {
 @Injectable()
 export class TrendingComputationService {
   constructor(
-    private readonly viewEventRepository: ViewEventRepository,
+    private readonly ingestionReadFacade: IngestionReadFacade,
     private readonly trendingContentRepository: TrendingContentRepository,
     private readonly logger: AppLogger,
   ) {}
@@ -37,7 +37,7 @@ export class TrendingComputationService {
 
     this.logger.log(`Computing trending for ${windowType} from ${windowStart} to ${windowEnd}`);
 
-    const events = await this.viewEventRepository.findInWindow(windowStart, windowEnd);
+    const events = await this.ingestionReadFacade.findEventsInWindow(windowStart, windowEnd);
 
     const metricsMap = new Map<string, ContentMetrics>();
 

@@ -3,7 +3,7 @@ import { AppLogger } from '@tlc/shared-module/logger';
 import { Job } from 'bullmq';
 import { AnalyticsContentType } from '../../../shared/enum/analytics-content-type.enum';
 import { AnalyticsEventType } from '../../../shared/enum/analytics-event-type.enum';
-import { AnalyticsEventProcessingJobData } from '../../../ingestion/queue/producer/event-processing.queue-producer';
+import { AnalyticsEventProcessingJobData } from '../../../shared/contract/event-processing-job.contract';
 import { ANALYTICS_QUEUES } from '../../../shared/queue/queue-constants';
 import { ContentPerformanceAggregationService } from '../../core/service/content-performance-aggregation.service';
 import { WatchHistoryAggregationService } from '../../core/service/watch-history-aggregation.service';

@@ -1,6 +1,6 @@
 import { DefaultEntity } from '@tlc/shared-module/typeorm';
 import { Column, Entity, Index, Unique } from 'typeorm';
-import { AnalyticsContentType } from '../../enum/analytics-content-type.enum';
+import { AnalyticsContentType } from '../../../shared/enum/analytics-content-type.enum';
 
 @Entity({ name: 'AnalyticsUserWatchHistory' })
 @Unique(['userId', 'contentId'])

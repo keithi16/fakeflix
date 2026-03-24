@@ -47,15 +47,16 @@ package/{module-name}/                # Bounded Context (e.g., billing, content,
 | 9 | **Observability** | High | Module-specific logging, metrics, health checks |
 | 10 | **Fail Independence** | High | Circuit breakers; failures don't cascade |
 
-## Top 7 Critical Violations
+## Top 8 Critical Violations
 
 1. 🔴 **Duplicate entity names** — `@Entity({ name: 'Plan' })` in multiple modules → use `BillingPlan`, `ContentPlan`
 2. 🔴 **Cross-module database access** — `@InjectRepository(UserEntity, 'identity')` in billing module
-3. 🟠 **Fat controllers** — business logic in controllers instead of services
-4. 🟠 **Repository injection in controllers** — controllers must only inject services
-5. 🟠 **Missing `@Transactional({ connectionName })` on writes** — always name the connection
-6. 🟠 **Exporting internal services** — subdomains must expose only facades, never services or repositories
-7. 🟠 **Facade containing logic** — facades must be pure delegation to services; all querying and mapping belongs in services
+3. 🔴 **Monolithic shared persistence in subdomain modules** — shared module registering ALL repos for ALL subdomains → each subdomain owns its repos
+4. 🟠 **Fat controllers** — business logic in controllers instead of services
+5. 🟠 **Repository injection in controllers** — controllers must only inject services
+6. 🟠 **Missing `@Transactional({ connectionName })` on writes** — always name the connection
+7. 🟠 **Exporting internal services** — subdomains must expose only facades, never services or repositories
+8. 🟠 **Facade containing logic** — facades must be pure delegation to services; all querying and mapping belongs in services
 
 ## Decision Tree: Which Reference to Load
 
@@ -68,6 +69,9 @@ Assessing architecture compliance      → references/verification.md
 Understanding a specific principle     → references/principles.md
 Running detection commands             → references/verification.md
 Maturity scoring                       → references/verification.md
+Managing persistence in subdomain      → references/subdomain-persistence.md
+  modules (ownership, facades,
+  cross-subdomain data access)
 ```
 
 ## Use Case Instructions
@@ -79,14 +83,25 @@ Load `references/module-scaffolding.md` — Part 1: Module Creation.
 Follow this process:
 1. Gather requirements (module name, pattern, entities, external integrations)
 2. Decide architecture pattern: **flat** (single domain, 3-8 entities) vs **subdomain-based** (10+ entities or independent scaling needs)
-3. Generate structure → config → entities → repositories → persistence module → services → controllers → DTOs → main module → index.ts → NX config files
-4. Run verification commands from `references/verification.md`
+3. If subdomain-based, load `references/subdomain-persistence.md` for persistence ownership patterns
+4. Generate structure → config → entities → repositories → persistence module → services → controllers → DTOs → main module → index.ts → NX config files
+5. Run verification commands from `references/verification.md`
 
 ### Evaluating Whether to Split a Module
 
 Load `references/module-scaffolding.md` — Part 2: Module Evaluation.
 
 Apply the 6-criteria test and cohesion/coupling scoring. Key principle: **flat is often better** — split only when sub-domains prove themselves through real usage.
+
+### Managing Persistence in Subdomain Modules
+
+Load `references/subdomain-persistence.md`.
+
+Use when a subdomain-based module needs to assign entity/repository ownership to individual subdomains. Key patterns:
+- **Subdomain-owned persistence**: each subdomain registers its own repos (not shared)
+- **Internal facades**: cross-subdomain reads go through explicit facades
+- **Event-carried state transfer**: enrich queue payloads to avoid cross-subdomain queries
+- **Shared kernel anti-pattern**: detect and refactor monolithic shared persistence
 
 ### Assessing Architecture Compliance
 
@@ -109,3 +124,5 @@ Before generating any code, verify:
 - [ ] Write operations use `@Transactional({ connectionName: 'moduleName' })`
 - [ ] `index.ts` exports only facades and module class
 - [ ] Cross-module communication via HTTP/events (never direct DB access)
+- [ ] In subdomain modules: each subdomain registers its own repos (shared module has zero repos)
+- [ ] In subdomain modules: cross-subdomain reads use internal facades, not shared repo injection

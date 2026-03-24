@@ -3,9 +3,9 @@ import { ConfigService } from '@tlc/shared-module/config';
 import { AppLogger } from '@tlc/shared-module/logger';
 import { Transactional } from 'typeorm-transactional';
 import { AnalyticsConfig } from '../../../config';
-import { AnalyticsBingeSession } from '../../../shared/persistence/entity/analytics-binge-session.entity';
-import { BingeSessionRepository } from '../../../shared/persistence/repository/binge-session.repository';
-import { UserWatchHistoryRepository } from '../../../shared/persistence/repository/user-watch-history.repository';
+import { AnalyticsBingeSession } from '../../persistence/entity/analytics-binge-session.entity';
+import { BingeSessionRepository } from '../../persistence/repository/binge-session.repository';
+import { UserWatchHistoryRepository } from '../../persistence/repository/user-watch-history.repository';
 
 @Injectable()
 export class BingeDetectionService {

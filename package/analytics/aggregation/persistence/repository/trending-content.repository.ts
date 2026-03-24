@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectDataSource } from '@nestjs/typeorm';
 import { DefaultTypeOrmRepository } from '@tlc/shared-module/typeorm';
 import { DataSource } from 'typeorm';
-import { AnalyticsTrendingWindowType } from '../../enum/analytics-trending-window-type.enum';
+import { AnalyticsTrendingWindowType } from '../../../shared/enum/analytics-trending-window-type.enum';
 import { AnalyticsTrendingContent } from '../entity/analytics-trending-content.entity';
 
 @Injectable()

@@ -1,7 +1,7 @@
 import { DefaultEntity } from '@tlc/shared-module/typeorm';
 import { Column, Entity, Index, Unique } from 'typeorm';
-import { AnalyticsContentType } from '../../enum/analytics-content-type.enum';
-import { AnalyticsTrendingWindowType } from '../../enum/analytics-trending-window-type.enum';
+import { AnalyticsContentType } from '../../../shared/enum/analytics-content-type.enum';
+import { AnalyticsTrendingWindowType } from '../../../shared/enum/analytics-trending-window-type.enum';
 
 @Entity({ name: 'AnalyticsTrendingContent' })
 @Unique(['contentId', 'windowType', 'windowStart'])

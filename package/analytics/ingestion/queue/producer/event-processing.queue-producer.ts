@@ -3,18 +3,7 @@ import { Injectable } from '@nestjs/common';
 import { AppLogger } from '@tlc/shared-module/logger';
 import { Queue } from 'bullmq';
 import { ANALYTICS_QUEUES } from '../../../shared/queue/queue-constants';
-
-export interface AnalyticsEventProcessingJobData {
-  userId: string;
-  contentId: string;
-  contentType: string;
-  eventType: string;
-  sessionId: string;
-  positionMs: number;
-  durationMs: number;
-  occurredAt: string;
-  metadata?: Record<string, unknown> | null;
-}
+import { AnalyticsEventProcessingJobData } from '../../../shared/contract/event-processing-job.contract';
 
 @Injectable()
 export class EventProcessingProducer {

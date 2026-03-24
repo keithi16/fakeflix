@@ -1,16 +1,16 @@
 import { Injectable } from '@nestjs/common';
 import { AppLogger } from '@tlc/shared-module/logger';
 import { Transactional } from 'typeorm-transactional';
-import { GenreAffinityRepository } from '../../../shared/persistence/repository/genre-affinity.repository';
-import { UserWatchHistoryRepository } from '../../../shared/persistence/repository/user-watch-history.repository';
-import { ViewEventRepository } from '../../../shared/persistence/repository/view-event.repository';
+import { IngestionReadFacade } from '../../../ingestion/public-api/facade/ingestion-read.facade';
+import { GenreAffinityRepository } from '../../persistence/repository/genre-affinity.repository';
+import { UserWatchHistoryRepository } from '../../persistence/repository/user-watch-history.repository';
 
 @Injectable()
 export class GenreAffinityService {
   constructor(
     private readonly genreAffinityRepository: GenreAffinityRepository,
     private readonly watchHistoryRepository: UserWatchHistoryRepository,
-    private readonly viewEventRepository: ViewEventRepository,
+    private readonly ingestionReadFacade: IngestionReadFacade,
     private readonly logger: AppLogger
   ) {}
 
@@ -22,7 +22,7 @@ export class GenreAffinityService {
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
     const recentHistory = await this.watchHistoryRepository.findActiveSince(thirtyDaysAgo);
-    const recentEvents = await this.viewEventRepository.findWithGenresSince(thirtyDaysAgo);
+    const recentEvents = await this.ingestionReadFacade.findEventsWithGenresSince(thirtyDaysAgo);
 
     // Build a (userId:contentId) -> Set<genre> map from event metadata
     const contentGenreMap = new Map<string, Set<string>>();

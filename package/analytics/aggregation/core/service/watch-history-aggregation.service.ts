@@ -1,11 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { AppLogger } from '@tlc/shared-module/logger';
 import { Transactional } from 'typeorm-transactional';
-import { AnalyticsEventProcessingJobData } from '../../../ingestion/queue/producer/event-processing.queue-producer';
+import { AnalyticsEventProcessingJobData } from '../../../shared/contract/event-processing-job.contract';
 import { AnalyticsContentType } from '../../../shared/enum/analytics-content-type.enum';
 import { AnalyticsEventType } from '../../../shared/enum/analytics-event-type.enum';
-import { AnalyticsUserWatchHistory } from '../../../shared/persistence/entity/analytics-user-watch-history.entity';
-import { UserWatchHistoryRepository } from '../../../shared/persistence/repository/user-watch-history.repository';
+import { AnalyticsUserWatchHistory } from '../../persistence/entity/analytics-user-watch-history.entity';
+import { UserWatchHistoryRepository } from '../../persistence/repository/user-watch-history.repository';
 
 @Injectable()
 export class WatchHistoryAggregationService {

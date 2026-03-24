@@ -1,8 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { Response } from 'express';
 import { Readable } from 'stream';
-import { ContentPerformanceRepository } from '../../../shared/persistence/repository/content-performance.repository';
-import { UserWatchHistoryRepository } from '../../../shared/persistence/repository/user-watch-history.repository';
+import { AggregationFacade } from '../../../aggregation/public-api/facade/aggregation.facade';
 import { ExportQueryDto } from '../../http/rest/dto/export-query.dto';
 
 function objectToCsvRow(obj: Record<string, unknown>): string {
@@ -22,13 +21,10 @@ function headerRow(keys: string[]): string {
 
 @Injectable()
 export class CsvExportService {
-  constructor(
-    private readonly contentPerformanceRepository: ContentPerformanceRepository,
-    private readonly watchHistoryRepository: UserWatchHistoryRepository,
-  ) {}
+  constructor(private readonly aggregationFacade: AggregationFacade) {}
 
   async exportContentPerformance(_query: ExportQueryDto, response: Response): Promise<void> {
-    const data = await this.contentPerformanceRepository.findPaginated({
+    const [rows] = await this.aggregationFacade.getContentPerformancePaginated({
       page: 1,
       limit: 10000,
     });
@@ -47,7 +43,6 @@ export class CsvExportService {
     response.setHeader('Content-Type', 'text/csv');
     response.setHeader('Content-Disposition', 'attachment; filename="content-performance.csv"');
 
-    const rows = data[0];
     const readable = Readable.from(
       (async function* () {
         yield headerRow(columns);

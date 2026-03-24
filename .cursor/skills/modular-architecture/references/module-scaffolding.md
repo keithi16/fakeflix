@@ -61,24 +61,37 @@ package/{module-name}/
 └── eslint.config.mjs
 ```
 
-### Pattern 2: Subdomain-Based Module
+### Pattern 2: Subdomain-Based Module (with Subdomain-Owned Persistence)
+
+> **Important**: In subdomain-based modules, each subdomain owns its entities and repositories.
+> The shared layer holds only infrastructure (DB connection, migrations, enums, queue config).
+> See `references/subdomain-persistence.md` for full patterns, anti-patterns, and decision trees.
 
 ```
 package/{module-name}/
 ├── {subdomain-1}/
-│   ├── {subdomain}.module.ts                       # Exports only the subdomain facade
+│   ├── {subdomain}.module.ts                       # Registers OWN repos + services, exports facade
+│   ├── persistence/
+│   │   ├── entity/                                 # Entities THIS subdomain owns
+│   │   └── repository/                             # Repos THIS subdomain owns
 │   ├── core/service/                               # Internal services + query services
 │   ├── http/rest/
 │   │   ├── controller/
 │   │   └── dto/
 │   └── public-api/facade/{subdomain}.facade.ts     # Pure delegation to internal services
 ├── {subdomain-2}/
-├── shared/
-│   ├── core/enum/, exception/, guard/
+│   ├── {subdomain}.module.ts                       # Registers OWN repos + services
 │   ├── persistence/
-│   │   ├── entity/           # Shared entities
-│   │   ├── migration/
-│   │   ├── persistence.module.ts
+│   │   ├── entity/                                 # Entities THIS subdomain owns
+│   │   └── repository/                             # Repos THIS subdomain owns
+│   ├── core/service/
+│   └── ...
+├── shared/
+│   ├── contract/                                   # Shared payload types (queue, events)
+│   ├── enum/                                       # Stable domain vocabulary
+│   ├── persistence/
+│   │   ├── migration/                              # Migrations (shared — one DB)
+│   │   ├── persistence.module.ts                   # TypeORM connection ONLY — zero repos
 │   │   ├── typeorm-datasource.ts
 │   │   └── typeorm-datasource.factory.ts
 │   └── {module}-shared.module.ts
@@ -87,6 +100,8 @@ package/{module-name}/
 ├── config.ts
 └── index.ts
 ```
+
+**Cross-subdomain data access**: When subdomain B needs data from subdomain A, it imports subdomain A's module and uses its exported **internal facade** — never by importing repositories directly from shared. See `references/subdomain-persistence.md` for the Internal Facade and Event-Carried State Transfer patterns.
 
 ## Component Templates
 
@@ -255,6 +270,15 @@ export default {
 - [ ] Subdomain modules export only their facade — no internal services or repositories
 - [ ] Package-level facade injects subdomain facades only — no repositories or internal services
 
+### Additional checks for subdomain-based modules:
+
+- [ ] Each subdomain registers its own repos as providers (not imported from shared)
+- [ ] Shared persistence module has zero repository providers/exports — only TypeORM connection
+- [ ] Cross-subdomain reads go through internal facades, not direct repo injection
+- [ ] Queue/event contract types live in `shared/contract/`, not inside any subdomain
+- [ ] TypeORM datasource factory entity paths include all subdomain entity directories
+- [ ] No subdomain service imports from another subdomain's `persistence/` directory
+
 ---
 
 # Part 2: Module Evaluation
@@ -337,6 +361,22 @@ content/
 ```
 
 Why it works: 4/6 criteria met (different users, different execution, different scaling, could deploy separately)
+
+### Analytics Package — HAS Sub-modules with Owned Persistence ✅
+
+```
+analytics/
+├── ingestion/           # Write path (player clients, append-only events)
+│   └── persistence/     # Owns: ViewEvent, Heartbeat
+├── aggregation/         # Processing (queue consumers, read-model upserts)
+│   └── persistence/     # Owns: WatchHistory, ContentPerformance, Trending, Binge, GenreAffinity
+├── reporting/           # Read path (admin dashboard, CSV exports)
+│   └── (no persistence — reads through aggregation)
+└── shared/              # Infrastructure: DB connection, queue config, enums, contracts
+    └── persistence/     # TypeORM connection only — zero repos
+```
+
+Why it works: 4/6 criteria met (different execution models, different scaling, CQRS write/read separation, could deploy independently). Each subdomain owns its persistence. Cross-subdomain reads go through internal facades.
 
 ### Billing Package — NO Sub-modules ✅
 

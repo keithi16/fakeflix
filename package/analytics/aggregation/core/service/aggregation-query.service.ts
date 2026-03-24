@@ -7,10 +7,10 @@ import {
   UserWatchHistoryItem,
 } from '@tlc/shared-module/public-api';
 import { AnalyticsTrendingWindowType } from '../../../shared/enum/analytics-trending-window-type.enum';
-import { ContentPerformanceRepository } from '../../../shared/persistence/repository/content-performance.repository';
-import { GenreAffinityRepository } from '../../../shared/persistence/repository/genre-affinity.repository';
-import { TrendingContentRepository } from '../../../shared/persistence/repository/trending-content.repository';
-import { UserWatchHistoryRepository } from '../../../shared/persistence/repository/user-watch-history.repository';
+import { ContentPerformanceRepository } from '../../persistence/repository/content-performance.repository';
+import { GenreAffinityRepository } from '../../persistence/repository/genre-affinity.repository';
+import { TrendingContentRepository } from '../../persistence/repository/trending-content.repository';
+import { UserWatchHistoryRepository } from '../../persistence/repository/user-watch-history.repository';
 
 @Injectable()
 export class AggregationQueryService {
@@ -91,4 +91,5 @@ export class AggregationQueryService {
       contentCount: e.contentCount,
     }));
   }
+
 }

@@ -16,7 +16,10 @@ export const dataSourceOptionsFactory = (
     database: configService.get('analytics.database.database'),
     synchronize: false,
     dropSchema: false,
-    entities: [join(__dirname, 'entity', '*.entity.{ts,js}')],
+    entities: [
+      join(__dirname, '..', '..', 'ingestion', 'persistence', 'entity', '*.entity.{ts,js}'),
+      join(__dirname, '..', '..', 'aggregation', 'persistence', 'entity', '*.entity.{ts,js}'),
+    ],
     migrations: [join(__dirname, 'migration', '*-migration.{ts,js}')],
     migrationsRun: false,
     migrationsTableName: 'analytics_migrations',

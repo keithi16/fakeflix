@@ -1,14 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { AppLogger } from '@tlc/shared-module/logger';
-import { AnalyticsContentPerformance } from '../../../shared/persistence/entity/analytics-content-performance.entity';
-import { AnalyticsTrendingContent } from '../../../shared/persistence/entity/analytics-trending-content.entity';
-import { AnalyticsUserWatchHistory } from '../../../shared/persistence/entity/analytics-user-watch-history.entity';
+import { AggregationFacade } from '../../../aggregation/public-api/facade/aggregation.facade';
+import {
+  ContentPerformanceView,
+  TrendingContentView,
+  UserWatchHistoryView,
+} from '../../../aggregation/public-api/types/aggregation-reporting-views';
 import { AnalyticsTrendingWindowType } from '../../../shared/enum/analytics-trending-window-type.enum';
-import { BingeSessionRepository } from '../../../shared/persistence/repository/binge-session.repository';
-import { ContentPerformanceRepository } from '../../../shared/persistence/repository/content-performance.repository';
-import { GenreAffinityRepository } from '../../../shared/persistence/repository/genre-affinity.repository';
-import { TrendingContentRepository } from '../../../shared/persistence/repository/trending-content.repository';
-import { UserWatchHistoryRepository } from '../../../shared/persistence/repository/user-watch-history.repository';
 import {
   ContentPerformanceQueryDto,
   TopBottomContentQueryDto,
@@ -29,21 +27,17 @@ export interface PaginatedResult<T> {
 @Injectable()
 export class ReportingService {
   constructor(
-    private readonly contentPerformanceRepository: ContentPerformanceRepository,
-    private readonly watchHistoryRepository: UserWatchHistoryRepository,
-    private readonly trendingContentRepository: TrendingContentRepository,
-    private readonly bingeSessionRepository: BingeSessionRepository,
-    private readonly genreAffinityRepository: GenreAffinityRepository,
+    private readonly aggregationFacade: AggregationFacade,
     private readonly logger: AppLogger,
   ) {}
 
   async getContentPerformance(
     query: ContentPerformanceQueryDto,
-  ): Promise<PaginatedResult<AnalyticsContentPerformance>> {
+  ): Promise<PaginatedResult<ContentPerformanceView>> {
     const page = query.page ?? 1;
     const limit = query.limit ?? 20;
 
-    const [data, totalItems] = await this.contentPerformanceRepository.findPaginated({
+    const [data, totalItems] = await this.aggregationFacade.getContentPerformancePaginated({
       page,
       limit,
       sortBy: query.sortBy,
@@ -61,28 +55,18 @@ export class ReportingService {
     };
   }
 
-  async getContentPerformanceDetail(
-    contentId: string,
-  ): Promise<AnalyticsContentPerformance | null> {
-    return this.contentPerformanceRepository.findByContentId(contentId);
+  async getContentPerformanceDetail(contentId: string): Promise<ContentPerformanceView | null> {
+    return this.aggregationFacade.getContentPerformanceById(contentId);
   }
 
-  async getTopContent(query: TopBottomContentQueryDto): Promise<AnalyticsContentPerformance[]> {
-    const metric = query.metric ?? 'totalViews';
-    return this.contentPerformanceRepository.findTopByMetric(
-      metric as keyof AnalyticsContentPerformance,
-      query.limit ?? 10,
-    );
+  async getTopContent(query: TopBottomContentQueryDto): Promise<ContentPerformanceView[]> {
+    const metric = (query.metric ?? 'totalViews') as keyof ContentPerformanceView;
+    return this.aggregationFacade.getTopContentByMetric(metric, query.limit ?? 10);
   }
 
-  async getBottomContent(
-    query: TopBottomContentQueryDto,
-  ): Promise<AnalyticsContentPerformance[]> {
-    const metric = query.metric ?? 'totalViews';
-    return this.contentPerformanceRepository.findBottomByMetric(
-      metric as keyof AnalyticsContentPerformance,
-      query.limit ?? 10,
-    );
+  async getBottomContent(query: TopBottomContentQueryDto): Promise<ContentPerformanceView[]> {
+    const metric = (query.metric ?? 'totalViews') as keyof ContentPerformanceView;
+    return this.aggregationFacade.getBottomContentByMetric(metric, query.limit ?? 10);
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -92,7 +76,7 @@ export class ReportingService {
     totalBingeSessions: number;
     avgCompletionPercentage: number;
   }> {
-    const totalBingeSessions = await this.bingeSessionRepository.countAll();
+    const { totalBingeSessions } = await this.aggregationFacade.getUserEngagementSummary();
     return {
       totalUsers: 0,
       totalWatchTimeMs: 0,
@@ -106,12 +90,10 @@ export class ReportingService {
     totalWatchTimeMs: number;
     completionPercentage: number;
     bingeSessions: number;
-    recentHistory: AnalyticsUserWatchHistory[];
+    recentHistory: UserWatchHistoryView[];
   }> {
-    const [recentHistory, bingeSessions] = await Promise.all([
-      this.watchHistoryRepository.findByUser(userId, { limit: 10 }),
-      this.bingeSessionRepository.countByUserId(userId),
-    ]);
+    const { recentHistory, bingeSessionCount } =
+      await this.aggregationFacade.getUserEngagementDetail(userId);
 
     const totalWatchTimeMs = recentHistory.reduce(
       (sum, h) => sum + Number(h.totalWatchTimeMs),
@@ -127,20 +109,17 @@ export class ReportingService {
       userId,
       totalWatchTimeMs,
       completionPercentage: avgCompletion,
-      bingeSessions,
+      bingeSessions: bingeSessionCount,
       recentHistory,
     };
   }
 
   async getTrending(query: TrendingQueryDto): Promise<{
     windowType: string;
-    items: AnalyticsTrendingContent[];
+    items: TrendingContentView[];
   }> {
     const windowType = query.windowType ?? AnalyticsTrendingWindowType.DAILY;
-    const items = await this.trendingContentRepository.findLatestByWindowType(
-      windowType,
-      query.limit,
-    );
+    const items = await this.aggregationFacade.getTrendingByWindow(windowType, query.limit);
     return { windowType, items };
   }
 }

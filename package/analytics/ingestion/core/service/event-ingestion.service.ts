@@ -3,19 +3,17 @@ import { AppLogger } from '@tlc/shared-module/logger';
 import { Transactional } from 'typeorm-transactional';
 import { AnalyticsContentType } from '../../../shared/enum/analytics-content-type.enum';
 import { AnalyticsEventType } from '../../../shared/enum/analytics-event-type.enum';
-import { AnalyticsHeartbeat } from '../../../shared/persistence/entity/analytics-heartbeat.entity';
-import { AnalyticsViewEvent } from '../../../shared/persistence/entity/analytics-view-event.entity';
-import { HeartbeatRepository } from '../../../shared/persistence/repository/heartbeat.repository';
-import { ViewEventRepository } from '../../../shared/persistence/repository/view-event.repository';
+import { AnalyticsHeartbeat } from '../../persistence/entity/analytics-heartbeat.entity';
+import { AnalyticsViewEvent } from '../../persistence/entity/analytics-view-event.entity';
+import { HeartbeatRepository } from '../../persistence/repository/heartbeat.repository';
+import { ViewEventRepository } from '../../persistence/repository/view-event.repository';
 import {
   HeartbeatItemDto,
   RecordHeartbeatBatchDto,
 } from '../../http/rest/dto/record-heartbeat-batch.dto';
 import { RecordPlayerEventDto } from '../../http/rest/dto/record-player-event.dto';
-import {
-  AnalyticsEventProcessingJobData,
-  EventProcessingProducer,
-} from '../../queue/producer/event-processing.queue-producer';
+import { AnalyticsEventProcessingJobData } from '../../../shared/contract/event-processing-job.contract';
+import { EventProcessingProducer } from '../../queue/producer/event-processing.queue-producer';
 
 const ENQUEUEABLE_EVENTS = new Set([
   AnalyticsEventType.PLAY,

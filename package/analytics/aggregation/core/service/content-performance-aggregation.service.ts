@@ -1,11 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { AppLogger } from '@tlc/shared-module/logger';
 import { Transactional } from 'typeorm-transactional';
-import { AnalyticsEventProcessingJobData } from '../../../ingestion/queue/producer/event-processing.queue-producer';
+import { AnalyticsEventProcessingJobData } from '../../../shared/contract/event-processing-job.contract';
 import { AnalyticsContentType } from '../../../shared/enum/analytics-content-type.enum';
 import { AnalyticsEventType } from '../../../shared/enum/analytics-event-type.enum';
-import { AnalyticsContentPerformance } from '../../../shared/persistence/entity/analytics-content-performance.entity';
-import { ContentPerformanceRepository } from '../../../shared/persistence/repository/content-performance.repository';
+import { AnalyticsContentPerformance } from '../../persistence/entity/analytics-content-performance.entity';
+import { ContentPerformanceRepository } from '../../persistence/repository/content-performance.repository';
 
 @Injectable()
 export class ContentPerformanceAggregationService {
