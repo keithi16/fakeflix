@@ -14,13 +14,16 @@ export const dataSourceOptionsFactory = (
   password: configService.get('content.database.password'),
   database: configService.get('content.database.database'),
   synchronize: false,
-  entities: [join(__dirname, 'entity', '*.entity.{ts,js}')],
+  entities: [
+    join(__dirname, 'entity', '*.entity.{ts,js}'),
+    join(__dirname, '..', '..', 'management', 'persistence', 'entity', '*.entity.{ts,js}'),
+    join(__dirname, '..', '..', 'media', 'persistence', 'entity', '*.entity.{ts,js}'),
+  ],
   migrations: [join(__dirname, 'migration', '*-migration.{ts,js}')],
   migrationsRun: false,
   migrationsTableName: 'content_migrations',
   logging: false,
   extra: {
-    // Converte bigint para number ao invés de string
     bigNumberStrings: false,
   },
 });

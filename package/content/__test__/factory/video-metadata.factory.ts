@@ -1,5 +1,5 @@
 import { faker } from '@faker-js/faker';
-import { VideoMetadata } from '../../shared/persistence/entity/video-metadata.entity';
+import { VideoMetadata } from '../../media/persistence/entity/video-metadata.entity';
 
 import * as Factory from 'factory.ts';
 

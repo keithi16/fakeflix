@@ -44,29 +44,15 @@ jobs:
             echo "No Jira ticket found in branch name: $BRANCH"
           fi
 
-      - name: Fetch Jira requirements
-        if: steps.jira.outputs.ticket_id != ''
-        run: |
-          TICKET_ID="${{ steps.jira.outputs.ticket_id }}"
-          curl -s -u "$JIRA_USER:$JIRA_API_TOKEN" \
-            "$JIRA_BASE_URL/rest/api/2/issue/$TICKET_ID?fields=summary,description" \
-            -H "Accept: application/json" > /tmp/jira-ticket.json
-          JIRA_REQUIREMENTS=$(cat /tmp/jira-ticket.json)
-          echo "JIRA_REQUIREMENTS<<EOF" >> $GITHUB_ENV
-          echo "$JIRA_REQUIREMENTS" >> $GITHUB_ENV
-          echo "EOF" >> $GITHUB_ENV
-
       - name: Manage Jira ticket comment
         run: |
           MARKER="<!-- cursor-jira-status -->"
           TICKET_ID="${{ steps.jira.outputs.ticket_id }}"
 
-          # Find an existing status comment posted by this workflow (identified by the hidden marker)
           EXISTING_COMMENT_ID=$(gh api repos/${{ github.repository }}/issues/$PR_NUMBER/comments \
             --jq ".[] | select(.body | contains(\"$MARKER\")) | .id" | head -1)
 
           if [ -z "$TICKET_ID" ]; then
-            # No ticket found -- post warning only if one doesn't already exist
             if [ -z "$EXISTING_COMMENT_ID" ]; then
               gh pr comment "$PR_NUMBER" --body "$MARKER
           ⚠️ **No Jira ticket found in branch name.**
@@ -74,7 +60,6 @@ jobs:
           Requirements cannot be verified against this PR. Please ensure your branch name contains a Jira ticket ID (e.g. \`KAN-123-my-feature\`) so the AI reviewer can validate the implementation against the requirements."
             fi
           else
-            # Ticket found -- delete any previous warning and post/update a found notice
             if [ -n "$EXISTING_COMMENT_ID" ]; then
               gh api repos/${{ github.repository }}/issues/comments/$EXISTING_COMMENT_ID \
                 -X DELETE
@@ -85,98 +70,25 @@ jobs:
           Requirements will be verified against this ticket."
           fi
 
-      - name: Cursor - Code Quality Review
-        timeout-minutes: 10
-        run: |
-          agent -p --force --model claude-4.6-sonnet-medium-thinking --output-format text \
-          "You are an automated code reviewer running in GitHub Actions. The gh CLI is available and authenticated.
-
-          Context:
-          - Repo: ${{ github.repository }}
-          - PR Number: $PR_NUMBER
-          - PR Head SHA: ${{ github.event.pull_request.head.sha }}
-          - PR Base SHA: ${{ github.event.pull_request.base.sha }}
-
-          Step 1 -- Load existing state (do this first, before any review):
-          a) Fetch ALL existing inline review comments:
-             gh api repos/${{ github.repository }}/pulls/$PR_NUMBER/comments
-             Build a set of already-reviewed locations: { path, line } pairs from every existing comment.
-          b) For any existing comment where the issue appears fixed, reply to it:
-             gh api repos/${{ github.repository }}/pulls/comments/{comment_id}/replies -X POST -f body="[RESOLVED] This issue appears to be resolved by the recent changes."
-
-          Step 2 -- Fetch the PR diff:
-          a) gh pr diff $PR_NUMBER
-          b) Parse the diff to extract added/modified lines per file (lines starting with +, excluding +++).
-             This is your COMMENT ALLOWLIST -- you may ONLY post inline comments on these lines.
-
-          Step 3 -- Review the diff:
-          - Review only the changed lines and their surrounding context from the diff
-          - Flag bugs, security vulnerabilities, performance issues, and code quality problems
-          - Identify strange patterns that can cause regressions or code smells:
-            - Undocumented architectural choices or patterns
-            - Removal of code not directly related to the PR changes
-            - Anything that seems like a code smell or regression risk
-
-          Step 4 -- Post new comments only for NEW issues:
-          - ONLY post inline comments on lines in the comment allowlist (added/modified lines)
-          - If an issue exists in unchanged code, mention it in the summary instead
-          - SKIP posting if there is already a comment at the same path + line (within ±3 lines)
-          - Post at most 10 new inline comments total, prioritising the most critical
-          - After posting inline comments, submit a concise summary review comment
-
-          Severity labels:
-          - 🚨 Critical -- bugs or logic errors that will cause failures
-          - 🔒 Security -- security vulnerabilities or data exposure
-          - ⚡ Performance -- significant performance concerns
-          - ⚠️ Warning -- code smells or maintainability issues
-          - 💡 Suggestion -- optional improvements
-
-          Rules:
-          - One issue per comment placed on the exact changed line
-          - Be specific and actionable; natural tone
-          - Submit via: gh pr review $PR_NUMBER --comment
-          - Do NOT use: gh pr review --approve or --request-changes
-          - Do NOT modify any files"
-
-      - name: Cursor - Requirements Review
-        if: steps.jira.outputs.ticket_id != ''
-        timeout-minutes: 10
+      - name: Cursor - PR Review
+        timeout-minutes: 30
         env:
           TICKET_ID: ${{ steps.jira.outputs.ticket_id }}
         run: |
           agent -p --force --model claude-4.6-sonnet-medium-thinking --output-format text \
-          "You are an automated requirements reviewer running in GitHub Actions. The gh CLI is available and authenticated.
+          "You are an automated PR reviewer running in GitHub Actions. The gh CLI is available and authenticated.
+          Environment variables JIRA_BASE_URL, JIRA_USER, JIRA_API_TOKEN, and TICKET_ID are set (TICKET_ID may be empty if no Jira ticket was found in the branch name).
+
+          Read the file .cursor/skills/pr-review/SKILL.md and follow the full protocol from Step 1 through Step 3.
 
           Context:
-          - Repo: ${{ github.repository }}
+          - Repository: ${{ github.repository }}
           - PR Number: $PR_NUMBER
-          - Jira Ticket: $TICKET_ID
+          - PR Head SHA: ${{ github.event.pull_request.head.sha }}
+          - PR Base SHA: ${{ github.event.pull_request.base.sha }}
+          - Branch: $BRANCH
 
-          Jira requirements (may be in Atlassian Document Format - ADF):
-          $JIRA_REQUIREMENTS
-
-          Objectives:
-          1. Parse the Jira ticket requirements (summary and description fields)
-          2. Get the PR diff: gh pr diff $PR_NUMBER
-          3. Compare the implementation against the requirements
-          4. Post a requirements coverage summary using: gh pr comment $PR_NUMBER --body '...'
-
-          Format your summary comment as:
-          ## 📋 Requirements Review: $TICKET_ID
-
-          ### ✅ Implemented
-          - List each requirement that is correctly implemented
-
-          ### ❌ Missing or Incomplete
-          - List each requirement not addressed by this PR
-
-          ### 💬 Notes
-          - Any clarifications or assumptions
-
-          Rules:
-          - Be factual; only flag things clearly missing vs the stated requirements
-          - Do NOT modify any files
-          - Do NOT approve or request changes via gh pr review"
+          Do NOT modify any files. Do NOT approve or request-changes via gh pr review."
 
       - name: Blocking check
         if: env.BLOCKING_REVIEW == 'true'

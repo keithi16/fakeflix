@@ -1,9 +1,9 @@
 import { Module } from '@nestjs/common';
-import { ContentAdminModule } from './admin/content-admin.module';
+import { ContentManagementModule } from './management/content-management.module';
 import { ContentCatalogModule } from './catalog/content-catalog.module';
-import { ContentVideoProcessorModule } from './video-processor/content-video-processor.module';
+import { ContentMediaModule } from './media/content-media.module';
 
 @Module({
-  imports: [ContentAdminModule, ContentVideoProcessorModule, ContentCatalogModule],
+  imports: [ContentManagementModule, ContentMediaModule, ContentCatalogModule],
 })
 export class ContentModule {}

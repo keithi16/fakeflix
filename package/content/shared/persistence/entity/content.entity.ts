@@ -1,11 +1,19 @@
 import { DefaultEntity } from '@tlc/shared-module/typeorm';
-import { ChildEntity, Column, Entity, JoinColumn, OneToMany, OneToOne, TableInheritance } from 'typeorm';
+import {
+  ChildEntity,
+  Column,
+  Entity,
+  JoinColumn,
+  OneToMany,
+  OneToOne,
+  TableInheritance,
+} from 'typeorm';
 import { ContentType } from '../../core/enum/content-type.enum';
-import { Episode } from './episode.entity';
 import { Thumbnail } from './thumbnail.entity';
-import { Video } from './video.entity';
+import { Video } from '../../../media/persistence/entity/video.entity';
+import type { Episode } from '../../../management/persistence/entity/episode.entity';
 
-@Entity({ name: 'Content' })
+@Entity({ name: 'ContentItem' })
 @TableInheritance({ column: { type: 'enum', name: 'type', enum: ContentType } })
 export abstract class Content extends DefaultEntity<Content> {
   @Column({ nullable: false, type: 'enum', enum: ContentType })
@@ -29,10 +37,11 @@ export class MovieContent extends Content {
   @Column({ type: 'float', nullable: true })
   externalRating: number | null;
 
-  @OneToOne(() => Video, (video) => video.movie, {
-    cascade: true,
-    nullable: false,
-  })
+  @Column({ type: 'uuid', nullable: true })
+  videoId: string | null;
+
+  @OneToOne(() => Video)
+  @JoinColumn({ name: 'videoId' })
   video: Video;
 
   @OneToOne(() => Thumbnail, {
@@ -47,7 +56,7 @@ export class MovieContent extends Content {
     description: string;
     ageRecommendation: number | null;
     externalRating: number | null;
-    video: Video;
+    videoId: string;
     thumbnail: Thumbnail | null;
     releaseDate?: Date | null;
   }): MovieContent {
@@ -61,7 +70,8 @@ export class MovieContent extends Content {
 
 @ChildEntity(ContentType.TV_SHOW)
 export class TvShowContent extends Content {
-  @OneToMany(() => Episode, (episode) => episode.tvShow, {
+  // Uses string-based entity reference to avoid circular import with management/episode
+  @OneToMany('ContentEpisode', (episode: any) => episode.tvShow, {
     cascade: false,
     onDelete: 'CASCADE',
   })

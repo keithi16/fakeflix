@@ -1,5 +1,5 @@
 import { faker } from '@faker-js/faker';
-import { MovieContent } from '../../shared/persistence/entity/content.entity';
+import { MovieContent } from '../../shared/core';
 import { ContentType } from '../../shared/core/enum/content-type.enum';
 
 import * as Factory from 'factory.ts';

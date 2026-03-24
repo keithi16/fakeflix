@@ -1,0 +1,52 @@
+import { Module } from '@nestjs/common';
+import { HttpClientModule } from '@tlc/shared-module/http-client';
+import { LoggerModule } from '@tlc/shared-module/logger';
+import { ContentSharedModule } from '../shared/content-shared.module';
+import { VideoAgeRecommendationAdapter } from './core/adapter/video-recommendation.adapter.interface';
+import { VideoSummaryGenerationAdapter } from './core/adapter/video-summary-generator.adapter.interface';
+import { VideoTranscriptGenerationAdapter } from './core/adapter/video-transcript-generator.adapter.interface';
+import { GenerateSummaryForVideoUseCase } from './core/use-case/generate-summary-for-video.use-case';
+import { SetAgeRecommendationUseCase } from './core/use-case/set-age-recommendation.use-case';
+import { TranscribeVideoUseCase } from './core/use-case/transcribe-video.use-case';
+import { GeminiTextExtractorClient } from './http/client/gemini-api/gemini-text-extractor.client';
+import { VideoMetadataRepository } from './persistence/repository/video-metadata.repository';
+import { VideoRepository } from './persistence/repository/video.repository';
+import { MediaFacade } from './public-api/facade/media.facade';
+import { VideoAgeRecommendationConsumer } from './queue/consumer/video-age-recommendation.queue-consumer';
+import { VideoSummaryConsumer } from './queue/consumer/video-summary.queue-consumer';
+import { VideoTranscriptionConsumer } from './queue/consumer/video-transcription.queue-consumer';
+import { ContentAgeRecommendationQueueProducer } from './queue/producer/content-age-recommendation.queue-producer';
+
+@Module({
+  imports: [
+    LoggerModule,
+    HttpClientModule,
+    ContentSharedModule,
+  ],
+  providers: [
+    VideoRepository,
+    VideoMetadataRepository,
+    {
+      provide: VideoSummaryGenerationAdapter,
+      useClass: GeminiTextExtractorClient,
+    },
+    {
+      provide: VideoTranscriptGenerationAdapter,
+      useClass: GeminiTextExtractorClient,
+    },
+    {
+      provide: VideoAgeRecommendationAdapter,
+      useClass: GeminiTextExtractorClient,
+    },
+    VideoAgeRecommendationConsumer,
+    VideoSummaryConsumer,
+    VideoTranscriptionConsumer,
+    GenerateSummaryForVideoUseCase,
+    SetAgeRecommendationUseCase,
+    TranscribeVideoUseCase,
+    ContentAgeRecommendationQueueProducer,
+    MediaFacade,
+  ],
+  exports: [MediaFacade],
+})
+export class ContentMediaModule {}

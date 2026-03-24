@@ -1,11 +1,13 @@
 import { HttpStatus, INestApplication } from '@nestjs/common';
 import { TestingModule } from '@nestjs/testing';
-import { createNestApp, Tables } from '@tlc/shared-lib/test';
+import { createNestApp } from '@tlc/shared-lib/test';
 import { ConfigModule, ConfigService } from '@tlc/shared-module/config';
 import knex, { Knex } from 'knex';
+import { randomUUID } from 'node:crypto';
 import request from 'supertest';
 import { videoFactory } from '../../../../__test__/factory/video.factory';
-import { CONTENT_TEST_FIXTURES } from '../../../../admin/__test__/e2e/contants';
+import { cleanUpContentDatabase } from '../../../../__test__/helper/content-db.test-helper';
+import { CONTENT_TEST_FIXTURES } from '../../../../management/__test__/e2e/contants';
 import { ContentConfig, contentConfigFactory } from '../../../../config';
 import { ContentCatalogModule } from '../../../content-catalog.module';
 
@@ -33,7 +35,7 @@ describe('Media Player - Test (e2e)', () => {
   });
 
   beforeEach(async () => {
-    await testDbClient(Tables.Video).del();
+    await cleanUpContentDatabase(testDbClient);
   });
   afterAll(async () => await module.close());
 
@@ -42,7 +44,7 @@ describe('Media Player - Test (e2e)', () => {
       const fakeVideo = videoFactory.build({
         url: `${CONTENT_TEST_FIXTURES}/sample.mp4`,
       });
-      await testDbClient(Tables.Video).insert(fakeVideo);
+      await testDbClient('ContentVideo').insert(fakeVideo);
 
       const fileSize = 1430145;
       const range = `bytes=0-${fileSize - 1}`;
@@ -58,6 +60,13 @@ describe('Media Player - Test (e2e)', () => {
       expect(response.headers['accept-ranges']).toBe('bytes');
       expect(response.headers['content-length']).toBe(String(fileSize));
       expect(response.headers['content-type']).toBe('video/mp4');
+    });
+
+    it('returns 404 when video does not exist', async () => {
+      await request(app.getHttpServer())
+        .get(`/player/stream/${randomUUID()}`)
+        .set('Range', 'bytes=0-1023')
+        .expect(HttpStatus.NOT_FOUND);
     });
   });
 });

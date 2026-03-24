@@ -1,7 +1,7 @@
 import { Content, MovieContent, TvShowContent } from '../../persistence/entity/content.entity';
-import { Video } from '../../persistence/entity/video.entity';
+import { Video } from '../../../media/persistence/entity/video.entity';
 import { Thumbnail } from '../../persistence/entity/thumbnail.entity';
-import { Episode } from '../../persistence/entity/episode.entity';
+import type { Episode } from '../../../management/persistence/entity/episode.entity';
 
 /**
  * Type guard for Movie Content
@@ -60,7 +60,6 @@ export function isMovieContentFullyLoaded(
     isMovieContent(content) &&
     content.video !== null &&
     content.video !== undefined &&
-    // thumbnail can be null, but should be loaded (not undefined)
     content.thumbnail !== undefined
   );
 }
@@ -74,4 +73,3 @@ export function isTvShowContentWithEpisodes(
 ): content is TvShowContent & { episodes: Episode[] } {
   return isTvShowContent(content) && Array.isArray(content.episodes);
 }
-

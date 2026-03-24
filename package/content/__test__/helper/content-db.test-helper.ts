@@ -1,7 +1,7 @@
 export async function cleanUpContentDatabase(testDbClient: any): Promise<void> {
-  await testDbClient('VideoMetadata').del();
-  await testDbClient('Video').del();
-  await testDbClient('Episode').del();
-  await testDbClient('Content').del();
-  await testDbClient('Thumbnail').del();
+  await testDbClient('ContentVideoMetadata').del();
+  await testDbClient('ContentEpisode').del();
+  await testDbClient('ContentItem').del();
+  await testDbClient('ContentVideo').del();
+  await testDbClient('ContentThumbnail').del();
 }

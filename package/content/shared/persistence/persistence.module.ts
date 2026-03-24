@@ -4,11 +4,7 @@ import { ConfigService } from '@tlc/shared-module/config';
 import { TypeOrmPersistenceModule } from '@tlc/shared-module/typeorm';
 import { DataSource } from 'typeorm';
 import { addTransactionalDataSource } from 'typeorm-transactional';
-import { ContentRepository } from '../../admin/persistence/repository/content.repository';
-import { EpisodeRepository } from '../../admin/persistence/repository/episode.repository';
 import { ContentConfig } from '../../config';
-import { VideoMetadataRepository } from '../../video-processor/persistence/repository/video-metadata.repository';
-import { VideoRepository } from '../../video-processor/persistence/repository/video.repository';
 import { dataSourceOptionsFactory } from './typeorm-datasource.factory';
 
 @Module({
@@ -31,17 +27,7 @@ import { dataSourceOptionsFactory } from './typeorm-datasource.factory';
     }),
     EventEmitterModule,
   ],
-  providers: [
-    ContentRepository,
-    EpisodeRepository,
-    VideoRepository,
-    VideoMetadataRepository,
-  ],
-  exports: [
-    ContentRepository,
-    EpisodeRepository,
-    VideoRepository,
-    VideoMetadataRepository,
-  ],
+  providers: [],
+  exports: [],
 })
 export class ContentSharedPersistenceModule {}

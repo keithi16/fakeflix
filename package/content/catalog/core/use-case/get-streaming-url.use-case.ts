@@ -1,16 +1,16 @@
 import { Injectable } from '@nestjs/common';
 import { VideoNotFoundException } from '../../../shared/core/exception/video-not-found.exception';
-import { VideoRepository } from '../../../video-processor/persistence/repository/video.repository';
+import { MediaFacade } from '../../../media/public-api/facade/media.facade';
 
 @Injectable()
 export class GetStreamingURLUseCase {
-  constructor(private readonly videoRepository: VideoRepository) {}
+  constructor(private readonly mediaFacade: MediaFacade) {}
 
   async execute(videoId: string): Promise<string> {
-    const video = await this.videoRepository.findOneById(videoId);
-    if (!video) {
+    const url = await this.mediaFacade.findVideoUrlById(videoId);
+    if (!url) {
       throw new VideoNotFoundException(`video with id ${videoId} not found`);
     }
-    return video.url;
+    return url;
   }
 }
