@@ -36,11 +36,6 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
-      localstack:
-        image: localstack/localstack
-        ports:
-          - 4566:4566
-
     env:
       PGPASSWORD: postgres
 
@@ -54,16 +49,6 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20.19.0'
-
-      - name: Install AWS CLI
-        run: sudo pip install awscli
-
-      - name: Configure AWS CLI
-        run: |
-          aws configure set aws_access_key_id test
-          aws configure set aws_secret_access_key test
-          aws configure set region us-east-1
-          aws configure set output json
 
       - name: Derive appropriate SHAs for base and head for `nx affected` commands
         uses: nrwl/nx-set-shas@v4
