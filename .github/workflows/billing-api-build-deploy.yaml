@@ -3,7 +3,7 @@ name: Deploy Billing Api
 on:
   push:
     tags:
-      - 'billing-*' # Essa action só executa quando uma tag com prefixo 'billing-' for criada
+      - 'billing-api@*'
   workflow_dispatch:
     inputs:
       tag:

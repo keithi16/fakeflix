@@ -26,9 +26,11 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Fetch all git tags
-        run: git fetch --prune --unshallow --tags || git fetch --tags
+        run: git fetch --prune --tags || true
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
@@ -71,6 +73,44 @@ jobs:
             exit 1
           fi
 
+      # Scoped diff preview — shows cumulative changes since last release
+      - name: Scoped diff preview since last release
+        id: scoped_diff
+        run: |
+          chmod +x .github/scripts/resolve-app-deps.sh
+          APP="${{ github.event.inputs.app }}"
+          TAG_PREFIX="${APP}@"
+          LATEST_TAG=$(git tag --list "${TAG_PREFIX}*" | sort -V | tail -n1)
+          if [[ -z "$LATEST_TAG" ]]; then
+            BASE=$(git rev-list --max-parents=0 HEAD)
+            echo "No previous release tag found. Diffing from first commit."
+          else
+            BASE="$LATEST_TAG"
+            echo "Diffing since last release tag: $LATEST_TAG"
+          fi
+
+          DEP_PATHS=$(.github/scripts/resolve-app-deps.sh "$APP" 2>/dev/null || echo "")
+          echo "Dependency paths: $DEP_PATHS"
+
+          if [[ -n "$DEP_PATHS" ]]; then
+            COMMIT_LOG=$(git log --oneline "${BASE}..HEAD" -- $DEP_PATHS)
+          else
+            COMMIT_LOG=$(git log --oneline "${BASE}..HEAD")
+          fi
+
+          echo "--- Scoped commits pending for ${APP} ---"
+          echo "${COMMIT_LOG:-"(no commits since last release)"}"
+          echo "--- End of scoped diff ---"
+
+          # Persist for release body
+          {
+            echo 'SCOPED_DIFF<<SCOPED_DIFF_EOF'
+            echo "## Commits since \`${LATEST_TAG:-"(initial)"}\`"
+            echo ""
+            echo "${COMMIT_LOG:-"(no commits since last release)"}"
+            echo 'SCOPED_DIFF_EOF'
+          } >> "$GITHUB_ENV"
+
       # Bump version (does not commit or tag)
       - name: Bump version only (no git)
         run: |
@@ -107,6 +147,13 @@ jobs:
           # Extract from the version heading down to the next heading (or EOF)
           awk "/^## $version /{flag=1; print; next} /^## [0-9]+\.[0-9]+\.[0-9]+/{flag=0} flag" "$changelog_file" > latest_changelog.md
           cat latest_changelog.md
+      - name: Append scoped diff to release body
+        run: |
+          echo "" >> latest_changelog.md
+          echo "---" >> latest_changelog.md
+          echo "" >> latest_changelog.md
+          printf '%s\n' "$SCOPED_DIFF" >> latest_changelog.md
+
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
         with:
@@ -115,3 +162,17 @@ jobs:
           body_path: latest_changelog.md
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Dispatch deploy workflow
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          APP="${{ github.event.inputs.app }}"
+          VERSION="${{ github.event.inputs.version }}"
+          TAG="${APP}@${VERSION}"
+          curl -L -X POST \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer ${GH_TOKEN}" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            "https://api.github.com/repos/${{ github.repository }}/actions/workflows/${APP}-build-deploy.yaml/dispatches" \
+            -d "{\"ref\":\"${TAG}\",\"inputs\":{\"tag\":\"${TAG}\"}}"

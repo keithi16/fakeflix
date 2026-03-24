@@ -1,0 +1,91 @@
+name: Deployment Status
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  report:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Generate deployment status report
+        env:
+          APPS: billing-api monolith
+        run: |
+          chmod +x .github/scripts/resolve-app-deps.sh
+
+          SUMMARY="# Deployment Status Report\n\n"
+          SUMMARY+="Generated at: $(date -u '+%Y-%m-%d %H:%M:%S UTC')\n\n"
+          SUMMARY+="| App | Last Release | Pending Commits | Affected |\n"
+          SUMMARY+="| --- | --- | --- | --- |\n"
+
+          DETAILS=""
+
+          for APP in $APPS; do
+            # Find the last release tag for the app
+            LATEST_TAG=$(git tag --list "${APP}@*" | sort -V | tail -n1)
+            if [[ -z "$LATEST_TAG" ]]; then
+              BASE=$(git rev-list --max-parents=0 HEAD)
+              LAST_RELEASE="(none — using first commit)"
+            else
+              BASE="$LATEST_TAG"
+              LAST_RELEASE="$LATEST_TAG"
+            fi
+
+            # Resolve dependency paths for this app
+            DEP_PATHS=$(.github/scripts/resolve-app-deps.sh "$APP" 2>/dev/null || echo "")
+
+            # Count pending commits scoped to dep paths
+            if [[ -n "$DEP_PATHS" ]]; then
+              PENDING=$(git log --oneline "${BASE}..HEAD" -- $DEP_PATHS 2>/dev/null | wc -l | tr -d ' ')
+            else
+              PENDING=$(git log --oneline "${BASE}..HEAD" 2>/dev/null | wc -l | tr -d ' ')
+            fi
+
+            # Check if app is in NX affected set since last release
+            AFFECTED_LIST=$(npx nx show projects --affected --base="${BASE}" --head=HEAD --type=app 2>/dev/null || echo "")
+            if echo "$AFFECTED_LIST" | grep -qw "$APP"; then
+              AFFECTED="✅ Yes"
+            else
+              AFFECTED="⬜ No"
+            fi
+
+            SUMMARY+="| \`${APP}\` | \`${LAST_RELEASE}\` | ${PENDING} | ${AFFECTED} |\n"
+
+            # Collect scoped commit log for details section
+            if [[ -n "$DEP_PATHS" ]]; then
+              COMMIT_LOG=$(git log --oneline "${BASE}..HEAD" -- $DEP_PATHS 2>/dev/null | head -20 || echo "(no commits)")
+            else
+              COMMIT_LOG=$(git log --oneline "${BASE}..HEAD" 2>/dev/null | head -20 || echo "(no commits)")
+            fi
+
+            DETAILS+="\n### \`${APP}\` — pending commits since \`${LAST_RELEASE}\`\n\n"
+            DETAILS+="\`\`\`\n${COMMIT_LOG}\n\`\`\`\n"
+            if [[ -n "$DEP_PATHS" ]]; then
+              DETAILS+="\n_Scoped to paths:_ \`${DEP_PATHS}\`\n"
+            fi
+          done
+
+          # Write to GitHub Actions Job Summary
+          printf "${SUMMARY}" >> "$GITHUB_STEP_SUMMARY"
+          printf "\n## Pending Commit Details\n" >> "$GITHUB_STEP_SUMMARY"
+          printf "${DETAILS}" >> "$GITHUB_STEP_SUMMARY"
+          printf "\n---\n_To deploy an app, run the [Manual App Release](../actions/workflows/create-release.yml) workflow._\n" >> "$GITHUB_STEP_SUMMARY"
