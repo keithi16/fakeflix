@@ -29,4 +29,6 @@ export enum Tables {
   AnalyticsTrendingContent = 'AnalyticsTrendingContent',
   AnalyticsBingeSession = 'AnalyticsBingeSession',
   AnalyticsGenreAffinity = 'AnalyticsGenreAffinity',
+  RecommendationsPreComputed = 'recommendations_pre_computed',
+  RecommendationsContinueWatchingDismiss = 'recommendations_continue_watching_dismiss',
 }

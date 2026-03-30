@@ -1,0 +1,24 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "composite": true,
+    "outDir": "../../.tsbuild/package/recommendations",
+    "rootDir": "."
+  },
+  "include": ["**/*.ts"],
+  "exclude": ["jest.config.ts", "**/*.spec.ts"],
+  "references": [
+    {
+      "path": "../content/tsconfig.lib.json"
+    },
+    {
+      "path": "../analytics/tsconfig.lib.json"
+    },
+    {
+      "path": "../shared/module/tsconfig.lib.json"
+    },
+    {
+      "path": "../shared/lib/tsconfig.lib.json"
+    }
+  ]
+}

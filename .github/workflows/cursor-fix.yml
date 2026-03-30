@@ -12,7 +12,7 @@ permissions:
 jobs:
   fix:
     name: AI Auto-fix
-    if: |
+    if: >
       github.event.issue.pull_request != null &&
       contains(github.event.comment.body, '/fix') &&
       github.actor != 'github-actions[bot]'

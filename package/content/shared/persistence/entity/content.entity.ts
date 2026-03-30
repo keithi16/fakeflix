@@ -30,6 +30,9 @@ export abstract class Content extends DefaultEntity<Content> {
 
   @Column({ type: 'date', nullable: true })
   releaseDate: Date | null;
+
+  @Column('jsonb', { default: [] })
+  genres: string[];
 }
 
 @ChildEntity(ContentType.MOVIE)

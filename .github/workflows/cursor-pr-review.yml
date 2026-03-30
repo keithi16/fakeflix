@@ -1,16 +1,22 @@
 name: Cursor PR Review
 
 on:
-  pull_request:
-    types: [opened, synchronize, reopened]
+  issue_comment:
+    types: [created]
 
 permissions:
   pull-requests: write
   contents: read
+  issues: read
 
 jobs:
   review:
     name: AI Code Review
+    # Only run on PR comments that contain /review
+    if: >
+      github.event.issue.pull_request != null &&
+      contains(github.event.comment.body, '/review') &&
+      github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
     env:
       CURSOR_API_KEY: ${{ secrets.CURSOR_API_KEY }}
@@ -19,13 +25,21 @@ jobs:
       JIRA_API_TOKEN: ${{ secrets.JIRA_API_TOKEN }}
       GH_TOKEN: ${{ github.token }}
       BLOCKING_REVIEW: false
-      PR_NUMBER: ${{ github.event.pull_request.number }}
-      BRANCH: ${{ github.head_ref }}
+      PR_NUMBER: ${{ github.event.issue.number }}
 
     steps:
+      - name: Resolve PR branch
+        id: pr
+        run: |
+          DATA=$(gh api repos/${{ github.repository }}/pulls/$PR_NUMBER --jq '{branch: .head.ref, sha: .head.sha, base_sha: .base.sha}')
+          echo "branch=$(echo $DATA | jq -r .branch)"     >> $GITHUB_OUTPUT
+          echo "sha=$(echo $DATA | jq -r .sha)"           >> $GITHUB_OUTPUT
+          echo "base_sha=$(echo $DATA | jq -r .base_sha)" >> $GITHUB_OUTPUT
+
       - name: Checkout
         uses: actions/checkout@v4
         with:
+          ref: ${{ steps.pr.outputs.sha }}
           fetch-depth: 0
 
       - name: Install Cursor CLI
@@ -36,12 +50,12 @@ jobs:
       - name: Extract Jira ticket ID
         id: jira
         run: |
-          TICKET_ID=$(echo "$BRANCH" | grep -oiE '[A-Z]+-[0-9]+' | head -1 | tr '[:lower:]' '[:upper:]' || true)
+          TICKET_ID=$(echo "${{ steps.pr.outputs.branch }}" | grep -oiE '[A-Z]+-[0-9]+' | head -1 | tr '[:lower:]' '[:upper:]' || true)
           echo "ticket_id=$TICKET_ID" >> $GITHUB_OUTPUT
           if [ -n "$TICKET_ID" ]; then
             echo "Found Jira ticket: $TICKET_ID"
           else
-            echo "No Jira ticket found in branch name: $BRANCH"
+            echo "No Jira ticket found in branch name: ${{ steps.pr.outputs.branch }}"
           fi
 
       - name: Manage Jira ticket comment
@@ -84,9 +98,9 @@ jobs:
           Context:
           - Repository: ${{ github.repository }}
           - PR Number: $PR_NUMBER
-          - PR Head SHA: ${{ github.event.pull_request.head.sha }}
-          - PR Base SHA: ${{ github.event.pull_request.base.sha }}
-          - Branch: $BRANCH
+          - PR Head SHA: ${{ steps.pr.outputs.sha }}
+          - PR Base SHA: ${{ steps.pr.outputs.base_sha }}
+          - Branch: ${{ steps.pr.outputs.branch }}
 
           Do NOT modify any files. Do NOT approve or request-changes via gh pr review."
 

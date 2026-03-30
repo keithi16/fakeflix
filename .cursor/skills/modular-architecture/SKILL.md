@@ -1,6 +1,17 @@
 ---
 name: modular-architecture
-description: Fakeflix modular architecture expert for designing modules, assessing compliance, creating domain modules, and evaluating module boundaries. Use when creating modules, "scaffold a module", assessing architecture compliance, evaluating whether to split modules, understanding modular principles, or when the user mentions "architecture assessment", "module boundaries", "modularity", "compliance check", "maturity assessment", or "create a module".
+description: >
+  Fakeflix modular architecture expert. ALWAYS read this skill BEFORE proposing any fix or plan
+  that involves: module imports, NestJS providers/exports, repository ownership, cross-package
+  dependencies, facade design, or any structural change to a package or subdomain. The patterns
+  here are Fakeflix-specific and differ from generic NestJS conventions — reasoning from first
+  principles without reading this skill will produce incorrect plans (e.g. exporting repositories
+  directly instead of facades). Triggers: creating modules, "scaffold a module", assessing
+  architecture compliance, evaluating whether to split modules, understanding modular principles,
+  fixing cross-submodule imports, reviewing module boundaries, PR review of architecture comments,
+  or any mention of "architecture assessment", "module boundaries", "modularity", "compliance
+  check", "maturity assessment", "create a module", "cross-boundary", "DI token", "providers",
+  "exports", or "repository ownership".
 ---
 
 # Modular Architecture Expert
@@ -34,18 +45,18 @@ package/{module-name}/                # Bounded Context (e.g., billing, content,
 
 ## The 10 Principles
 
-| # | Principle | Criticality | Key Rule |
-|---|-----------|-------------|----------|
-| 1 | **Well-Defined Boundaries** | High | Export only facades/modules from `index.ts` |
-| 2 | **Composability** | Medium | Modules work independently or together |
-| 3 | **Independence** | High | No shared mutable state; test in isolation |
-| 4 | **Individual Scale** | Medium | Module-specific resource configurations |
-| 5 | **Explicit Communication** | High | All inter-module contracts via interfaces/DTOs |
-| 6 | **Replaceability** | Medium | Interface-based dependencies where needed |
-| 7 | **Deployment Independence** | Medium | No deployment assumptions in modules |
-| 8 | **State Isolation** | 🔴 CRITICAL | Module-prefixed entity names; no shared DB tables |
-| 9 | **Observability** | High | Module-specific logging, metrics, health checks |
-| 10 | **Fail Independence** | High | Circuit breakers; failures don't cascade |
+| #   | Principle                   | Criticality | Key Rule                                          |
+| --- | --------------------------- | ----------- | ------------------------------------------------- |
+| 1   | **Well-Defined Boundaries** | High        | Export only facades/modules from `index.ts`       |
+| 2   | **Composability**           | Medium      | Modules work independently or together            |
+| 3   | **Independence**            | High        | No shared mutable state; test in isolation        |
+| 4   | **Individual Scale**        | Medium      | Module-specific resource configurations           |
+| 5   | **Explicit Communication**  | High        | All inter-module contracts via interfaces/DTOs    |
+| 6   | **Replaceability**          | Medium      | Interface-based dependencies where needed         |
+| 7   | **Deployment Independence** | Medium      | No deployment assumptions in modules              |
+| 8   | **State Isolation**         | 🔴 CRITICAL | Module-prefixed entity names; no shared DB tables |
+| 9   | **Observability**           | High        | Module-specific logging, metrics, health checks   |
+| 10  | **Fail Independence**       | High        | Circuit breakers; failures don't cascade          |
 
 ## Top 8 Critical Violations
 
@@ -81,6 +92,7 @@ Managing persistence in subdomain      → references/subdomain-persistence.md
 Load `references/module-scaffolding.md` — Part 1: Module Creation.
 
 Follow this process:
+
 1. Gather requirements (module name, pattern, entities, external integrations)
 2. Decide architecture pattern: **flat** (single domain, 3-8 entities) vs **subdomain-based** (10+ entities or independent scaling needs)
 3. If subdomain-based, load `references/subdomain-persistence.md` for persistence ownership patterns
@@ -98,6 +110,7 @@ Apply the 6-criteria test and cohesion/coupling scoring. Key principle: **flat i
 Load `references/subdomain-persistence.md`.
 
 Use when a subdomain-based module needs to assign entity/repository ownership to individual subdomains. Key patterns:
+
 - **Subdomain-owned persistence**: each subdomain registers its own repos (not shared)
 - **Internal facades**: cross-subdomain reads go through explicit facades
 - **Event-carried state transfer**: enrich queue payloads to avoid cross-subdomain queries
@@ -118,6 +131,7 @@ Each principle includes: definition, rules for AI agents, and one key code examp
 ## Quick Anti-Pattern Check
 
 Before generating any code, verify:
+
 - [ ] Entity names use module prefix (`BillingPlan`, not `Plan`)
 - [ ] No duplicate `@Entity` names across modules
 - [ ] Controllers only inject services (not repositories)

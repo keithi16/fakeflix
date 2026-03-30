@@ -5,5 +5,6 @@ import { ContentMediaModule } from './media/content-media.module';
 
 @Module({
   imports: [ContentManagementModule, ContentMediaModule, ContentCatalogModule],
+  exports: [ContentManagementModule],
 })
 export class ContentModule {}
