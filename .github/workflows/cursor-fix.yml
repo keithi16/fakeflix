@@ -61,7 +61,7 @@ jobs:
             -X POST -f content=eyes
 
       - name: Cursor - Apply fixes
-        timeout-minutes: 15
+        timeout-minutes: 30
         run: |
           cat > /tmp/fix-prompt.txt << 'PROMPT'
           You are an automated code fixer running in GitHub Actions. The gh CLI is available and authenticated.
