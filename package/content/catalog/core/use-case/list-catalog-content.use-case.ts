@@ -13,7 +13,7 @@ export class ListCatalogContentUseCase {
       title: item.title,
       type: item.type,
       genres: item.genres,
-      releaseDate: item.releaseDate,
+      releaseDate: item.releaseDate ? new Date(item.releaseDate) : null,
     }))
   }
 }

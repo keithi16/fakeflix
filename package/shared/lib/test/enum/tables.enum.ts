@@ -1,5 +1,7 @@
 export enum Tables {
   Plan = 'Plan',
+  ContentTransition = 'ContentTransition',
+
   Subscription = 'Subscription',
   TvShow = 'TvShow',
   Episode = 'ContentEpisode',

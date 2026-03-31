@@ -38,6 +38,9 @@ import { QUEUES } from './queue/queue-constants';
       },
       {
         name: QUEUES.CONTENT_AGE_RECOMMENDATION,
+      },
+      {
+        name: QUEUES.CONTENT_SCHEDULED_PUBLISH,
       }
     ),
     ContentSharedPersistenceModule,

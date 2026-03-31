@@ -1,59 +1,51 @@
-# Fakeflix Recommendations
+# Content Lifecycle & Publishing Pipeline
 
-**Vision:** Build a personalization layer that recommends content tailored to each user's viewing history and genre preferences, replacing the current generic catalog experience — reducing time-to-play, increasing discovery, and improving session depth.
+**Vision:** Transform Fakeflix content management from an atomic, immediate-publish model into a full editorial pipeline with draft/review/publish/archive states, quality gates, and scheduled publishing — ensuring the public catalog only ever displays complete, approved content.
 
-**For:** Fakeflix end users (casual browsers, power users) and content managers (editorial team).
+**For:** Content management team (editors, quality analysts) and end users.
 
-**Solves:** Users spend 4–7 minutes browsing before playing anything, and 23% of sessions end without a single play event. There is no personalization — every user sees the exact same catalog. This is a direct churn signal and the highest-leverage product gap to close this quarter.
+**Solves:** Accidental exposure of incomplete content, inability to schedule launches, destructive-only content removal, and zero visibility into editorial pipeline state.
 
 ## Goals
 
-- **Reduce time-to-play** from 4–7 min average to < 2 min
-- **Increase recommendation-originated plays** to > 40% of all play events by end of quarter
-- **Improve session depth** (sessions with > 1 play) from 31% to > 45%
-- **Enable editorial boosting** — content managers can pin/promote titles on recommendation surfaces
-- **Surface hidden gems** — high completion-rate, low-view content gets organic visibility
+- Zero incomplete content visible in the public catalog (enforced by quality gates)
+- Editorial team has full control over content visibility (draft → review → publish → archive flow)
+- Scheduled publishing eliminates manual timing of launches
+- Non-destructive archiving replaces database deletes, preserving all historical data
+- Operational dashboard provides real-time pipeline visibility
 
 ## Tech Stack
 
-**Core:**
+**Core:** NestJS 10 / TypeScript 5.9 / PostgreSQL 15 / TypeORM 0.3
 
-- Framework: NestJS 10
-- Language: TypeScript 5.9
-- Database: PostgreSQL 15 (TypeORM)
-- Monorepo: Nx 22 + Yarn workspaces
-
-**Key dependencies:** BullMQ (async jobs), Redis 7 (cache/queues), Zod (validation), Winston (logging), class-validator/class-transformer (DTOs)
-
-**Existing packages:** `analytics` (genre affinities, viewing history, trending), `content` (catalog metadata, genres, tags), `identity` (auth, user context), `billing`, `shared`
+**Key dependencies:** BullMQ (scheduled jobs), class-validator (DTO validation), `@nestjs/event-emitter` (domain events), supertest + Jest (testing)
 
 ## Scope
 
 **v1 includes:**
 
-- Personalized "Recommended for You" row (genre affinity + viewing history)
-- "Continue Watching" row (partially viewed content, resume from last position)
-- "Trending Now" row (platform-wide popularity signal)
-- "Top in [Genre]" rows (per-genre ranking by completion rate + views)
-- "New Releases" row (recent additions filtered by user genre affinity)
-- "Because You Watched [X]" row (content similarity — shared genres, tags, cast)
-- Editorial Boost admin API (pin/promote titles on surfaces with expiration)
-- "Hidden Gems" row (high completion + low views, weighted by user affinity)
-- Recommendation effectiveness tracking (impression → click → conversion funnel)
+- Publishing state machine (DRAFT → REVIEW → PUBLISHED → ARCHIVED) with validated transitions
+- Quality gates enforced before REVIEW → PUBLISHED (thumbnail, description, genre, age rating)
+- Catalog filtering by publishingStatus (public APIs return only PUBLISHED)
+- Scheduled publishing with automated gate verification
+- Non-destructive content archiving with republication capability
+- Pipeline summary dashboard (counts by state, recent transitions)
+- Transition audit trail per content item
+- Bulk state transitions (up to 50 items)
 
 **Explicitly out of scope:**
 
-- Real-time personalization (batch computation is sufficient for v1)
-- Collaborative filtering / ML infrastructure (deferred to v2)
-- Social recommendations (no social graph exists)
-- Email / push notification recommendations (separate channel)
-- Explainability labels ("Because you watched X") — planned for v1.1
-- Parental controls filtering (profiles module doesn't exist yet)
-- A/B testing of recommendation strategies (separate experimentation module)
+- Multi-step approval workflows (editor → reviewer → director)
+- Public preview links for unpublished content
+- Regional availability / geo-restrictions
+- Metadata versioning / edit history
+- Automated notifications for stale content
+- License-based auto-depublication
+- Per-episode publishing granularity (v2)
 
 ## Constraints
 
-- **Dependencies:** P0 stories depend on `analytics` module facades (`getUserGenreAffinities`, `getViewingHistory`, `getTrendingContent`) which are in progress
-- **Computation model:** Batch (daily recomputation), not real-time — accepted trade-off for v1
-- **Cold start:** New users with no viewing history fall back to trending content
-- **Data availability:** `content` module metadata (genres, tags) is available; `identity` auth is available
+- Backward compatibility: existing content must be migrated to PUBLISHED status
+- Content database is shared across content submodains (catalog, management, media) — state machine must live in content/shared or management
+- Cross-module filtering (recommendations, analytics) must be transparent via the existing facade pattern
+- No new infrastructure dependencies beyond what exists (Postgres, Redis/BullMQ)

@@ -1,5 +1,7 @@
 import { HttpStatus, INestApplication } from '@nestjs/common';
 import { TestingModule } from '@nestjs/testing';
+import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
+import { GraphQLModule } from '@nestjs/graphql';
 import { createNestApp, Tables } from '@tlc/shared-lib/test';
 import { ConfigModule, ConfigService } from '@tlc/shared-module/config';
 import knex, { Knex } from 'knex';
@@ -7,6 +9,7 @@ import { cleanAll } from 'nock';
 import request from 'supertest';
 import { ContentConfig, contentConfigFactory } from '../../../../config';
 import { movieFactory } from '../../../../__test__/factory/movie.factory';
+import { PublishingStatus } from '../../../../shared/core/enum/publishing-status.enum';
 import { ContentCatalogModule } from '../../../content-catalog.module';
 
 describe('ContentCatalog - listContent GraphQL (e2e)', () => {
@@ -18,6 +21,10 @@ describe('ContentCatalog - listContent GraphQL (e2e)', () => {
     const nestTestSetup = await createNestApp([
       ConfigModule.forRoot({
         load: [contentConfigFactory],
+      }),
+      GraphQLModule.forRoot<ApolloDriverConfig>({
+        autoSchemaFile: true,
+        driver: ApolloDriver,
       }),
       ContentCatalogModule,
     ]);
@@ -43,7 +50,7 @@ describe('ContentCatalog - listContent GraphQL (e2e)', () => {
 
   describe('listContent query', () => {
     it('returns seeded content items', async () => {
-      const movie = movieFactory.build({ genres: ['Action', 'Drama'] });
+      const movie = movieFactory.build({ publishingStatus: PublishingStatus.PUBLISHED });
       await testDbClient(Tables.Content).insert(movie);
 
       const res = await request(app.getHttpServer())

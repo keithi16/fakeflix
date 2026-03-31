@@ -2,55 +2,96 @@
 
 ## Naming Conventions
 
-**Files:**
-Kebab-case with role suffix: `event-ingestion.service.ts`, `player-event.controller.ts`, `analytics-view-event.entity.ts`, `create-movie.use-case.ts`, `video-summary.queue-consumer.ts`, `external-movie-rating.client.ts`
+**Files:** kebab-case with role suffix
+Examples: `catalog-content.repository.ts`, `list-catalog-content.use-case.ts`, `management-movie.controller.ts`, `content-type.enum.ts`, `create-movie.dto.ts`
 
-**Classes:**
-PascalCase with role suffix: `EventIngestionService`, `PlayerEventController`, `ViewEventRepository`, `CreateMovieUseCase`, `MediaFacade`, `BillingSubscriptionHttpClient`, `VideoSummaryQueueConsumer`
+**Classes:** PascalCase with role suffix
+Examples: `CatalogContentRepository`, `ListCatalogContentUseCase`, `ManagementMovieController`, `ContentCatalogFacade`
 
-**Methods:**
-- Controllers: verb phrases — `recordEvent`, `createSubscription`, `uploadMovie`, `streamVideo`
-- Services: domain verbs — `recordEvent`, `createSubscription`, `getUserById`
-- Use cases: `execute()` as the single public method
+**Interfaces:** PascalCase (no `I` prefix)
+Examples: `ContentCatalogApi`, `BillingSubscriptionStatusApi`, `ExternalMovieRatingAdapter`
 
-**Constants:**
-Object-based enums for queue names (`QUEUES.VIDEO_SUMMARY`), `Tables` enum for test cleanup
+**Variables:** camelCase
+Examples: `catalogContentRepository`, `contentRepository`, `videoProcessorService`
+
+**Constants:** UPPER_SNAKE_CASE
+Examples: `DEFAULT_CATALOG_LIMIT`, `QUEUE_NAME`, `MAX_RETRY_ATTEMPTS`
+
+**Entity table names:** ModulePrefix + EntityName
+Examples: `ContentItem`, `ContentVideo`, `ContentEpisode`, `BillingPlan`, `IdentityUser`
+
+**DataSource names:** camelCase module name
+Examples: `'content'`, `'billing'`, `'identity'`, `'recommendations'`
+
+**Folders:** kebab-case
+Examples: `core/service`, `http/rest/controller`, `persistence/repository`, `public-api/facade`
 
 ## Code Organization
 
-**Import ordering:**
-NestJS/external packages first, then `@tlc/...` shared imports, then relative imports. Not strictly enforced but consistently followed.
+**Import ordering:** External packages first (`@nestjs/*`, `@tlc/*`), then relative imports. No enforced import-sort ESLint rule — relies on convention.
 
-**File structure:**
-- Decorators at class level (`@Controller`, `@Injectable`)
-- Constructor injection first
-- Public methods, then private
-- One class per file
+**File structure within modules:**
+```
+module/
+├── core/
+│   ├── service/         # Domain services
+│   ├── use-case/        # Application use cases
+│   ├── enum/            # Domain enums
+│   └── adapter/         # Port interfaces
+├── http/
+│   ├── rest/controller/ # REST controllers
+│   ├── rest/dto/        # Request/response DTOs
+│   ├── graphql/         # Resolvers + types
+│   └── client/          # External HTTP clients
+├── persistence/
+│   ├── entity/          # TypeORM entities
+│   ├── repository/      # Repositories
+│   └── migration/       # TypeORM migrations
+├── queue/
+│   ├── producer/        # BullMQ job producers
+│   └── consumer/        # BullMQ job consumers
+├── public-api/
+│   └── facade/          # Cross-module facade implementations
+└── __test__/
+    ├── e2e/             # E2E API tests (supertest)
+    ├── integration/     # Integration tests (real DB, mocked externals)
+    └── unit/            # Unit tests (mocked deps)
+```
 
 ## Type Safety
 
-**Request validation:** `class-validator` decorators on DTO classes + global `ValidationPipe({ transform: true })` in `main.ts`
+**Approach:** TypeScript strict mode. Zod schemas for config validation. class-validator for DTO validation (global `ValidationPipe` with `transform: true`).
 
-**Config validation:** Zod schemas in `config.ts` files with `safeParse` + inferred TypeScript types. Accessed via typed `ConfigService.get<T>(path)`.
-
-**GraphQL types:** `@ObjectType()` + `@Field()` decorators, sometimes combined with `class-validator` on the same class.
-
-**Response mapping:** `plainToInstance(DtoClass, data, { excludeExtraneousValues: true })` with `@Expose()` on response DTOs.
+**Enums:** Always use enum members, never raw string literals. Import the enum in every file that uses its values.
 
 ## Error Handling
 
-**Domain layer:** Custom exceptions extending `DomainException` from `@tlc/shared-lib` (e.g. `NotFoundDomainException`, `UserUnauthorizedException`).
+**Controllers:** Throw NestJS HTTP exceptions (`BadRequestException`, `UnauthorizedException`).
+**Domain services:** Use domain-specific exceptions or broad try/catch with fallback (e.g., recommendations falls back to trending).
+**HTTP clients:** Wrap failures in `HttpClientException` per integration-patterns.md.
+**State machines:** Throw `BadRequestException` with descriptive message on invalid transitions.
 
-**HTTP layer:** Controllers catch domain exceptions and map to NestJS HTTP exceptions (`NotFoundException`, `BadRequestException`, `InternalServerErrorException`). Pattern: `try/catch` in controller methods.
+## DTO Patterns
 
-**GraphQL:** NestJS exception filters handle mapping automatically.
+**Response DTOs:** `@Expose()` decorator on fields, `plainToInstance(DtoClass, entity, { excludeExtraneousValues: true })` in controllers.
+**Request DTOs:** class-validator decorators (`@IsString()`, `@IsNotEmpty()`, etc.) under `http/rest/dto/request/`.
 
 ## Dependency Injection
 
-Constructor injection throughout. Interface bindings use `@Inject(TOKEN)` with Symbol tokens for cross-module contracts (e.g. `@Inject(ExternalMovieRatingAdapter)`).
+**Default:** Constructor injection of concrete classes (use cases, repositories, services).
+**Cross-module:** `@Inject(SymbolToken)` with interface type — token defined in `@tlc/shared-module/public-api`.
+**Named DataSource:** `@InjectDataSource('moduleName')` in repositories.
+**Config:** `ConfigService<ModuleConfig>` from `@nestjs/config`.
 
-Module registration: `{ provide: Token, useClass: Implementation }` or `{ provide: Token, useExisting: ConcreteClass }`.
+## Repository Pattern
 
-## Barrel Files
+- All repos extend `DefaultTypeOrmRepository<Entity>` (composition over inheritance)
+- Methods have business-meaningful names (no TypeORM syntax in services)
+- Named DataSource injection: `@InjectDataSource('content')`
+- Never expose query builder or raw TypeORM methods
 
-Package entrypoints (`index.ts`) export the root module, config factory, and key enums. Shared modules use `export * from` in subpath index files (`auth/index.ts`, `typeorm/index.ts`). Not every folder has a barrel — many imports use direct file paths.
+## Transaction Management
+
+- `@Transactional({ connectionName: 'moduleName' })` on write methods
+- Never without explicit connectionName in multi-database apps
+- Never nested, never on read-only methods

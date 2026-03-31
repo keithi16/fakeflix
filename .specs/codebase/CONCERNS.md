@@ -1,115 +1,72 @@
-# Codebase Concerns
+# Concerns
 
-**Analysis Date:** 2026-03-30
+## Missing Auth Guards on Management Controllers
 
-## Security Considerations
+**Severity:** High — admin endpoints accessible without authentication.
+**Location:** `package/content/management/http/rest/controller/management-movie.controller.ts`, `package/content/management/http/rest/controller/management-tv-show.controller.ts`
+**Evidence:** `ManagementMovieController` and `ManagementTvShowController` have no `@UseGuards(AuthGuard, AdminGuard)` at class or method level, exposing CRUD operations on content to any unauthenticated caller.
+**Impact:** Any actor can create, update, or delete content without a valid admin JWT.
+**Fix approach:** Add `@UseGuards(AuthGuard, AdminGuard)` at class level on both controllers, following the pattern now used by `ContentLifecycleController` and `PipelineDashboardController`.
 
-**Hardcoded JWT secret:**
+## Content Catalog Returns All Content (No Filtering)
 
-- Risk: Token forgery if source is exposed; no secret rotation capability
-- Files: `package/shared/module/auth/auth.module.ts`
-- Current mitigation: None — secret is a fixed string in source code
-- Recommendations: Load from env var or secret manager; add to app config Zod schema
+**Severity:** High — directly related to the content-lifecycle PRD.
+**Location:** `package/content/catalog/persistence/repository/catalog-content.repository.ts`, `package/content/catalog/core/use-case/list-catalog-content.use-case.ts`
+**Evidence:** `CatalogContentRepository.findAll()` returns all `ContentItem` rows with no status filter. `ListCatalogContentUseCase` maps results without any filtering.
+**Impact:** Content is visible the moment it's created — no draft/review/published distinction.
+**Fix approach:** Add `publishingStatus` column to `Content` entity, filter by `PUBLISHED` in `CatalogContentRepository.findAll()` and facade.
 
-**Billing subscription HTTP client placeholder auth:**
+## No publishingStatus in Content Entity
 
-- Risk: Cross-service subscription checks fail or are unauthenticated
-- Files: `package/shared/module/public-api/http/client/billing-subscription-http.client.ts`
-- Current mitigation: `Authorization: Bearer PUT SOMETHING` (literal placeholder)
-- Recommendations: Implement service-to-service auth (service account token, mTLS, or shared secret from config)
+**Severity:** High — foundational gap for the content lifecycle feature.
+**Location:** `package/content/shared/persistence/entity/content.entity.ts`
+**Evidence:** Entity has `type`, `title`, `description`, `ageRecommendation`, `releaseDate`, `genres` — no `publishingStatus` or related state fields.
+**Impact:** Impossible to implement draft/review/publish/archive workflow without schema migration.
+**Fix approach:** Add `publishingStatus` column (enum), default to `DRAFT` for new content, migration to set `PUBLISHED` for all existing rows.
 
-**Admin REST routes without auth guards:**
+## PRD vs Code Discrepancy
 
-- Risk: Unauthenticated content uploads and admin mutations
-- Files: `package/content/management/http/rest/controller/management-movie.controller.ts`, `management-tv-show.controller.ts`
-- Current mitigation: None — `@Controller('admin/...')` but no `@UseGuards(AuthGuard, AdminGuard)`
-- Recommendations: Add `AuthGuard` + `AdminGuard` to all admin controllers
+**Severity:** Medium — PRD describes catalog as "returns `[]`" but it actually returns data.
+**Location:** `docs/content-lifecycle-prd.md` (line about `ListContentUseCase` returning `[]`)
+**Evidence:** `ListCatalogContentUseCase` is implemented and returns real data from DB.
+**Impact:** PRD assumptions about current behavior are partially incorrect — implementation is more advanced than described.
+**Fix approach:** No code fix needed — note this discrepancy during planning.
 
-**JWT payload missing role claim:**
+## Stub GraphQL Resolver (Videos)
 
-- Risk: `AdminGuard` checks `role === 'admin'` but `signIn` only puts `{ sub: user.id }` in token — admin routes are effectively inaccessible with real tokens
-- Files: `package/identity/core/service/authentication.service.ts`, `package/shared/module/auth/http/guard/admin.guard.ts`
-- Current mitigation: E2e tests mock JWT with `role: 'admin'` directly
-- Recommendations: Include `role` (or permissions) in JWT payload from user entity
+**Severity:** Low — not blocking for lifecycle feature.
+**Location:** `package/content/catalog/http/graphql/resolver/video.resolver.ts`
+**Evidence:** `listVideos()` returns hardcoded `[{ name: 'video1' }, { name: 'video2' }]` with TODO comment.
+**Impact:** GraphQL API has a non-functional endpoint.
+**Fix approach:** Implement or remove. Not related to lifecycle feature.
 
-## Tech Debt
+## No Unit Tests for Content Catalog
 
-**Simulated payment gateway:**
+**Severity:** Medium — relevant to lifecycle feature development.
+**Location:** `package/content/catalog/`
+**Evidence:** Only e2e tests exist (`list-content.spec.ts`, `video-player.spec.ts`, `content-catalog-facade.spec.ts`). No unit tests for use cases.
+**Impact:** Adding state machine logic will need e2e tests — no existing unit test patterns to follow in this subdomain.
+**Fix approach:** E2E tests are the established pattern for catalog; follow it consistently.
 
-- Issue: `Math.random() > 0.5` determines payment success; not a real integration
-- Files: `package/billing/core/service/subscription-billing.service.ts`, `package/billing/http/client/payment-gateway-api/payment-gateway.client.ts`
-- Why: Placeholder for development; real gateway integration deferred
-- Impact: Billing behavior is non-deterministic; cannot test real payment flows
-- Fix approach: Integrate real payment gateway client (Stripe, Braintree, etc.)
+## Multiple TODO Comments in Billing
 
-**Stub catalog GraphQL/REST:**
+**Severity:** Low — not related to content lifecycle.
+**Location:** `package/billing/` (multiple files)
+**Evidence:** TODOs for payment processing randomness, config, event emission.
+**Impact:** Billing module has known incomplete areas.
 
-- Issue: `listVideos` resolver returns hardcoded data; `ListContentUseCase.execute()` returns `[]`
-- Files: `package/content/catalog/http/graphql/resolver/video.resolver.ts`, `package/content/catalog/core/use-case/list-content.use-case.ts`
-- Impact: Catalog browsing is non-functional
-- Fix approach: Wire use case to content repository
+## Postgres Version Skew (Docker vs CI)
 
-**Unused AWS SDK dependencies:**
+**Severity:** Low — unlikely to cause issues for this feature.
+**Location:** `docker-compose.yml` (postgres:15-alpine) vs `.github/workflows/main.yml` (postgres:14)
+**Evidence:** Different major versions between local and CI environments.
+**Impact:** Potential edge case differences in SQL behavior.
+**Fix approach:** Align versions.
 
-- Issue: `@aws-sdk/client-dynamodb` and `aws-sdk` v2 declared but not imported in any TypeScript file
-- Files: `package.json` (root)
-- Impact: Unnecessary dependency surface, supply-chain risk
-- Fix approach: Remove if not planned for near-term use
+## Unused AWS SDK Dependencies
 
-**Event emitter infrastructure without consumers:**
-
-- Issue: `EventEmitterModule` and `EventEmitterService` are wired but no `@OnEvent` handlers exist in domain code
-- Files: `package/shared/module/event/`, `package/content/shared/persistence/persistence.module.ts`
-- Impact: Events are emitted to nowhere; dead infrastructure
-- Fix approach: Wire domain event handlers or remove unused infrastructure
-
-## Performance Bottlenecks
-
-**Gemini video processing — synchronous file read + base64:**
-
-- Problem: `fs.readFileSync` loads entire video into memory as base64 before sending to Gemini API
-- Files: `package/content/media/http/client/gemini-api/gemini-text-extractor.client.ts`
-- Cause: Synchronous blocking I/O + full file in memory (base64 increases size ~33%)
-- Improvement path: Use async I/O, enforce file size limits, consider streaming or object storage URLs
-
-## Test Coverage Gaps
-
-**Analytics — no unit tests:**
-
-- What's not tested: Core services in `analytics/ingestion`, `analytics/aggregation`, `analytics/reporting`
-- Risk: Service logic regressions caught only by slow e2e tests
-- Priority: Medium
-- Difficulty to test: Low — services are injectable with mockable dependencies
-
-**Billing — no unit tests:**
-
-- What's not tested: `SubscriptionService`, `SubscriptionBillingService`, `UsageBillingService`, etc.
-- Risk: Complex billing logic (invoicing, credits, dunning) only covered by e2e
-- Priority: High — billing is a critical domain
-- Difficulty to test: Low
-
-**Shared modules — no tests:**
-
-- What's not tested: `AuthGuard`, `AdminGuard`, `HttpClient`, `DefaultTypeOrmRepository`, `AppLogger`
-- Risk: Cross-cutting concerns affect all domains; breakage cascades
-- Priority: Medium
-- Difficulty to test: Low for guards and clients; moderate for TypeORM wrapper
-
-## Dependencies at Risk
-
-**`aws-sdk` v2:**
-
-- Risk: AWS SDK v2 is in maintenance mode; v3 modular SDK is the replacement
-- Impact: If AWS services are needed, v2 patterns won't match current docs
-- Migration plan: Remove if unused; migrate to `@aws-sdk/*` v3 modular packages if needed
-
-**`nock` in production dependencies:**
-
-- Risk: Test-only library bundled with production code
-- Impact: Unnecessary runtime dependency
-- Migration plan: Move to `devDependencies`
-
----
-
-_Concerns audit: 2026-03-30_
-_Update as issues are fixed or new ones discovered_
+**Severity:** Low.
+**Location:** Root `package.json`
+**Evidence:** `@aws-sdk/client-dynamodb` and `aws-sdk` listed but no TypeScript imports found.
+**Impact:** Bloated dependencies.
+**Fix approach:** Remove if confirmed unused.

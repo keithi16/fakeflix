@@ -7,75 +7,104 @@
 ```
 fakeflix/
 ├── app/
-│   ├── monolith/            # Main API (content + identity + analytics)
-│   └── billing-api/         # Separate billing API
+│   ├── monolith/              # Main Nest app (all domains except billing)
+│   └── billing-api/           # Separate billing API bootstrap
 ├── package/
-│   ├── analytics/           # Analytics domain (ingestion, aggregation, reporting)
-│   ├── billing/             # Billing domain (subscriptions, payments, invoicing)
-│   ├── content/             # Content domain (catalog, management, media)
-│   ├── identity/            # Identity domain (auth, users)
+│   ├── content/               # Content lifecycle domain
+│   │   ├── catalog/           # Public catalog (GraphQL + facades)
+│   │   ├── management/        # Admin CRUD (REST + file uploads)
+│   │   ├── media/             # Video processing (BullMQ + Gemini)
+│   │   ├── shared/            # Shared entities, persistence, events
+│   │   └── content.module.ts
+│   ├── identity/              # User auth + management (GraphQL)
+│   ├── recommendations/       # Personalized recommendations (REST + BullMQ)
+│   ├── analytics/             # Watch events, aggregation, reporting
+│   │   ├── ingestion/
+│   │   ├── aggregation/
+│   │   └── reporting/
+│   ├── billing/               # Subscriptions, invoices, usage
 │   └── shared/
-│       ├── lib/             # Shared library (models, exceptions, test utils)
-│       └── module/          # Shared NestJS modules (auth, config, typeorm, logger, etc.)
-├── docs/                    # Product documentation
-├── .specs/                  # Spec-driven project docs
-├── .github/                 # CI workflows and scripts
-├── docker-compose.yml       # Postgres + Redis
-├── nx.json                  # Nx workspace config
-├── package.json             # Root dependencies + scripts
-├── tsconfig.base.json       # Base TS config (es2020, CommonJS)
-└── jest.config.ts           # Multi-project Jest root
+│       ├── module/            # Cross-cutting NestJS modules
+│       │   ├── auth/          # JWT guards (AuthGuard, AdminGuard)
+│       │   ├── config/        # Shared config helpers
+│       │   ├── logger/        # Winston logger
+│       │   ├── http-client/   # Axios wrapper
+│       │   ├── typeorm/       # DefaultTypeOrmRepository, DefaultEntity
+│       │   ├── event/         # EventEmitter wrapper
+│       │   └── public-api/    # Cross-module interfaces + tokens
+│       └── lib/
+│           └── test/          # E2E test helpers (createNestApp, Tables enum)
+├── docs/                      # Architecture docs, PRDs
+├── .cursor/                   # Cursor rules and skills
+├── .github/workflows/         # CI, deploy pipelines
+├── docker-compose.yml
+├── nx.json
+├── package.json
+└── tsconfig.base.json
 ```
 
 ## Module Organization
 
-### Analytics (`@tlc/analytics`)
+### content (catalog + management + media + shared)
 
-**Purpose:** Event ingestion, data aggregation (genre affinity, trending, binge detection), and reporting APIs.
-**Location:** `package/analytics/`
-**Submodules:** `ingestion/`, `aggregation/`, `reporting/`, `shared/`
-**Key files:** `analytics.module.ts`, `public-api/facade/analytics.facade.ts`
-
-### Billing (`@tlc/billing`)
-
-**Purpose:** Subscriptions, payment processing, usage billing, invoicing, credit management.
-**Location:** `package/billing/`
-**Key files:** `billing.module.ts`, `public-api/facade/billing.facade.ts`
-
-### Content (`@tlc/content`)
-
-**Purpose:** Content catalog (GraphQL + REST), content management (admin), media processing (video streaming, AI-powered summaries).
+**Purpose:** Full content lifecycle — creation, processing, catalog exposure.
 **Location:** `package/content/`
-**Submodules:** `catalog/`, `management/`, `media/`, `shared/`
-**Key files:** `content.module.ts`
+**Key files:** `content.module.ts` imports all subdomains, exports only `ContentCatalogModule`.
 
-### Identity (`@tlc/identity`)
+### identity
 
-**Purpose:** User management, authentication (JWT), GraphQL API for auth/users.
+**Purpose:** User authentication (sign-up, login, JWT), user management.
 **Location:** `package/identity/`
-**Key files:** `identity.module.ts`, registers `GraphQLModule.forRoot` (Apollo, code-first)
+**Key files:** GraphQL resolvers, TypeORM user entity, JWT + bcrypt.
 
-### Shared (`@tlc/shared-lib`, `@tlc/shared-module`)
+### recommendations
 
-**Purpose:** Cross-cutting concerns — auth guards, config, TypeORM wrappers, logger, HTTP client, event emitter, public API interfaces.
-**Location:** `package/shared/lib/` and `package/shared/module/`
-**Subpath exports:** `@tlc/shared-module/auth`, `@tlc/shared-module/config`, `@tlc/shared-module/typeorm`, `@tlc/shared-module/public-api`, etc.
+**Purpose:** Personalized content recommendations, continue watching.
+**Location:** `package/recommendations/`
+**Key files:** REST API, BullMQ compute workers, cross-module calls to analytics + catalog.
+
+### analytics
+
+**Purpose:** Watch event ingestion, aggregation, trending, reporting.
+**Location:** `package/analytics/`
+**Key files:** Three subdomains (ingestion/aggregation/reporting) with BullMQ workers.
+
+### billing
+
+**Purpose:** Subscription management, invoicing, usage tracking.
+**Location:** `package/billing/`
+**Key files:** State machine for subscription lifecycle, simulated payment/tax clients.
+
+### shared
+
+**Purpose:** Cross-cutting infrastructure modules + test utilities.
+**Location:** `package/shared/`
+**Key files:** `DefaultTypeOrmRepository`, `AuthGuard`, `AdminGuard`, `ContentCatalogApi` interface + token.
 
 ## Where Things Live
 
-**Module internal layout (consistent across packages):**
+**Content admin CRUD:**
+- Controllers: `package/content/management/http/rest/controller/`
+- Use cases: `package/content/management/core/use-case/`
+- Persistence: `package/content/management/persistence/`
+- E2E tests: `package/content/management/__test__/e2e/`
 
-- Business logic: `<module>/core/service/` or `<module>/core/use-case/`
-- REST API: `<module>/http/rest/controller/` + `<module>/http/rest/dto/`
-- GraphQL: `<module>/http/graphql/resolver/` + `<module>/http/graphql/type/`
-- External clients: `<module>/http/client/<service-name>/`
-- Persistence: `<module>/persistence/entity/`, `<module>/persistence/repository/`, `<module>/persistence/migration/`
-- Queues: `<module>/queue/producer/`, `<module>/queue/consumer/`
-- Public API (facades): `<module>/public-api/facade/`
-- Tests: `<module>/__test__/e2e/`, `<module>/__test__/factory/`, `<module>/core/service/__test__/unit/`
+**Public catalog:**
+- GraphQL: `package/content/catalog/http/graphql/resolver/`
+- Use case: `package/content/catalog/core/use-case/`
+- Facade: `package/content/catalog/public-api/facade/`
+- E2E tests: `package/content/catalog/__test__/e2e/`
+
+**Cross-module contracts:**
+- Interfaces: `package/shared/module/public-api/interface/`
+- HTTP clients: `package/shared/module/public-api/http/client/`
+
+**Migrations:**
+- Per-module: `package/<domain>/persistence/migration/` or `package/<domain>/shared/persistence/migration/`
 
 ## Special Directories
 
-**`package/shared/module/public-api/`:** Defines cross-module interface contracts (e.g. `BillingSubscriptionStatusApi`, `AnalyticsApi`) with Symbol tokens. Implementations are provided by domain packages via `useExisting` or `useClass`.
-
-**`package/shared/lib/test/`:** Test infrastructure — `createNestApp` helper, `Tables` enum for Knex cleanup, e2e setup utilities.
+**`package/shared/lib/test/`:** E2E test bootstrap (`createNestApp`), table cleanup enum (`Tables`).
+**`package/*/queue/`:** BullMQ producers/consumers for async work.
+**`package/*/public-api/facade/`:** Implementations of cross-module API contracts.
+**`.cursor/skills/`:** AI agent skills (modular-architecture, e2e-tests, etc.).

@@ -1,77 +1,111 @@
 # Architecture
 
-**Pattern:** Modular monolith (Nx) with domain packages and optional split deployment
+**Pattern:** NestJS Modular Monolith with per-domain database isolation
 
 ## High-Level Structure
 
-Apps are thin bootstraps (orchestration only). Packages hold all domain logic. Each domain package exposes a root `@Module` and is composed into apps via imports.
+Two deployable apps compose independent domain packages:
 
 ```
-app/monolith → ContentModule + IdentityModule + AnalyticsModule
+app/monolith → ContentModule + IdentityModule + AnalyticsModule + RecommendationsModule
 app/billing-api → BillingModule (separate deployment)
 ```
 
-Config is merged at the app level: `ConfigModule.forRoot({ load: [contentConfigFactory, identityConfigFactory, ...] })`.
+Domain logic lives exclusively in `package/*`. Apps are thin bootstraps (config, global pipes, transactional context).
 
 ## Identified Patterns
 
-### Layered Modules per Domain
+### Modular Domain Packages
 
-**Location:** Every domain package (`analytics`, `billing`, `content`, `identity`)
-**Purpose:** Enforce separation of concerns within each domain
-**Implementation:** `core/` (services, use cases, adapters) → `http/` (controllers, resolvers, clients, DTOs) → `persistence/` (entities, repositories, migrations) → optional `queue/` (producers, consumers) and `public-api/` (facades)
-**Example:** `package/analytics/ingestion/core/service/event-ingestion.service.ts` → `ingestion/http/rest/controller/player-event.controller.ts` → `ingestion/persistence/repository/view-event.repository.ts`
+**Location:** `package/<domain>/`
+**Purpose:** Each business domain is an independently structured NestJS module with its own database, persistence, and public API.
+**Implementation:** Subdomains when needed (e.g., `content/management`, `content/catalog`, `content/media`, `content/shared`).
 
-### Facade + Interface Token for Cross-Module Communication
+### Layer Structure per Subdomain
 
-**Location:** `package/shared/module/public-api/interface/`
-**Purpose:** Decouple consumers from providers across module boundaries
-**Implementation:** Shared interfaces with Symbol tokens (e.g. `BillingSubscriptionStatusApi`). Providers bind via `{ provide: Token, useExisting: ConcreteClass }`. Consumers depend on the abstraction.
-**Example:** Identity imports `BillingSubscriptionStatusApi` → resolved to `BillingSubscriptionHttpClient` which calls billing REST API.
+**Location:** `package/<domain>/<subdomain>/`
+**Purpose:** Separation of concerns within each module.
+**Implementation:**
+- `core/service/` — Domain services
+- `core/use-case/` — Application use cases (orchestration)
+- `http/rest/controller/` — REST controllers (lean, no business logic)
+- `http/graphql/resolver/` — GraphQL resolvers
+- `http/client/` — External HTTP client wrappers
+- `persistence/entity/` — TypeORM entities
+- `persistence/repository/` — Repositories extending `DefaultTypeOrmRepository`
+- `queue/producer/` and `queue/consumer/` — BullMQ job producers/consumers
+- `public-api/facade/` — Cross-module facade implementations
 
-### Named TypeORM Datasources
+### Cross-Module Communication (Facade + Token)
 
-**Location:** Each domain's `persistence/` layer
-**Purpose:** Isolate database schemas per domain; support per-domain migrations
-**Implementation:** `TypeOrmPersistenceModule.forRoot` with `dataSourceFactory` + `addTransactionalDataSource(connectionName)`. Each package has its own `typeorm-datasource.factory.ts`.
-**Example:** `analytics` datasource, `content` datasource, `identity` datasource, `billing` datasource — each with separate migration tables.
+**Location:** `package/shared/module/public-api/interface/` (contracts), each domain's `public-api/facade/` (implementations)
+**Purpose:** Explicit boundaries — modules never access each other's DB or repositories directly.
+**Implementation:**
+1. Interface + Symbol token defined in shared (e.g., `ContentCatalogApi`)
+2. Facade class implements interface in owning module (e.g., `ContentCatalogFacade`)
+3. Module registers `{ provide: ContentCatalogApi, useClass: ContentCatalogFacade }`
+4. Consumers inject via `@Inject(ContentCatalogApi)` — zero coupling to internals
+**Example:** `ContentCatalogFacade` → `ListCatalogContentUseCase` → `CatalogContentRepository`
 
-### Repository Wrapper
+### HTTP Cross-Service Communication
+
+**Location:** `package/shared/module/public-api/http/client/`
+**Purpose:** Out-of-process calls between separately deployed apps (monolith ↔ billing-api).
+**Example:** `BillingSubscriptionHttpClient` calls billing-api's REST endpoint for subscription status.
+
+### Repository Pattern (Composition over Inheritance)
 
 **Location:** `package/shared/module/typeorm/repository/default-typeorm.repository.ts`
-**Purpose:** Controlled data access surface — hides raw TypeORM `Repository` and exposes curated methods
-**Implementation:** `DefaultTypeOrmRepository<T>` composes `Repository<T>` privately; exposes `save`, `findOne`, `find`, `exists`, etc. Domain repos extend this and inject `@InjectDataSource('<name>')`.
+**Purpose:** Encapsulate TypeORM — only expose `save`, `findOne`, `find`, `exists`.
+**Implementation:** All repos extend `DefaultTypeOrmRepository<Entity>`, inject named DataSource, add business-meaningful query methods.
 
-### Declarative Config with Zod
+### State Machine Pattern (Billing)
 
-**Location:** Each package's `config.ts` (e.g. `package/content/config.ts`, `package/analytics/config.ts`)
-**Purpose:** Type-safe, validated environment config
-**Implementation:** Zod schemas with `safeParse` in factory functions. Config types inferred from schemas. Accessed via `ConfigService.get<Type>(path)`.
+**Location:** `package/billing/core/service/subscription-state-machine.service.ts`
+**Purpose:** Domain-driven state transitions with validation.
+**Implementation:** `Map<Status, AllowedTargetStatuses[]>` + `transition()` method that validates and mutates.
 
 ## Data Flow
 
-### REST Request Flow
+### Content Creation (Movie Upload)
 
-`HTTP → Controller (AuthGuard, ValidationPipe, ClsService for userId) → Service/UseCase (@Transactional) → Repository (DefaultTypeOrmRepository) → PostgreSQL`
+```
+ManagementMovieController (extract params, thumbnail via multer)
+  → CreateMovieUseCase (@Transactional('content'))
+    → ExternalMovieRatingAdapter (fetch external rating via HTTP)
+    → MediaFacade.createVideo (persist video entity)
+    → MovieContent.create (factory method)
+    → ContentRepository.saveMovieContent
+    → VideoProcessorService.processMetadataAndModeration (BullMQ jobs)
+```
 
-Controllers are lean: validate input, extract user context from CLS, delegate to service, map domain exceptions to HTTP exceptions, return DTO via `plainToInstance`.
+### Catalog Listing (Public)
 
-### Queue Processing Flow
+```
+ContentResolver (GraphQL) → ListContentUseCase
+ListCatalogContentUseCase → CatalogContentRepository.findAll()
+ContentCatalogFacade (cross-module) → ListCatalogContentUseCase
+```
 
-`Controller/Service → QueueProducer.add(jobName, data) → Redis (BullMQ) → QueueConsumer.process(job) → Service → Repository → PostgreSQL`
+Currently returns ALL content — no publishingStatus filter exists.
 
-Used for: analytics event processing, video transcription/summary, age recommendations, trending computation (repeatable scheduled jobs).
+### Recommendations (Cross-Module)
 
-### GraphQL Flow
-
-`GraphQL POST /graphql → Apollo → Resolver (AuthGuard) → Service → Repository → PostgreSQL`
-
-Active for identity (auth, users) and content catalog. `GraphQLModule.forRoot` with `autoSchemaFile: true` (code-first).
+```
+RecommendationsController → PersonalizedRecommendationService
+  → PreComputedRecommendationRepository (check cache)
+  → RecommendationComputationService (@Transactional('recommendations'))
+    → Promise.all([
+        AnalyticsApi.getUserGenreAffinities(userId),
+        AnalyticsApi.getUserWatchHistory(userId),
+        ContentCatalogApi.findAllWithGenres()    ← Cross-module call
+      ])
+    → Score, rank, persist recommendations
+```
 
 ## Code Organization
 
-**Approach:** Domain-driven with layered internals
-
-**Module boundaries:** Each domain package is an independent Yarn workspace with its own `package.json`, `project.json`, `jest.config.ts`, and TypeORM datasource. Cross-domain communication uses facade interfaces from `@tlc/shared-module/public-api` or HTTP clients.
-
-**Submodule composition:** Larger domains (analytics, content) split into submodules (e.g. `ingestion`, `aggregation`, `reporting` in analytics; `catalog`, `management`, `media` in content). The root module composes submodules.
+**Approach:** Domain-driven with explicit module boundaries
+**Module boundaries:** NestJS module system + Nx enforce-module-boundaries ESLint rule
+**Each module owns:** its database, entities, repositories, migrations
+**Cross-module data:** via facade interfaces (in-process) or HTTP clients (out-of-process)

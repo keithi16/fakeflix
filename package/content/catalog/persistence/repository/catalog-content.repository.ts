@@ -3,6 +3,7 @@ import { InjectDataSource } from '@nestjs/typeorm'
 import { DefaultTypeOrmRepository } from '@tlc/shared-module/typeorm'
 import { DataSource } from 'typeorm'
 import { Content } from '../../../shared/core'
+import { PublishingStatus } from '../../../shared/core/enum/publishing-status.enum'
 
 const DEFAULT_CATALOG_LIMIT = 100
 
@@ -16,6 +17,6 @@ export class CatalogContentRepository extends DefaultTypeOrmRepository<Content> 
   }
 
   async findAll(limit = DEFAULT_CATALOG_LIMIT): Promise<Content[]> {
-    return this.find({ take: limit })
+    return this.find({ where: { publishingStatus: PublishingStatus.PUBLISHED }, take: limit })
   }
 }

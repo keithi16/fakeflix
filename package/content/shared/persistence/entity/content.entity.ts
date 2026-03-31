@@ -9,6 +9,7 @@ import {
   TableInheritance,
 } from 'typeorm';
 import { ContentType } from '../../core/enum/content-type.enum';
+import { PublishingStatus } from '../../core/enum/publishing-status.enum';
 import { Thumbnail } from './thumbnail.entity';
 import { Video } from '../../../media/persistence/entity/video.entity';
 import type { Episode } from '../../../management/persistence/entity/episode.entity';
@@ -33,6 +34,25 @@ export abstract class Content extends DefaultEntity<Content> {
 
   @Column('jsonb', { default: [] })
   genres: string[];
+
+  @Column({
+    type: 'enum',
+    enum: PublishingStatus,
+    default: PublishingStatus.DRAFT,
+  })
+  publishingStatus: PublishingStatus;
+
+  @Column({ type: 'timestamptz', nullable: true })
+  scheduledPublishAt: Date | null;
+
+  @Column({ type: 'varchar', nullable: true })
+  schedulingOutcome: 'CANCELLED' | 'FAILED_VALIDATION' | null;
+
+  @Column({ type: 'timestamptz', nullable: true })
+  archivedAt: Date | null;
+
+  @Column({ type: 'varchar', nullable: true })
+  archivedBy: string | null;
 }
 
 @ChildEntity(ContentType.MOVIE)

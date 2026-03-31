@@ -1,5 +1,5 @@
 import { faker } from '@faker-js/faker';
-import { MovieContent } from '../../shared/core';
+import { MovieContent, PublishingStatus } from '../../shared/core';
 import { ContentType } from '../../shared/core/enum/content-type.enum';
 
 import * as Factory from 'factory.ts';
@@ -12,6 +12,7 @@ export const movieFactory = Factory.Sync.makeFactory<Partial<MovieContent>>({
   description: faker.lorem.paragraph(),
   ageRecommendation: faker.number.int({ min: 0, max: 18 }),
   releaseDate: faker.date.recent(),
+  publishingStatus: PublishingStatus.PUBLISHED,
   createdAt: faker.date.recent(),
   updatedAt: faker.date.recent(),
   deletedAt: null,

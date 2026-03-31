@@ -7,6 +7,7 @@ import { ContentConfig, contentConfigFactory } from '../../../../../config';
 import { movieFactory } from '../../../../../__test__/factory/movie.factory';
 import { ContentCatalogModule } from '../../../../content-catalog.module';
 import { ContentCatalogFacade } from '../../../facade/content-catalog.facade';
+import { ContentCatalogApi } from '@tlc/shared-module/public-api';
 
 describe('ContentCatalogFacade - findAllWithGenres (e2e)', () => {
   let module: TestingModule;
@@ -27,7 +28,7 @@ describe('ContentCatalogFacade - findAllWithGenres (e2e)', () => {
       connection: `${configService.get('content.database.url')}`,
       searchPath: ['public'],
     });
-    facade = module.get(ContentCatalogFacade);
+    facade = module.get<ContentCatalogFacade>(ContentCatalogApi);
   });
 
   afterEach(async () => {
@@ -45,7 +46,7 @@ describe('ContentCatalogFacade - findAllWithGenres (e2e)', () => {
         genres: ['Action', 'Drama'],
         releaseDate: new Date('2023-06-15'),
       });
-      await testDbClient(Tables.Content).insert(movie);
+      await testDbClient(Tables.Content).insert({ ...movie, genres: JSON.stringify(movie.genres) });
 
       const result = await facade.findAllWithGenres();
 

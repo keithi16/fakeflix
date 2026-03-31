@@ -1,83 +1,75 @@
 # External Integrations
 
-## Database
+## Databases
 
-**Service:** PostgreSQL 15
-**Purpose:** Primary data store for all domain packages
-**Implementation:** TypeORM 0.3.20 via `TypeOrmPersistenceModule.forRoot` with `addTransactionalDataSource`
-**Configuration:** Per-domain datasource factories (`typeorm-datasource.factory.ts`), each with separate migration tables
-**Datasources:** `analytics`, `billing`, `content`, `identity` — each has its own env vars (`*_DATABASE_HOST`, `*_DATABASE_PORT`, etc.)
+**Service:** PostgreSQL 15 (Docker) / 14 (CI)
+**Purpose:** Primary relational storage — one logical database per module.
+**Implementation:** TypeORM named DataSources (`'content'`, `'billing'`, `'identity'`, `'recommendations'`, `'analytics'`).
+**Configuration:** Zod-validated env vars per module (e.g., `CONTENT_DATABASE_URL`, `RECOMMENDATIONS_DATABASE_URL`).
+**Docker:** `postgres:15-alpine` with bind mount `.data/`.
 
-## Queue System
+## Message Queue
 
-**Service:** Redis 7 (via BullMQ)
-**Purpose:** Async job processing for analytics and content pipelines
-**Implementation:** `@nestjs/bullmq` with `BullModule.forRootAsync` + `registerQueue` in shared modules
+**Service:** Redis 7 (backing BullMQ)
+**Purpose:** Async job processing for video pipelines, recommendation computation, analytics aggregation, content distribution.
+**Implementation:** `@nestjs/bullmq` ^11.0.2; producers and consumers under `package/*/queue/`.
+**Docker:** `redis:7-alpine` with named volume `redis-data`.
 
-### Analytics Queues
+## In-Process Events
 
-| Queue | Purpose | Location |
-|-------|---------|----------|
-| `analytics-event-processing` | Process ingested events into aggregations | `package/analytics/shared/queue/` |
-| `analytics-genre-affinity-recomputation` | Recompute user genre affinities | `package/analytics/aggregation/queue/consumer/` |
-| `analytics-trending-computation` | Compute trending content (repeatable: hourly daily / 6h weekly) | `package/analytics/aggregation/queue/consumer/` |
-
-### Content Queues
-
-| Queue | Purpose | Location |
-|-------|---------|----------|
-| `video-summary` | Generate AI video summary | `package/content/shared/queue/` |
-| `video-transcript` | Transcribe video content | `package/content/media/queue/consumer/` |
-| `video-age-recommendation` | AI-powered age rating per video | `package/content/media/queue/consumer/` |
-| `content-age-recommendation` | Content-level age recommendation | `package/content/management/queue/consumer/` |
+**Service:** @nestjs/event-emitter ^2.0.3
+**Purpose:** Domain-style in-process event emission (content persistence module).
+**Implementation:** `EventEmitterModule` registered in `ContentSharedModule`.
 
 ## API Integrations
 
-### TMDb (The Movie Database)
+### Billing API (HTTP — out-of-process)
 
-**Purpose:** Keyword search + movie discovery for external ratings
-**Location:** `package/content/management/http/client/external-movie-rating/external-movie-rating.client.ts`
-**Authentication:** Bearer token from `content.movieDb.apiToken` (`CONTENT_MOVIEDB_*` env)
-**Key endpoints:** Keyword search, movie discovery
-
-### Google Gemini
-
-**Purpose:** Video summary generation, transcription, age recommendation
-**Location:** `package/content/media/http/client/gemini-api/gemini-text-extractor.client.ts`
-**Authentication:** API key from `content.geminiApi.apiToken` (`CONTENT_GEMINI_API_TOKEN`)
-**Model:** `gemini-2.0-flash`
-**Note:** Reads video files as base64 inline data — memory concern for large files
-
-### Billing HTTP API (Internal Cross-Service)
-
-**Purpose:** Check user subscription status from identity module during sign-in
+**Purpose:** Check subscription status from identity module.
 **Location:** `package/shared/module/public-api/http/client/billing-subscription-http.client.ts`
-**Authentication:** Placeholder Bearer token (`PUT SOMETHING`)
-**Endpoint:** `GET /subscription/user/:userId/active`
+**Authentication:** Internal API (no external auth).
+**Key endpoint:** `GET {billingApi.url}/subscription/user/:userId/active`
 
-### Payment Gateway (Simulated)
+### External Movie Rating API (HTTP)
 
-**Purpose:** Process subscription payments
-**Location:** `package/billing/http/client/payment-gateway-api/payment-gateway.client.ts`
-**Note:** Not a real integration — random success/failure with simulated latency
+**Purpose:** Fetch external movie ratings (TMDB-style) during content creation.
+**Location:** `package/content/management/http/client/external-movie-rating/`
+**Authentication:** API key in config.
+**Key endpoints:** Discover/search keyword endpoints.
 
-## Authentication
+### Google Gemini (GenAI SDK)
 
-**Module:** `package/shared/module/auth/auth.module.ts`
-**Implementation:** JWT (HS256) via `@nestjs/jwt`, bcrypt for password hashing
-**Guards:** `AuthGuard` (Bearer token verification, sets `userId` + `userRole` on CLS), `AdminGuard` (checks `userRole === 'admin'`)
-**CLS:** `nestjs-cls` for request-scoped user context (middleware-mounted, global)
-**GraphQL support:** `AuthGuard` handles both HTTP and GraphQL via `GqlExecutionContext`
+**Purpose:** Video transcription, summary generation, age recommendation extraction.
+**Location:** `package/content/media/http/client/gemini-api/gemini-text-extractor.client.ts`
+**Authentication:** `@google/genai` SDK with API key.
 
-## Event System
+### Payment / Tax / Accounting (Simulated)
 
-**Module:** `package/shared/module/event/event-emitter.module.ts`
-**Service:** `EventEmitterService` wrapping `EventEmitter2`
-**Status:** Infrastructure is in place but **not actively wired** — no `@OnEvent` handlers found in domain code. Billing services contain TODOs to emit events.
+**Purpose:** Payment processing, tax calculation, accounting integration.
+**Location:** `package/billing/http/client/` — `PaymentGatewayClient`, `EasyTaxClient`, `AccountingIntegrationClient`
+**Status:** Simulated behavior (placeholder implementations for development).
 
-## Logging
+## Background Jobs (BullMQ)
 
-**Factory:** `package/shared/module/logger/util/logger.factory.ts`
-**Service:** `AppLogger` wrapping Winston `Logger`
-**Behavior:** Console transport; dev = Nest-like format, non-dev = JSON; `silent` in test environment
-**Usage:** Set as Nest app logger in `main.ts`
+| Queue Area | Location | Jobs |
+|---|---|---|
+| Recommendations | `package/recommendations/queue/` | Recommendation computation |
+| Analytics | `package/analytics/ingestion/queue/`, `aggregation/queue/` | Event ingestion, trending/genre aggregation |
+| Content Media | `package/content/media/queue/` | Transcription, summary, age recommendation |
+| Content Management | `package/content/management/queue/` | Content distribution, video processing |
+
+## File Uploads
+
+**Library:** multer (diskStorage)
+**Location:** `ManagementMovieController`, `ManagementTvShowController`
+**Purpose:** Asset uploads (video files, thumbnails) for content creation.
+
+## Infrastructure / Deployment
+
+**Docker Compose:** PostgreSQL + Redis only (development).
+**CI:** `.github/workflows/main.yml` — Node 20.19.0, Postgres 14, Redis 7 services.
+**Deploy:** `monolith-build-deploy.yaml`, `billing-api-build-deploy.yaml` (separate deployment pipelines).
+
+## Unused Dependencies
+
+**AWS SDK:** `@aws-sdk/client-dynamodb`, `aws-sdk` listed in `package.json` but no matching TypeScript imports found — likely reserved or unused.

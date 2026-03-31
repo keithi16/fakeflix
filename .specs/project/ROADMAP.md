@@ -1,122 +1,67 @@
 # Roadmap
 
-**Current Milestone:** M1 — Core Personalization
+**Current Milestone:** M1 — Core Publishing Lifecycle
 **Status:** Planning
 
 ---
 
-## M1 — Core Personalization (P0)
+## M1: Core Publishing Lifecycle (P0)
 
-**Goal:** Deliver the two highest-impact recommendation surfaces — personalized content and resume-watching — so users find relevant content immediately on the home screen.
-**Target:** End of Sprint 2
+**Goal:** Content is no longer immediately visible upon creation. The system enforces a state machine (DRAFT → REVIEW → PUBLISHED → ARCHIVED) with quality gates, and the public catalog only returns PUBLISHED content. This is the minimum shippable increment that solves the core problem.
+
+**Target:** Foundation for all subsequent features.
 
 ### Features
 
-**Personalized Row ("Recommended for You")** — PLANNED
+**content-lifecycle-core** - PLANNED
 
-- Compute personalized content scores using genre affinity weights from analytics
-- Rank up to 20 unwatched titles per user, ordered by personalization score
-- Fallback to trending content for new users (no viewing history)
-- Exclude completed content (>= 90% watched)
-- Recompute recommendations within 24h of new viewing events (daily batch)
-- Support unauthenticated users with trending-only fallback
-
-**Continue Watching Row** — PLANNED
-
-- Surface partially viewed content (> 5% and < 90% complete), ordered by most recently watched
-- Resume playback from last known position on click
-- Auto-remove completed content (>= 90%)
-- Cap at 20 items
-- Support explicit dismiss (content does not reappear even if re-watched)
+- Publishing state machine on ContentItem entity (DRAFT, REVIEW, PUBLISHED, ARCHIVED)
+- State transition validation (only allowed transitions)
+- Admin endpoint: `PATCH /admin/content/:id/transition` with `targetState`
+- Quality gates before REVIEW → PUBLISHED (thumbnail, description ≥50 chars, genre, age rating, episodes for TV shows)
+- Catalog filtering: public APIs return only PUBLISHED content
+- Cross-module transparency: `ContentCatalogApi` facade returns only PUBLISHED
+- Data migration: existing content → PUBLISHED
+- Admin content listing with status filter: `GET /admin/content?status=...`
 
 ---
 
-## M2 — Discovery Surfaces (P1)
+## M2: Editorial Operations (P1)
 
-**Goal:** Add genre-aware and trend-driven rows that make the home screen feel personalized and fresh, covering the primary discovery patterns.
-**Target:** End of Sprint 4
+**Goal:** Content team can schedule future publications, archive content non-destructively, and see pipeline state at a glance. Operational capabilities that build on M1's foundation.
+
+**Target:** After M1 is verified and stable.
 
 ### Features
 
-**Trending Now Row** — PLANNED
+**editorial-operations** - PLANNED
 
-- Display top 20 trending titles from daily analytics computation
-- Refresh within 1h of trending recomputation
-- Completed content still appears (social signal, not personal)
-- Previous day's trending as fallback if today's computation hasn't run
-
-**Top in [Genre] Rows** — PLANNED
-
-- Up to 3 genre rows based on user's top genre affinities
-- Ranked by composite of completion rate + view count within genre
-- Exclude completed content
-- Suppress genre row if fewer than 5 unwatched titles available
-- Not shown for users without genre affinities
-
-**New Releases Row (Genre-Filtered)** — PLANNED
-
-- Content added in last 30 days, filtered by user's top 3 genre affinities
-- Ordered by release date (newest first)
-- Fallback to all genres for users without affinity data
-- Suppress if fewer than 5 matching items
-- Exclude completed content
+- Scheduled publishing: `scheduledPublishAt` field on REVIEW content, BullMQ delayed job, auto-gate-check at scheduled time
+- Content archiving: PUBLISHED → ARCHIVED (preserves data), ARCHIVED → PUBLISHED (re-gates)
+- Pipeline dashboard: `GET /admin/content/pipeline/summary` (counts by state), optional content type breakdown, recent transitions
 
 ---
 
-## M3 — Advanced Personalization (P2)
+## M3: Operational Excellence (P2)
 
-**Goal:** Add content-similarity recommendations and editorial control, enabling deeper personalization and business-driven content promotion.
-**Target:** End of Sprint 6
+**Goal:** Governance, traceability, and bulk efficiency. Not blocking for editorial operations but important for audit and scale.
 
-### Features
-
-**"Because You Watched [X]" Row** — PLANNED
-
-- Generate similarity-based row from user's most recently completed title
-- Match by shared genres, similar completion rates, and common tags
-- Exclude completed content
-- Suppress if fewer than 5 similar titles
-- Not shown for users who haven't completed any content
-
-**Editorial Boost (Admin API)** — PLANNED
-
-- `POST /recommendations/admin/boost` — mark content for elevated ranking on a surface
-- Optional expiration (`expiresAt`) with automatic revert to organic ranking
-- Boosted content appears in top 5 positions of target row
-- `GET /recommendations/admin/boosts` — list active boosts with metadata
-- `DELETE` boost support with organic revert on next recomputation cycle
-- Admin-only access (403 for non-admin users)
-
----
-
-## M4 — Insights & Niche Discovery (P3)
-
-**Goal:** Surface high-quality niche content and provide analytics on recommendation effectiveness to close the feedback loop.
-**Target:** End of Sprint 8
+**Target:** After M2 is verified.
 
 ### Features
 
-**Hidden Gems Row** — PLANNED
+**operational-excellence** - PLANNED
 
-- Identify content with completionRate >= 70% and totalViews <= 500
-- Display up to 10 items weighted by user's genre affinities
-- Exclude completed content
-- Suppress if fewer than 5 matching items
-
-**Recommendation Effectiveness Tracking** — PLANNED
-
-- Log impression events (userId, contentId, surface, rank) on recommendation click
-- Log conversion events linking play to impression within 5-minute window
-- `GET /recommendations/admin/effectiveness` — metrics per surface (impressions, clicks, conversions, CTR, conversion rate)
-- Support date range filtering (`from`, `to`)
+- Full audit trail: `GET /admin/content/:id/transitions` with history, triggeredBy, optional reason
+- Bulk transitions: `POST /admin/content/bulk-transition` (up to 50 items, partial success/failure)
 
 ---
 
 ## Future Considerations
 
-- Explainability labels ("Because you watched X") on recommendation rows — planned for v1.1
-- Collaborative filtering ("users like you also watched") — requires ML infrastructure (v2)
-- Real-time recommendation updates (as user browses) — infrastructure investment
-- Onboarding genre preference survey for cold-start mitigation
-- Content availability filtering by region/plan
-- A/B testing framework for recommendation strategies
+- Multi-step approval workflows (editor → reviewer → director)
+- Public preview links for stakeholder review
+- Per-episode publishing granularity
+- License-based auto-depublication
+- Automated stale-content notifications
+- Regional availability controls
