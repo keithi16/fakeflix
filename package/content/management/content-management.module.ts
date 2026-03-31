@@ -1,9 +1,6 @@
 import { Module } from '@nestjs/common';
 import { HttpClientModule } from '@tlc/shared-module/http-client';
 import { LoggerModule } from '@tlc/shared-module/logger';
-import { ContentCatalogApi } from '@tlc/shared-module/public-api';
-import { ContentCatalogFacade } from './public-api/facade/content-catalog.facade';
-import { ListCatalogContentUseCase } from './core/use-case/list-catalog-content.use-case';
 import { ContentSharedModule } from '../shared/content-shared.module';
 import { ContentMediaModule } from '../media/content-media.module';
 import { ContentAgeRecommendationService } from './core/service/content-age-recommendation.service';
@@ -39,11 +36,8 @@ import { VideoProcessingJobProducer } from './queue/producer/video-processing-jo
     VideoProcessingJobProducer,
     SetAgeRecommendationForContentUseCase,
     ContentAgeRecommendationConsumer,
-    ListCatalogContentUseCase,
-    ContentCatalogFacade,
-    { provide: ContentCatalogApi, useClass: ContentCatalogFacade },
   ],
   controllers: [ManagementMovieController, ManagementTvShowController],
-  exports: [ContentCatalogApi],
+  exports: [],
 })
 export class ContentManagementModule {}
