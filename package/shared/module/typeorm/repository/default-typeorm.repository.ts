@@ -2,6 +2,7 @@ import { DefaultEntity } from '../entity/default.entity';
 import {
   EntityManager,
   EntityTarget,
+  FindManyOptions,
   FindOneOptions,
   FindOptionsWhere,
   Repository,
@@ -34,7 +35,7 @@ export abstract class DefaultTypeOrmRepository<T extends DefaultEntity<T>> {
     return this.repository.findOne(options);
   }
 
-  async find(options: FindOneOptions<T>): Promise<T[]> {
+  async find(options: FindManyOptions<T>): Promise<T[]> {
     return this.repository.find(options);
   }
 
