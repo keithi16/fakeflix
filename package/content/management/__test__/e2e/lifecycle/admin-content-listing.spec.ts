@@ -202,6 +202,7 @@ describe('ContentLifecycleController – admin content listing (e2e)', () => {
     it('returns 404 for a non-existent content id', async () => {
       await request(app.getHttpServer())
         .get(`/admin/content/${randomUUID()}`)
+        .set('Authorization', 'Bearer fake-token')
         .expect(HttpStatus.NOT_FOUND);
     });
   });
