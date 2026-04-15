@@ -45,6 +45,10 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Entity state isolation (architecture)
+        shell: bash
+        run: bash .github/scripts/verify-entity-state-isolation.sh
+
       - name: Install Node.js
         uses: actions/setup-node@v4
         with:
