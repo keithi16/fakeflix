@@ -10,8 +10,13 @@ const databaseSchema = z.object({
   username: z.string(),
 });
 
+const security = z.object({
+  passwordHashSaltRounds: z.coerce.number().int().min(4).max(15).default(10),
+});
+
 const identity = z.object({
   database: databaseSchema,
+  security,
 });
 
 export const configSchema = z.object({
@@ -34,6 +39,9 @@ export const identityConfigFactory = (): IdentityConfig => {
         port: process.env.IDENTITY_DATABASE_PORT,
         url: `postgresql://${process.env.IDENTITY_DATABASE_USERNAME}:${process.env.IDENTITY_DATABASE_PASSWORD}@${process.env.IDENTITY_DATABASE_HOST}:${process.env.IDENTITY_DATABASE_PORT}/${process.env.IDENTITY_DATABASE_NAME}`,
         username: process.env.IDENTITY_DATABASE_USERNAME,
+      },
+      security: {
+        passwordHashSaltRounds: process.env.IDENTITY_PASSWORD_HASH_SALT_ROUNDS,
       },
     },
   });

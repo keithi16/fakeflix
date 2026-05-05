@@ -1,15 +1,28 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { ConfigModule } from '@tlc/shared-module/config';
+import { ConfigModule, ConfigService } from '@tlc/shared-module/config';
 import { UserRepository } from '../../../../persistence/repository/user.repository';
 import { UserManagementService } from '../../user-management.service';
+import { identityConfigFactory } from '../../../../config';
+
+jest.mock('bcrypt', () => ({
+  hash: jest.fn(),
+}));
+
+import { hash } from 'bcrypt';
 
 describe('UserManagementService', () => {
   let service: UserManagementService;
   let userRepository: UserRepository;
 
   beforeEach(async () => {
+    jest.clearAllMocks();
+
     const module: TestingModule = await Test.createTestingModule({
-      imports: [ConfigModule.forRoot()],
+      imports: [
+        ConfigModule.forRoot({
+          load: [identityConfigFactory],
+        }),
+      ],
       providers: [
         UserManagementService,
         {
@@ -34,6 +47,7 @@ describe('UserManagementService', () => {
         lastName: 'Doe',
       };
 
+      (hash as jest.Mock).mockResolvedValueOnce('hashed_password');
       jest.spyOn(userRepository, 'save').mockResolvedValueOnce({} as any);
 
       const createdUser = await service.create(user);
@@ -42,6 +56,52 @@ describe('UserManagementService', () => {
       expect(email).toEqual(user.email);
       expect(firstName).toEqual(user.firstName);
       expect(lastName).toEqual(user.lastName);
+    });
+  });
+
+  describe('create with custom salt rounds', () => {
+    let customService: UserManagementService;
+    let customUserRepository: UserRepository;
+
+    beforeEach(async () => {
+      jest.clearAllMocks();
+
+      const module: TestingModule = await Test.createTestingModule({
+        providers: [
+          UserManagementService,
+          {
+            provide: ConfigService,
+            useValue: {
+              get: jest.fn().mockReturnValue(8),
+            },
+          },
+          {
+            provide: UserRepository,
+            useValue: {
+              save: jest.fn(),
+            },
+          },
+        ],
+      }).compile();
+
+      customService = module.get<UserManagementService>(UserManagementService);
+      customUserRepository = module.get<UserRepository>(UserRepository);
+    });
+
+    it('uses the configured salt rounds from ConfigService', async () => {
+      const user = {
+        email: 'test@example.com',
+        password: 'password',
+        firstName: 'John',
+        lastName: 'Doe',
+      };
+
+      (hash as jest.Mock).mockResolvedValueOnce('hashed_password');
+      jest.spyOn(customUserRepository, 'save').mockResolvedValueOnce({} as any);
+
+      await customService.create(user);
+
+      expect(hash).toHaveBeenCalledWith(user.password, 8);
     });
   });
 });
