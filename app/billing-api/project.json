@@ -5,28 +5,40 @@
   "projectType": "application",
   "tags": ["app:billing-api"],
   "targets": {
-    "start:dev": {
-      "executor": "nx:run-commands",
+    "build": {
+      "executor": "@nx/webpack:webpack",
+      "outputs": ["{options.outputPath}"],
+      "defaultConfiguration": "development",
       "options": {
-        "command": "nest start",
-        "args": ["--watch"],
-        "cwd": "app/billing-api"
+        "target": "node",
+        "compiler": "tsc",
+        "outputPath": "dist/app/billing-api",
+        "main": "app/billing-api/main.ts",
+        "tsConfig": "app/billing-api/tsconfig.json",
+        "webpackConfig": "app/billing-api/webpack.config.js"
+      },
+      "configurations": {
+        "production": {
+          "optimization": true,
+          "sourceMap": false
+        }
+      }
+    },
+    "start:dev": {
+      "executor": "@nx/js:node",
+      "options": {
+        "buildTarget": "billing-api:build",
+        "watch": true,
+        "inspect": false,
+        "runBuildTargetDependencies": false
       }
     },
     "start:debug": {
-      "executor": "nx:run-commands",
+      "executor": "@nx/js:node",
       "options": {
-        "command": "nest start",
-        "args": ["--watch --debug"],
-        "cwd": "app/billing-api"
-      }
-    },
-    "build": {
-      "executor": "nx:run-commands",
-      "options": {
-        "command": "nest build",
-        "cwd": "app/billing-api",
-        "args": ["-c nest-cli.json"]
+        "buildTarget": "billing-api:build",
+        "watch": true,
+        "inspect": true
       }
     },
     "start": {

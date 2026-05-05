@@ -5,28 +5,40 @@
   "projectType": "application",
   "tags": [],
   "targets": {
-    "start:dev": {
-      "executor": "nx:run-commands",
+    "build": {
+      "executor": "@nx/webpack:webpack",
+      "outputs": ["{options.outputPath}"],
+      "defaultConfiguration": "development",
       "options": {
-        "command": "nest start",
-        "args": ["--watch"],
-        "cwd": "app/monolith"
+        "target": "node",
+        "compiler": "tsc",
+        "outputPath": "dist/app/monolith",
+        "main": "app/monolith/main.ts",
+        "tsConfig": "app/monolith/tsconfig.json",
+        "webpackConfig": "app/monolith/webpack.config.js"
+      },
+      "configurations": {
+        "production": {
+          "optimization": true,
+          "sourceMap": false
+        }
+      }
+    },
+    "start:dev": {
+      "executor": "@nx/js:node",
+      "options": {
+        "buildTarget": "monolith:build",
+        "watch": true,
+        "inspect": false,
+        "runBuildTargetDependencies": false
       }
     },
     "start:debug": {
-      "executor": "nx:run-commands",
+      "executor": "@nx/js:node",
       "options": {
-        "command": "nest start",
-        "args": ["--watch --debug"],
-        "cwd": "app/monolith"
-      }
-    },
-    "build": {
-      "executor": "nx:run-commands",
-      "options": {
-        "command": "nest build",
-        "cwd": "app/monolith",
-        "args": ["-c nest-cli.json"]
+        "buildTarget": "monolith:build",
+        "watch": true,
+        "inspect": true
       }
     },
     "start": {

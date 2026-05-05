@@ -2,7 +2,6 @@
   "name": "@tlc/billing-api",
   "version": "3.60.2",
   "private": true,
-  "type": "module",
   "sideEffects": false,
   "author": "TLC Team",
   "license": "UNLICENSED"
