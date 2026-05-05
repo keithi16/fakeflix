@@ -1,0 +1,13 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "./out-tsc/app",
+    "rootDir": "."
+  },
+  "include": ["**/*.ts"],
+  "exclude": ["**/*.spec.ts"],
+  "references": [
+    { "path": "../../package/shared/module/tsconfig.lib.json" },
+    { "path": "../../package/billing/tsconfig.lib.json" }
+  ]
+}

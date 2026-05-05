@@ -3,24 +3,47 @@
   "version": "1.0.0",
   "private": true,
   "exports": {
-    "./auth": "./auth/index.ts",
-    "./config": "./config/index.ts",
-    "./event": "./event/index.ts",
-    "./http-client": "./http-client/index.ts",
-    "./logger": "./logger/index.ts",
-    "./public-api": "./public-api/index.ts",
-    "./typeorm": "./typeorm/index.ts"
-  },
-  "typesVersions": {
-    "*": {
-      "auth": ["./auth/index.ts"],
-      "config": ["./config/index.ts"],
-      "event": ["./event/index.ts"],
-      "http-client": ["./http-client/index.ts"],
-      "logger": ["./logger/index.ts"],
-      "public-api": ["./public-api/index.ts"],
-      "typeorm": ["./typeorm/index.ts"]
+    "./auth": {
+      "@tlc/source": "./auth/index.ts",
+      "types": "./auth/index.ts",
+      "import": "./auth/index.ts",
+      "default": "./auth/index.ts"
+    },
+    "./config": {
+      "@tlc/source": "./config/index.ts",
+      "types": "./config/index.ts",
+      "import": "./config/index.ts",
+      "default": "./config/index.ts"
+    },
+    "./event": {
+      "@tlc/source": "./event/index.ts",
+      "types": "./event/index.ts",
+      "import": "./event/index.ts",
+      "default": "./event/index.ts"
+    },
+    "./http-client": {
+      "@tlc/source": "./http-client/index.ts",
+      "types": "./http-client/index.ts",
+      "import": "./http-client/index.ts",
+      "default": "./http-client/index.ts"
+    },
+    "./logger": {
+      "@tlc/source": "./logger/index.ts",
+      "types": "./logger/index.ts",
+      "import": "./logger/index.ts",
+      "default": "./logger/index.ts"
+    },
+    "./public-api": {
+      "@tlc/source": "./public-api/index.ts",
+      "types": "./public-api/index.ts",
+      "import": "./public-api/index.ts",
+      "default": "./public-api/index.ts"
+    },
+    "./typeorm": {
+      "@tlc/source": "./typeorm/index.ts",
+      "types": "./typeorm/index.ts",
+      "import": "./typeorm/index.ts",
+      "default": "./typeorm/index.ts"
     }
   }
 }
-

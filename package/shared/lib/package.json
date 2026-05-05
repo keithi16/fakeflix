@@ -3,16 +3,24 @@
   "version": "1.0.0",
   "private": true,
   "exports": {
-    ".": "./index.ts",
-    "./common": "./index.ts",
-    "./test": "./test/index.ts"
-  },
-  "typesVersions": {
-    "*": {
-      ".": ["./index.ts"],
-      "common": ["./index.ts"],
-      "test": ["./test/index.ts"]
+    "./package.json": "./package.json",
+    ".": {
+      "@tlc/source": "./index.ts",
+      "types": "./index.ts",
+      "import": "./index.ts",
+      "default": "./index.ts"
+    },
+    "./common": {
+      "@tlc/source": "./index.ts",
+      "types": "./index.ts",
+      "import": "./index.ts",
+      "default": "./index.ts"
+    },
+    "./test": {
+      "@tlc/source": "./test/index.ts",
+      "types": "./test/index.ts",
+      "import": "./test/index.ts",
+      "default": "./test/index.ts"
     }
   }
 }
-

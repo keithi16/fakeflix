@@ -2,7 +2,7 @@
   "extends": "./tsconfig.json",
   "compilerOptions": {
     "composite": true,
-    "outDir": "../../.tsbuild/package/billing",
+    "outDir": "./out-tsc/lib",
     "rootDir": "."
   },
   "include": ["**/*.ts"],

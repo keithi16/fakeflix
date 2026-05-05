@@ -4,7 +4,7 @@ import { randomUUID } from 'node:crypto';
 
 import { createNestApp } from '@tlc/shared-lib/test';
 import { ConfigModule, ConfigService } from '@tlc/shared-module/config';
-import { Tables } from '@tlc/shared-lib/test/enum/tables.enum';
+import { Tables } from '@tlc/shared-lib/test';
 import { knex, type Knex } from 'knex';
 import { cleanAll } from 'nock';
 import { ContentConfig, contentConfigFactory } from '../../../../config';

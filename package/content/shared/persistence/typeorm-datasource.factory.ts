@@ -1,11 +1,11 @@
 import { ConfigService } from '@tlc/shared-module/config';
 import { join } from 'path';
-import { PostgresConnectionOptions } from 'typeorm/driver/postgres/PostgresConnectionOptions';
+import type { DataSourceOptions } from 'typeorm';
 import { ContentConfig } from '../../config';
 
 export const dataSourceOptionsFactory = (
   configService: ConfigService<ContentConfig>
-): PostgresConnectionOptions => ({
+): Extract<DataSourceOptions, { type: 'postgres' }> => ({
   type: 'postgres',
   name: 'content',
   host: configService.get('content.database.host'),

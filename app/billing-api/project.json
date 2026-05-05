@@ -14,7 +14,8 @@
         "compiler": "tsc",
         "outputPath": "dist/app/billing-api",
         "main": "app/billing-api/main.ts",
-        "tsConfig": "app/billing-api/tsconfig.json",
+        "tsConfig": "app/billing-api/tsconfig.app.json",
+        "typeCheckOptions": false,
         "webpackConfig": "app/billing-api/webpack.config.js"
       },
       "configurations": {

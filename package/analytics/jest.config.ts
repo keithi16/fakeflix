@@ -1,4 +1,4 @@
-export default {
+module.exports = {
   displayName: 'analytics',
   preset: '../../jest.preset.js',
   testEnvironment: 'node',

@@ -1,5 +1,33 @@
 {
   "extends": "./tsconfig.base.json",
   "files": [],
-  "references": []
+  "references": [
+    {
+      "path": "./package/recommendations"
+    },
+    {
+      "path": "./package/shared/module"
+    },
+    {
+      "path": "./package/shared/lib"
+    },
+    {
+      "path": "./package/analytics"
+    },
+    {
+      "path": "./package/identity"
+    },
+    {
+      "path": "./package/billing"
+    },
+    {
+      "path": "./app/billing-api"
+    },
+    {
+      "path": "./package/content"
+    },
+    {
+      "path": "./app/monolith"
+    }
+  ]
 }

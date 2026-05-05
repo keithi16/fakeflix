@@ -1,4 +1,4 @@
-export default {
+module.exports = {
   displayName: 'identity',
   preset: '../../jest.preset.js',
   testEnvironment: 'node',

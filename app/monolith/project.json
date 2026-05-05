@@ -14,8 +14,9 @@
         "compiler": "tsc",
         "outputPath": "dist/app/monolith",
         "main": "app/monolith/main.ts",
-        "tsConfig": "app/monolith/tsconfig.json",
-        "webpackConfig": "app/monolith/webpack.config.js"
+        "tsConfig": "app/monolith/tsconfig.app.json",
+        "webpackConfig": "app/monolith/webpack.config.js",
+        "typeCheckOptions": false
       },
       "configurations": {
         "production": {
