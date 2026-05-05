@@ -3,9 +3,17 @@ const { join } = require('path');
 
 const root = join(__dirname, '../..');
 
-module.exports = {
+// Exported as a function so Nx calls it with (config, { options }) and we
+// receive options.watch — enabling webpack's built-in watcher when running
+// through @nx/js:node in watch mode.  Without this, the webpack Observable
+// completes after one build and @nx/js:node spins in an infinite kill-restart
+// loop while silently dropping all app output.
+module.exports = function (_config, ctx) {
+  const watch = ctx?.options?.watch ?? false;
+  return {
   mode: 'none',
   target: 'node',
+  watch,
   entry: join(root, 'app/billing-api/main.ts'),
   output: {
     path: join(root, 'dist/app/billing-api'),
@@ -50,4 +58,5 @@ module.exports = {
       },
     ],
   },
+  };
 };
