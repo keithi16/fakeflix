@@ -52,6 +52,18 @@ describe('ContentPublishingStateMachineService', () => {
       service.transition(content, PublishingStatus.PUBLISHED);
       expect(content.publishingStatus).toBe(PublishingStatus.PUBLISHED);
     });
+
+    it('transitions from REVIEW to REJECTED', () => {
+      const content = makeContent(PublishingStatus.REVIEW);
+      service.transition(content, PublishingStatus.REJECTED);
+      expect(content.publishingStatus).toBe(PublishingStatus.REJECTED);
+    });
+
+    it('transitions from REJECTED to DRAFT', () => {
+      const content = makeContent(PublishingStatus.REJECTED);
+      service.transition(content, PublishingStatus.DRAFT);
+      expect(content.publishingStatus).toBe(PublishingStatus.DRAFT);
+    });
   });
 
   describe('transition - invalid transitions throw UnprocessableEntityException', () => {
@@ -63,6 +75,12 @@ describe('ContentPublishingStateMachineService', () => {
       [PublishingStatus.PUBLISHED, PublishingStatus.REVIEW],
       [PublishingStatus.ARCHIVED, PublishingStatus.DRAFT],
       [PublishingStatus.ARCHIVED, PublishingStatus.REVIEW],
+      [PublishingStatus.REJECTED, PublishingStatus.REVIEW],
+      [PublishingStatus.REJECTED, PublishingStatus.PUBLISHED],
+      [PublishingStatus.REJECTED, PublishingStatus.ARCHIVED],
+      [PublishingStatus.DRAFT, PublishingStatus.REJECTED],
+      [PublishingStatus.PUBLISHED, PublishingStatus.REJECTED],
+      [PublishingStatus.ARCHIVED, PublishingStatus.REJECTED],
     ];
 
     it.each(invalidCases)('throws when transitioning from %s to %s', (from, to) => {
@@ -86,10 +104,11 @@ describe('ContentPublishingStateMachineService', () => {
       expect(service.getAllowedTransitions(PublishingStatus.DRAFT)).toEqual([PublishingStatus.REVIEW]);
     });
 
-    it('returns [PUBLISHED, DRAFT] for REVIEW', () => {
+    it('returns [PUBLISHED, DRAFT, REJECTED] for REVIEW', () => {
       expect(service.getAllowedTransitions(PublishingStatus.REVIEW)).toEqual([
         PublishingStatus.PUBLISHED,
         PublishingStatus.DRAFT,
+        PublishingStatus.REJECTED,
       ]);
     });
 
@@ -99,6 +118,10 @@ describe('ContentPublishingStateMachineService', () => {
 
     it('returns [PUBLISHED] for ARCHIVED', () => {
       expect(service.getAllowedTransitions(PublishingStatus.ARCHIVED)).toEqual([PublishingStatus.PUBLISHED]);
+    });
+
+    it('returns [DRAFT] for REJECTED', () => {
+      expect(service.getAllowedTransitions(PublishingStatus.REJECTED)).toEqual([PublishingStatus.DRAFT]);
     });
   });
 });

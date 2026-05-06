@@ -8,6 +8,7 @@ export interface PipelineStatusCounts {
   review: number;
   published: number;
   archived: number;
+  rejected: number;
 }
 
 export interface PipelineSummary extends PipelineStatusCounts {
@@ -15,7 +16,7 @@ export interface PipelineSummary extends PipelineStatusCounts {
 }
 
 function buildEmptyCounts(): PipelineStatusCounts {
-  return { draft: 0, review: 0, published: 0, archived: 0 };
+  return { draft: 0, review: 0, published: 0, archived: 0, rejected: 0 };
 }
 
 function statusKey(status: PublishingStatus): keyof PipelineStatusCounts {
@@ -24,6 +25,7 @@ function statusKey(status: PublishingStatus): keyof PipelineStatusCounts {
     [PublishingStatus.REVIEW]: 'review',
     [PublishingStatus.PUBLISHED]: 'published',
     [PublishingStatus.ARCHIVED]: 'archived',
+    [PublishingStatus.REJECTED]: 'rejected',
   };
   return map[status];
 }
