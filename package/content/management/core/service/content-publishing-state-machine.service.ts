@@ -6,10 +6,9 @@ import { PublishingStatus } from '../../../shared/core/enum/publishing-status.en
 export class ContentPublishingStateMachineService {
   private readonly ALLOWED_TRANSITIONS: Map<PublishingStatus, PublishingStatus[]> = new Map([
     [PublishingStatus.DRAFT, [PublishingStatus.REVIEW]],
-    [PublishingStatus.REVIEW, [PublishingStatus.PUBLISHED, PublishingStatus.DRAFT, PublishingStatus.REJECTED]],
+    [PublishingStatus.REVIEW, [PublishingStatus.PUBLISHED, PublishingStatus.DRAFT]],
     [PublishingStatus.PUBLISHED, [PublishingStatus.ARCHIVED]],
     [PublishingStatus.ARCHIVED, [PublishingStatus.PUBLISHED]],
-    [PublishingStatus.REJECTED, [PublishingStatus.DRAFT]],
   ]);
 
   transition(content: Content, targetState: PublishingStatus): void {

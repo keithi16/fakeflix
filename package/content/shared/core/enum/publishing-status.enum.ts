@@ -3,5 +3,4 @@ export enum PublishingStatus {
   REVIEW = 'REVIEW',
   PUBLISHED = 'PUBLISHED',
   ARCHIVED = 'ARCHIVED',
-  REJECTED = 'REJECTED',
 }

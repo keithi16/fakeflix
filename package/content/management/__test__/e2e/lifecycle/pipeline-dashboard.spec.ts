@@ -124,7 +124,7 @@ describe('PipelineDashboardController (e2e)', () => {
         .set('Authorization', 'Bearer fake-token')
         .expect(HttpStatus.OK);
 
-      expect(res.body).toEqual({ draft: 0, review: 0, published: 0, archived: 0, rejected: 0 });
+      expect(res.body).toEqual({ draft: 0, review: 0, published: 0, archived: 0 });
     });
 
     it('returns correct counts per state', async () => {
@@ -139,7 +139,7 @@ describe('PipelineDashboardController (e2e)', () => {
         .set('Authorization', 'Bearer fake-token')
         .expect(HttpStatus.OK);
 
-      expect(res.body).toEqual({ draft: 2, review: 1, published: 1, archived: 1, rejected: 0 });
+      expect(res.body).toEqual({ draft: 2, review: 1, published: 1, archived: 1 });
     });
 
     it('returns only non-zero states when some states have no content', async () => {
@@ -151,7 +151,7 @@ describe('PipelineDashboardController (e2e)', () => {
         .set('Authorization', 'Bearer fake-token')
         .expect(HttpStatus.OK);
 
-      expect(res.body).toEqual({ draft: 0, review: 0, published: 2, archived: 0, rejected: 0 });
+      expect(res.body).toEqual({ draft: 0, review: 0, published: 2, archived: 0 });
     });
   });
 
@@ -191,7 +191,7 @@ describe('PipelineDashboardController (e2e)', () => {
         .set('Authorization', 'Bearer fake-token')
         .expect(HttpStatus.OK);
 
-      expect(res.body).toEqual({ draft: 0, review: 0, published: 0, archived: 0, rejected: 0, breakdown: {} });
+      expect(res.body).toEqual({ draft: 0, review: 0, published: 0, archived: 0, breakdown: {} });
     });
   });
 
