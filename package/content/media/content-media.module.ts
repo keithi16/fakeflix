@@ -47,6 +47,6 @@ import { ContentAgeRecommendationQueueProducer } from './queue/producer/content-
     ContentAgeRecommendationQueueProducer,
     MediaFacade,
   ],
-  exports: [MediaFacade],
+  exports: [MediaFacade, VideoRepository],
 })
 export class ContentMediaModule {}

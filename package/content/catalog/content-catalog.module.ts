@@ -6,6 +6,7 @@ import { ContentSharedModule } from '../shared/content-shared.module'
 import { ContentMediaModule } from '../media/content-media.module'
 import { GetStreamingURLUseCase } from './core/use-case/get-streaming-url.use-case'
 import { ListContentUseCase } from './core/use-case/list-content.use-case'
+import { ListVideosUseCase } from './core/use-case/list-videos.use-case'
 import { ListCatalogContentUseCase } from './core/use-case/list-catalog-content.use-case'
 import { ContentResolver } from './http/graphql/resolver/content.resolver'
 import { VideoResolver } from './http/graphql/resolver/video.resolver'
@@ -24,6 +25,7 @@ import { ContentCatalogFacade } from './public-api/facade/content-catalog.facade
     VideoResolver,
     GetStreamingURLUseCase,
     ListContentUseCase,
+    ListVideosUseCase,
     VideoStreamingService,
   ],
   controllers: [MediaPlayerController],
