@@ -15,6 +15,8 @@ export class ContentResolver {
         title: content.title,
         description: content.description,
         type: content.type,
+        genres: content.genres,
+        releaseDate: content.releaseDate,
         createdAt: content.createdAt,
         updatedAt: content.updatedAt,
       };

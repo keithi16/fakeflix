@@ -14,6 +14,12 @@ export class Content {
   @Field()
   type: string;
 
+  @Field(() => [String], { nullable: true })
+  genres: string[];
+
+  @Field({ nullable: true })
+  releaseDate: Date | null;
+
   @Field()
   createdAt: Date;
 
