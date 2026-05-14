@@ -17,7 +17,7 @@ export class Content {
   @Field(() => [String], { nullable: true })
   genres: string[];
 
-  @Field({ nullable: true })
+  @Field(() => Date, { nullable: true })
   releaseDate: Date | null;
 
   @Field()

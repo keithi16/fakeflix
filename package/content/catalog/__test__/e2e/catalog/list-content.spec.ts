@@ -77,5 +77,73 @@ describe('ContentCatalog - listContent GraphQL (e2e)', () => {
       expect(res.status).toBe(HttpStatus.OK);
       expect(res.body.data.listContent).toEqual([]);
     });
+
+    it('returns genres and releaseDate when both are set', async () => {
+      const movie = movieFactory.build({
+        publishingStatus: PublishingStatus.PUBLISHED,
+        genres: ['Action', 'Drama'],
+        releaseDate: new Date('2020-06-15'),
+      });
+      await testDbClient(Tables.Content).insert(movie);
+
+      const res = await request(app.getHttpServer())
+        .post('/graphql')
+        .send({ query: '{ listContent { id title type genres releaseDate } }' });
+
+      expect(res.status).toBe(HttpStatus.OK);
+      expect(res.body.data.listContent).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            id: movie.id,
+            genres: ['Action', 'Drama'],
+            releaseDate: expect.stringContaining('2020-06-15'),
+          }),
+        ]),
+      );
+    });
+
+    it('returns empty genres array when genres is []', async () => {
+      const movie = movieFactory.build({
+        publishingStatus: PublishingStatus.PUBLISHED,
+        genres: [],
+      });
+      await testDbClient(Tables.Content).insert(movie);
+
+      const res = await request(app.getHttpServer())
+        .post('/graphql')
+        .send({ query: '{ listContent { id title type genres releaseDate } }' });
+
+      expect(res.status).toBe(HttpStatus.OK);
+      expect(res.body.data.listContent).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            id: movie.id,
+            genres: [],
+          }),
+        ]),
+      );
+    });
+
+    it('returns null releaseDate when releaseDate is null', async () => {
+      const movie = movieFactory.build({
+        publishingStatus: PublishingStatus.PUBLISHED,
+        releaseDate: null,
+      });
+      await testDbClient(Tables.Content).insert(movie);
+
+      const res = await request(app.getHttpServer())
+        .post('/graphql')
+        .send({ query: '{ listContent { id title type genres releaseDate } }' });
+
+      expect(res.status).toBe(HttpStatus.OK);
+      expect(res.body.data.listContent).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            id: movie.id,
+            releaseDate: null,
+          }),
+        ]),
+      );
+    });
   });
 });
