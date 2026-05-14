@@ -87,6 +87,7 @@ describe('ContentCatalog - listContent GraphQL (e2e)', () => {
       await testDbClient(Tables.Content).insert({
         ...movie,
         genres: JSON.stringify(movie.genres ?? []),
+        releaseDate: '2020-06-15',
       });
 
       const res = await request(app.getHttpServer())
