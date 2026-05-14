@@ -16,7 +16,7 @@ export class ContentResolver {
         description: content.description,
         type: content.type,
         genres: content.genres,
-        releaseDate: content.releaseDate,
+        releaseDate: content.releaseDate ? new Date(content.releaseDate as any) : null,
         createdAt: content.createdAt,
         updatedAt: content.updatedAt,
       };
