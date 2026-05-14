@@ -84,7 +84,10 @@ describe('ContentCatalog - listContent GraphQL (e2e)', () => {
         genres: ['Action', 'Drama'],
         releaseDate: new Date('2020-06-15'),
       });
-      await testDbClient(Tables.Content).insert(movie);
+      await testDbClient(Tables.Content).insert({
+        ...movie,
+        genres: JSON.stringify(movie.genres ?? []),
+      });
 
       const res = await request(app.getHttpServer())
         .post('/graphql')
@@ -107,7 +110,10 @@ describe('ContentCatalog - listContent GraphQL (e2e)', () => {
         publishingStatus: PublishingStatus.PUBLISHED,
         genres: [],
       });
-      await testDbClient(Tables.Content).insert(movie);
+      await testDbClient(Tables.Content).insert({
+        ...movie,
+        genres: JSON.stringify(movie.genres ?? []),
+      });
 
       const res = await request(app.getHttpServer())
         .post('/graphql')
@@ -129,7 +135,10 @@ describe('ContentCatalog - listContent GraphQL (e2e)', () => {
         publishingStatus: PublishingStatus.PUBLISHED,
         releaseDate: null,
       });
-      await testDbClient(Tables.Content).insert(movie);
+      await testDbClient(Tables.Content).insert({
+        ...movie,
+        genres: JSON.stringify(movie.genres ?? []),
+      });
 
       const res = await request(app.getHttpServer())
         .post('/graphql')
