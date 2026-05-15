@@ -48,7 +48,7 @@
 **10 Key Principles:**
 
 1. Well-defined boundaries | 2. Composability | 3. Independence | 4. Individual scale | 5. Explicit communication
-6. Replaceability | 7. Deployment independence | 8. State isolation ⚠️ | 9. Observability | 10. Fail independence
+2. Replaceability | 7. Deployment independence | 8. State isolation ⚠️ | 9. Observability | 10. Fail independence
 
 ### Progressive Documentation Loading
 
@@ -64,20 +64,23 @@
   - Client encapsulation, injection patterns, logging, metrics, circuit breakers, event systems
 
 **Architecture/design tasks** → handled automatically by the `modular-architecture` skill:
+
 - Creating modules, evaluating module boundaries, assessing compliance, maturity assessments
 
 #### Quick Reference by Task Type
 
-| Task Type | Primary Doc | Notes |
-| --- | --- | --- |
-| New entity/migration | `docs/coding-patterns.md` | Entity naming section |
-| New controller/service/repository | `docs/coding-patterns.md` | Full patterns doc |
-| External API integration | `docs/integration-patterns.md` | Client encapsulation section |
-| Logging/metrics/circuit breakers | `docs/integration-patterns.md` | Resilience sections |
-| Create new module | `modular-architecture` skill | Auto-triggered |
-| Evaluate module boundaries | `modular-architecture` skill | Auto-triggered |
-| Architecture compliance check | `modular-architecture` skill | Auto-triggered |
-| Maturity assessment | `modular-architecture` skill | Auto-triggered |
+
+| Task Type                         | Primary Doc                    | Notes                        |
+| --------------------------------- | ------------------------------ | ---------------------------- |
+| New entity/migration              | `docs/coding-patterns.md`      | Entity naming section        |
+| New controller/service/repository | `docs/coding-patterns.md`      | Full patterns doc            |
+| External API integration          | `docs/integration-patterns.md` | Client encapsulation section |
+| Logging/metrics/circuit breakers  | `docs/integration-patterns.md` | Resilience sections          |
+| Create new module                 | `modular-architecture` skill   | Auto-triggered               |
+| Evaluate module boundaries        | `modular-architecture` skill   | Auto-triggered               |
+| Architecture compliance check     | `modular-architecture` skill   | Auto-triggered               |
+| Maturity assessment               | `modular-architecture` skill   | Auto-triggered               |
+
 
 ---
 
@@ -108,17 +111,10 @@ Never create migrations manually — always use `nx db:generate <packageName>`. 
 ### Confluence
 
 - **Cloud ID:** d58e860b-469d-4463-8f46-684934a5a851
-- **URL:** https://techleadsclub.atlassian.net/
+- **URL:** [https://techleadsclub.atlassian.net/](https://techleadsclub.atlassian.net/)
 
 The Cloud ID can be:
 
 - A site URL (e.g., `https://techleadsclub.atlassian.net/`)
 - A UUID from `getAccessibleAtlassianResources`
 
-### Jira
-
-- **Project Key:** KAN
-- **Cloud ID:** d58e860b-469d-4463-8f46-684934a5a851
-- **URL:** https://techleadsclub.atlassian.net/
-- **Project Name:** TLC
-- **Board URL:** https://techleadsclub.atlassian.net/jira/software/projects/KAN/boards/1
