@@ -12,4 +12,8 @@ export class VideoRepository extends DefaultTypeOrmRepository<Video> {
   ) {
     super(Video, dataSource.manager);
   }
+
+  async findAll(): Promise<Video[]> {
+    return this.find({});
+  }
 }
